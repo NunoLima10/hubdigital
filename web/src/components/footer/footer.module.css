@@ -1,0 +1,13 @@
+.footer{
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--mantine-spacing-lg) var(--mantine-spacing-lg);
+   @media (max-width: $mantine-breakpoint-sm) {
+    padding: var(--mantine-spacing-xs) var(--mantine-spacing-xs);
+   }
+}

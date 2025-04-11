@@ -1,0 +1,5 @@
+.root{
+    max-width:rem(80px);
+    width: auto;
+    padding-inline: var(--mantine-spacing-sm);
+}

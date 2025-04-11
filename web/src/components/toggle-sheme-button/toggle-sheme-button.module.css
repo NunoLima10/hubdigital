@@ -1,0 +1,23 @@
+ .dark {
+    width: 22px;
+    height: 22px;
+    @mixin dark {
+      display: none;
+    }
+  
+    @mixin light {
+      display: block;
+    }
+  }
+  
+  .light {
+    width: 22px;
+    height: 22px;
+    @mixin light {
+      display: none;
+    }
+  
+    @mixin dark {
+      display: block;
+    }
+  }

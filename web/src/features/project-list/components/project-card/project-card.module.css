@@ -1,0 +1,79 @@
+.card {
+  height: rem(60px);
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.icon {
+  border-radius: var(--mantine-radius-lg);
+  width: rem(70px);
+  height: rem(70px);
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    width: rem(60px);
+    height: rem(60px);
+    border-radius: var(--mantine-radius-md);
+  }
+}
+
+.titleLink {
+  text-decoration: none;
+}
+
+.title {
+  font-weight: bold;
+  font-size: 500;
+  color: var(--mantine-color-text);
+
+  @mixin hover {
+    text-decoration: underline;
+  }
+}
+
+.topics {
+  @media (max-width: $mantine-breakpoint-xs) {
+    display: none;
+  }
+}
+
+.label {
+  line-height: 0;
+}
+.section {
+  margin: rem(2px);
+}
+.inner {
+  @media (max-width: $mantine-breakpoint-xs) {
+    flex-direction: column-reverse;
+    transform: translate(-10%);
+  }
+}
+.root {
+  width: rem(95px);
+  border: 3px solid transparent;
+  border-radius: var(--mantine-radius-lg);
+
+  /* =================== */
+  @media (max-width: $mantine-breakpoint-xs) {
+    width: 55px;
+    height: 55px;
+  }
+
+  @mixin dark {
+    background-color: var(--mantine-color-dark-8);
+  }
+
+  @mixin light {
+    background-color: var(--mantine-color-dark-2);
+  }
+}
+
+.upvoteIcon {
+  transform: translate(0, -10%);
+
+  @media (max-width: $mantine-breakpoint-xs) {
+    transform: translate(0, 20%);
+  }
+}
