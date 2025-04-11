@@ -19,7 +19,7 @@ export function GithubStars() {
   });
 
   return (
-    <Anchor>
+    <Anchor href="https://github.com/NunoLima10/hubdigital" target="_blank">
       <ActionIcon
         variant="default"
         size="input-sm"

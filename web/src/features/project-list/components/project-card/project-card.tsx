@@ -12,6 +12,7 @@ import { IconConfetti } from "@tabler/icons-react";
 import classes from "./project-card.module.css";
 
 import { useMediaQuery } from "@mantine/hooks";
+import { useState } from "react";
 import { useReward } from "react-rewards";
 import { Project } from "../../types/project";
 
@@ -25,12 +26,20 @@ export function Projectcard({
   website,
 }: Project) {
   // Equivalent to $mantine-breakpoint-xs -> 36em
-  const isRowButton = useMediaQuery("(min-width: 36em)");
   const rewardId = "rewardId" + id.toString();
+
+  const isRowButton = useMediaQuery("(min-width: 36em)");
+  const [up, setUp] = useState(upCount);
 
   const { reward, isAnimating } = useReward(rewardId, "confetti", {
     lifetime: 2000,
   });
+
+  function onClickUp() {
+    setUp((prev) => prev + 1);
+    reward();
+  }
+
   return (
     <Flex className={classes.card}>
       <Flex gap={"xs"}>
@@ -66,10 +75,10 @@ export function Projectcard({
           section: classes.section,
           label: classes.label,
         }}
-        onClick={reward}
+        onClick={onClickUp}
         disabled={isAnimating}
       >
-        <Text size="sm">{upCount}</Text>
+        <Text size="sm">{up}</Text>
       </Button>
     </Flex>
   );
@@ -81,11 +90,23 @@ function Loading() {
       <Flex gap={"xs"}>
         <Skeleton className={classes.icon} animate={false} />
         <Stack gap={0}>
-          <Skeleton height={15} mt={"sm"} width={100} radius="xs" animate={false} />
-          <Skeleton height={15} mt={"sm"} width={150} radius="xs" animate={false} />
+          <Skeleton
+            height={15}
+            mt={"sm"}
+            width={100}
+            radius="xs"
+            animate={false}
+          />
+          <Skeleton
+            height={15}
+            mt={"sm"}
+            width={150}
+            radius="xs"
+            animate={false}
+          />
         </Stack>
       </Flex>
-      <Skeleton h={40} className={classes.root} animate={false}   />
+      <Skeleton h={40} className={classes.root} animate={false} />
     </Flex>
   );
 }

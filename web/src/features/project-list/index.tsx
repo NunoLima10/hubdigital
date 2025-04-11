@@ -19,28 +19,28 @@ export function ProjectList() {
       />
       <Projectcard
         title="NhaFarma"
-        id={1}
+        id={2}
         description="Encontre farmácias de serviço em Cabo Verde, com praticidade e eficiência."
         topis={["Informação", "SaaS", "B2C"]}
-        upCount={0}
+        upCount={10}
         iconUrl={nhafarmacia}
         website="https://www.nhafarma.cv/"
       />
       <Projectcard
         title="Calendario.cv"
-        id={1}
+        id={3}
         description="Encontre farmácias de serviço em Cabo Verde, com praticidade e eficiência."
         topis={["Informação", "SaaS", "B2C"]}
-        upCount={0}
+        upCount={100}
         iconUrl={calendarios}
         website="https://www.calendario.cv/"
       />
       <Projectcard
         title="Chuva Less"
-        id={1}
+        id={4}
         description="O Less automatiza a criação, o gerenciamento e a implantação de sua infraestrutura de nuvem"
         topis={["Serviço", "Cloud", "B2B"]}
-        upCount={0}
+        upCount={1000}
         iconUrl={less}
         website="https://less.chuva.io/"
       />
