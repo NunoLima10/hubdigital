@@ -42,7 +42,7 @@ export function ProjectList() {
         topis={["Serviço", "Cloud", "B2B"]}
         upCount={0}
         iconUrl={less}
-        website="https://www.calendario.cv/"
+        website="https://less.chuva.io/"
       />
 
       <Projectcard.Loading />
