@@ -2,6 +2,7 @@ import { Center } from "@mantine/core";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Landing } from "./pages/landing/landing";
 
+
 export const PathConstants = {
   root: "/",
   route1: "route/1",

@@ -1,4 +1,7 @@
-import icon from "@assets/Icon3D.webp";
+import calendarios from "@assets/calendarios.webp";
+import less from "@assets/less.webp";
+import nhafarmacia from "@assets/nhafarmacia.webp";
+import notifika from "@assets/notifika.webp";
 import { Stack } from "@mantine/core";
 import { Projectcard } from "./components/project-card/project-card";
 
@@ -8,39 +11,41 @@ export function ProjectList() {
       <Projectcard
         title="Notifika"
         id={1}
-        description=" Lorem ipsum dolor sit, amet consectetur adipisicing elit. Cum fuga deleniti"
-        topis={["1", "2", "3"]}
-        upCount={10}
-        iconUrl={icon}
+        description="Conectamos empresas a clientes, tornando a comunicação direta mais eficiente em tempo real."
+        topis={["Comunicação", "SaaS", "B2B"]}
+        upCount={0}
+        iconUrl={notifika}
         website="https://notifika.cv/"
       />
       <Projectcard
-        title="Notifika"
-        id={2}
-        description=" Lorem ipsum dolor sit, amet consectetur adipisicing elit. Cum fuga deleniti dzdadzda a ae eaeaezfzegzggz"
-        topis={["1", "2", "3"]}
-        upCount={10}
-        iconUrl={icon}
-        website="https://notifika.cv/"
+        title="NhaFarma"
+        id={1}
+        description="Encontre farmácias de serviço em Cabo Verde, com praticidade e eficiência."
+        topis={["Informação", "SaaS", "B2C"]}
+        upCount={0}
+        iconUrl={nhafarmacia}
+        website="https://www.nhafarma.cv/"
       />
       <Projectcard
-        title="Notifika"
-        id={3}
-        description=" Lorem ipsum dolor sit, amet consectetur adipisicing elit. Cum fuga deleniti"
-        topis={["1", "2", "3"]}
-        upCount={10}
-        iconUrl={icon}
-        website="https://notifika.cv/"
+        title="Calendario.cv"
+        id={1}
+        description="Encontre farmácias de serviço em Cabo Verde, com praticidade e eficiência."
+        topis={["Informação", "SaaS", "B2C"]}
+        upCount={0}
+        iconUrl={calendarios}
+        website="https://www.calendario.cv/"
       />
       <Projectcard
-        title="Notifika"
-        id={4}
-        description=" Lorem ipsum dolor sit, amet consectetur adipisicing elit. Cum fuga deleniti"
-        topis={["1", "2", "3"]}
-        upCount={10}
-        iconUrl={icon}
-        website="https://notifika.cv/"
+        title="Chuva Less"
+        id={1}
+        description="O Less automatiza a criação, o gerenciamento e a implantação de sua infraestrutura de nuvem"
+        topis={["Serviço", "Cloud", "B2B"]}
+        upCount={0}
+        iconUrl={less}
+        website="https://www.calendario.cv/"
       />
+
+      <Projectcard.Loading />
     </Stack>
   );
 }

@@ -1,4 +1,13 @@
-import { Anchor, Badge, Button, Flex, Group, Stack, Text } from "@mantine/core";
+import {
+  Anchor,
+  Badge,
+  Button,
+  Flex,
+  Group,
+  Skeleton,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { IconConfetti } from "@tabler/icons-react";
 import classes from "./project-card.module.css";
 
@@ -65,3 +74,19 @@ export function Projectcard({
     </Flex>
   );
 }
+
+function Loading() {
+  return (
+    <Flex className={classes.card}>
+      <Flex gap={"xs"}>
+        <Skeleton className={classes.icon} animate={false} />
+        <Stack gap={0}>
+          <Skeleton height={15} mt={"sm"} width={100} radius="xs" animate={false} />
+          <Skeleton height={15} mt={"sm"} width={150} radius="xs" animate={false} />
+        </Stack>
+      </Flex>
+      <Skeleton h={40} className={classes.root} animate={false}   />
+    </Flex>
+  );
+}
+Projectcard.Loading = Loading;
