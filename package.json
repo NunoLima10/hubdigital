@@ -6,7 +6,12 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "web:dev": "pnpm run --filter @hubdigital/web dev",
-    "web:build": "pnpm run --filter @hubdigital/web build"
+    "web:build": "pnpm run --filter @hubdigital/web build",
+    "web:preview": "pnpm run --filter @hubdigital/web preview",
+    "api:dev": "pnpm run --filter @hubdigital/api dev",
+    "api:build": "pnpm run --filter @hubdigital/api build",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
   },
   "keywords": [],
   "author": "",

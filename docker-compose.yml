@@ -1,0 +1,15 @@
+services:
+  hub-digital-db:
+    container_name: hub-digital-db
+    image: postgres:17
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: hubdigitaldb
+
+volumes:
+  pgdata:
