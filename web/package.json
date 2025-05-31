@@ -14,6 +14,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.8.0",
   "dependencies": {
+    "@clerk/clerk-react": "^5.31.8",
     "@mantine/core": "^8.0.1",
     "@mantine/hooks": "^8.0.1",
     "@mantine/notifications": "^8.0.1",
@@ -23,7 +24,8 @@
     "react-dom": "^19.1.0",
     "react-error-boundary": "^6.0.0",
     "react-rewards": "^2.1.0",
-    "react-router-dom": "^7.6.0"
+    "react-router-dom": "^7.6.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",

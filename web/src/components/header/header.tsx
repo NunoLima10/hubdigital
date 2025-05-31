@@ -1,17 +1,19 @@
-import { Button, Group } from "@mantine/core";
-import { ToggleShemeButton } from "../toggle-sheme-button/toggle-sheme-button";
-import classes from "./header.module.css";
-import { IconUser } from "@tabler/icons-react";
+import { Group } from "@mantine/core";
 import { GithubStars } from "../github-starts/github-starts";
+import { LoginButton } from "../login-button/login-button";
+import { ToggleShemeButton } from "../toggle-sheme-button/toggle-sheme-button";
+import { UserButton } from "../user-button/user-button";
+import classes from "./header.module.css";
 
 export function Header() {
   return (
     <div className={classes.header}>
       logo aqui
       <Group>
-        <GithubStars/>
+        <GithubStars />
         <ToggleShemeButton />
-        <Button leftSection={<IconUser size={18}/>}>Login</Button>
+        <LoginButton />
+        <UserButton />
       </Group>
     </div>
   );
