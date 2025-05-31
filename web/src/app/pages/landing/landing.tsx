@@ -1,5 +1,5 @@
 import { Header } from "@/components/header/header";
-import { ProjectList } from "@/features/project-list";
+import { ProjectList } from "@/modules/project-list";
 import { Container, Stack, Text, Title } from "@mantine/core";
 import classes from "./landing.module.css";
 import { Footer } from "@/components/footer/footer";
