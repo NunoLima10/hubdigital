@@ -1,5 +1,5 @@
-import { z } from "zod";
 import zennv from "zennv";
+import { z } from "zod";
 
 const envSchema = z.object({
   NODE_ENV: z
@@ -22,6 +22,8 @@ const envSchema = z.object({
     .string()
     .default("cookie-jwt")
     .describe("Secret for signing cookies"),
+  CLERK_PUBLISHABLE_KEY: z.string().describe("Clerk API publishable key"),
+  CLERK_SECRET_KEY: z.string().describe("Clerk API secret key"),
 });
 
 export const env = zennv({

@@ -1,21 +1,22 @@
+import { DB } from "@/db";
+import cookiesPlugin from "@/plugins/cookies";
+import corsPlugin from "@/plugins/cors";
+import errorHandlerPlugin from "@/plugins/error-handler";
+import rateLimitPlugin from "@/plugins/rate-limiter";
+import swaggerPlugin from "@/plugins/swagger";
+import { env } from "@/utils/env";
+import { loggerOptions } from "@/utils/logger";
+import { clerkPlugin } from "@clerk/fastify";
 import Fastify, {
   FastifyInstance,
   FastifyReply,
   FastifyRequest,
 } from "fastify";
-import { loggerOptions } from "@/utils/logger";
 import {
   serializerCompiler,
   validatorCompiler,
   ZodTypeProvider,
 } from "fastify-type-provider-zod";
-import corsPlugin from "@/plugins/cors";
-import { env } from "@/utils/env";
-import cookiesPlugin from "@/plugins/cookies";
-import swaggerPlugin from "@/plugins/swagger";
-import errorHandlerPlugin from "@/plugins/error-handler";
-import rateLimitPlugin from "@/plugins/rate-limiter";
-import { DB } from "@/db";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -37,6 +38,11 @@ export async function buildServer(db: DB) {
     origin: env.ALLOWED_ORIGINS,
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
+  });
+
+  await server.register(clerkPlugin, {
+    publishableKey: env.CLERK_PUBLISHABLE_KEY,
+    secretKey: env.CLERK_SECRET_KEY,
   });
 
   await server.register(cookiesPlugin, {
