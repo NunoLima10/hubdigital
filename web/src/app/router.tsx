@@ -1,13 +1,20 @@
-import { ClerkProvider } from "@clerk/react-router";
+import { Onboarding } from "@/modules/onboarding/onboarding";
+import { Profile } from "@/modules/profile";
+import { ClerkProvider, Protect } from "@clerk/react-router";
 import { Center } from "@mantine/core";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { env } from "./env";
 import { Landing } from "./pages/landing/landing";
 
 export const PathConstants = {
   root: "/",
-  profile: "perfil",
+  profile: "/perfil",
+  onboarding: "/onboarding",
 } as const;
+
+function RedirectHome() {
+  return <Navigate to={PathConstants.root} replace />;
+}
 
 export function AppRouter() {
   return (
@@ -21,7 +28,19 @@ export function AppRouter() {
           <Route path={PathConstants.root} element={<Landing />} />
           <Route
             path={PathConstants.profile}
-            element={<Center>Perfil</Center>}
+            element={
+              <Protect fallback={<RedirectHome />}>
+                <Profile />
+              </Protect>
+            }
+          />
+          <Route
+            path={PathConstants.onboarding}
+            element={
+              <Protect fallback={<RedirectHome />}>
+                <Onboarding />
+              </Protect>
+            }
           />
 
           <Route path="*" element={<Center>Not Found</Center>} />
