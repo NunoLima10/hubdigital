@@ -1,5 +1,7 @@
+import { ClerkProvider } from "@clerk/react-router";
 import { Center } from "@mantine/core";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { env } from "./env";
 import { Landing } from "./pages/landing/landing";
 
 export const PathConstants = {
@@ -7,26 +9,24 @@ export const PathConstants = {
   profile: "perfil",
 } as const;
 
-// interface ProtectedProps {
-//   component: React.ReactNode;
-// }
-
-// function Protected({ component }: ProtectedProps) {
-//   const { token } = useAuth();
-//   if (token) return component;
-
-//   return <Navigate to={PathConstants.root}></Navigate>;
-// }
-
 export function AppRouter() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path={PathConstants.root} element={<Landing />} />
-        <Route path={PathConstants.profile} element={<Center>Perfil</Center>} />
+      <ClerkProvider
+        publishableKey={env.CLERK_PUBLISHABLE_KEY}
+        afterSignOutUrl="/"
+        signInFallbackRedirectUrl={PathConstants.profile}
+      >
+        <Routes>
+          <Route path={PathConstants.root} element={<Landing />} />
+          <Route
+            path={PathConstants.profile}
+            element={<Center>Perfil</Center>}
+          />
 
-        <Route path="*" element={<Center>Not Found</Center>} />
-      </Routes>
+          <Route path="*" element={<Center>Not Found</Center>} />
+        </Routes>
+      </ClerkProvider>
     </BrowserRouter>
   );
 }
