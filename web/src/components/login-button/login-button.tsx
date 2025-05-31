@@ -1,4 +1,4 @@
-import { useClerk } from "@clerk/clerk-react";
+import { useClerk } from "@clerk/react-router";
 import { Button } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
 

@@ -2,10 +2,9 @@ import { Center } from "@mantine/core";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Landing } from "./pages/landing/landing";
 
-
 export const PathConstants = {
   root: "/",
-  route1: "route/1",
+  profile: "perfil",
 } as const;
 
 // interface ProtectedProps {
@@ -24,10 +23,7 @@ export function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path={PathConstants.root} element={<Landing />} />
-        <Route
-          path={PathConstants.route1}
-          element={<Center>{PathConstants.route1}</Center>}
-        />
+        <Route path={PathConstants.profile} element={<Center>Perfil</Center>} />
 
         <Route path="*" element={<Center>Not Found</Center>} />
       </Routes>

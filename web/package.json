@@ -14,7 +14,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.8.0",
   "dependencies": {
-    "@clerk/clerk-react": "^5.31.8",
+    "@clerk/react-router": "^1.4.8",
     "@mantine/core": "^8.0.1",
     "@mantine/hooks": "^8.0.1",
     "@mantine/notifications": "^8.0.1",
