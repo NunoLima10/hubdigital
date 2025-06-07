@@ -4,6 +4,17 @@ import { FastifyPluginAsync } from "fastify";
 import fastifyPlugin from "fastify-plugin";
 import { hasZodFastifySchemaValidationErrors } from "fastify-type-provider-zod";
 import { PostgresError } from "postgres";
+import { z } from "zod";
+
+
+export const errorResponseSchema = z.object({
+  error: z.object({
+    status: z.string(),
+    message: z.string(),
+    code: z.string().optional(),
+  }),
+});
+
 
 const customErrorHandler: FastifyPluginAsync = async (fastify) => {
   fastify.setErrorHandler((error, req, reply) => {
