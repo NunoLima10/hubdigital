@@ -1,0 +1,64 @@
+enum found_us_by_responses {
+  CV1
+  CV2
+  CV3
+  CV4
+  CV5
+  CV6
+  CV7
+  CV8
+  CV9
+  diaspora
+}
+
+enum location_responses {
+  CV1
+  CV2
+  CV3
+  CV4
+  CV5
+  CV6
+  CV7
+  CV8
+  CV9
+  diaspora
+}
+
+enum objective_responses {
+  "discover-products"
+  "launch-product"
+  networking
+  explore
+}
+
+enum profile_responses {
+  student
+  "technology-professional"
+  founder
+  investor
+}
+
+table accounts {
+  id serial [pk, not null, increment]
+  clerk_user_id text [not null]
+  profile_id integer [not null]
+  email text [not null]
+  fullName text [not null]
+  username text [not null]
+  avatar_url text
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+}
+
+table profiles {
+  id serial [pk, not null, increment]
+  bio text
+  profile_response profile_responses [not null]
+  objective_response objective_responses [not null]
+  location_response location_responses [not null]
+  found_us_by_response found_us_by_responses [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+}
+
+ref: accounts.profile_id - profiles.id
