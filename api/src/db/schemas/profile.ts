@@ -1,9 +1,11 @@
 import {
+  foundUsByQuestionValues,
   locationQuestionValues,
   objectiveQuestionValues,
   profileQuestionValues,
 } from "@/utils/constants";
-import { pgEnum, pgTable, serial, text } from "drizzle-orm/pg-core";
+import { InferInsertModel } from "drizzle-orm";
+import { pgEnum, pgTable, serial, varchar } from "drizzle-orm/pg-core";
 import { timestamps } from "./timestamps";
 
 export const profileResponseEnum = pgEnum(
@@ -20,15 +22,17 @@ export const locationResponseEnum = pgEnum(
 );
 export const foundUsByResponseEnum = pgEnum(
   "found_us_by_responses",
-  locationQuestionValues
+  foundUsByQuestionValues
 );
 
 export const profiles = pgTable("profiles", {
   id: serial("id").primaryKey(),
-  bio: text("bio"),
+  bio: varchar("bio").notNull(),
   profileResponse: profileResponseEnum("profile_response").notNull(),
   objectiveResponse: objectiveResponseEnum("objective_response").notNull(),
   locationResponse: locationResponseEnum("location_response").notNull(),
   foundUsByResponse: foundUsByResponseEnum("found_us_by_response").notNull(),
   ...timestamps,
 });
+
+export type ProfilInsertModel = InferInsertModel<typeof profiles>;

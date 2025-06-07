@@ -17,6 +17,7 @@ import {
   validatorCompiler,
   ZodTypeProvider,
 } from "fastify-type-provider-zod";
+import { usersRoutes } from "./modules/users/users-routes";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -67,6 +68,8 @@ export async function buildServer(db: DB) {
     port: env.PORT,
     path: "/docs",
   });
+
+  await server.register(usersRoutes, { prefix: "/v1/users" });
 
   server.get("/", async (req: FastifyRequest, reply: FastifyReply) => {
     reply.redirect("/docs");

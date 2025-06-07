@@ -1,5 +1,5 @@
-import { relations } from "drizzle-orm";
-import { integer, pgTable, text , serial} from "drizzle-orm/pg-core";
+import { InferInsertModel, relations } from "drizzle-orm";
+import { integer, pgTable, serial, text } from "drizzle-orm/pg-core";
 import { profiles } from "./profile";
 import { timestamps } from "./timestamps";
 
@@ -11,7 +11,6 @@ export const accounts = pgTable("accounts", {
     .references(() => profiles.id, { onDelete: "cascade" }),
   email: text("email").notNull(),
   fullName: text("fullName").notNull(),
-  username: text("username").notNull(),
   avatarUrl: text("avatar_url"),
   ...timestamps,
 });
@@ -22,3 +21,5 @@ export const profilesRelations = relations(accounts, ({ one }) => ({
     references: [profiles.id],
   }),
 }));
+
+export type AccountInsertModel = InferInsertModel<typeof accounts>;
