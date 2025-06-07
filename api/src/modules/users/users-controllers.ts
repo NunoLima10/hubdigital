@@ -29,6 +29,12 @@ async function onboardingHandler(
     avatarUrl: user.imageUrl,
   });
 
+  await clerkClient.users.updateUserMetadata(userId, {
+    privateMetadata: {
+      onboarded: true,
+    },
+  });
+
   const response: OnboardingResponse = {
     data: {
       id: account.id,
