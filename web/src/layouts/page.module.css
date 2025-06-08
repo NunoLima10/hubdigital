@@ -1,0 +1,34 @@
+.container{
+    height: "auto";
+    margin: 0  20%;
+
+    @media (max-width: $mantine-breakpoint-xl) {
+        margin: 0  5%;
+        flex-direction: column;
+    }
+
+    @media (max-width: $mantine-breakpoint-lg) {
+        margin: 0  2%;
+    }
+    @media (max-width: $mantine-breakpoint-xs) {
+        margin: 0  0%;
+    }
+}
+
+.leftSection{
+    width: 40%;
+     @media (max-width: $mantine-breakpoint-xl) {
+        width: 100%;
+    }
+
+}
+
+.center{
+    width: 100%;
+}
+.rightSection{
+    width: 40%;
+      @media (max-width: $mantine-breakpoint-xl) {
+        width: 100%;
+    }
+}
