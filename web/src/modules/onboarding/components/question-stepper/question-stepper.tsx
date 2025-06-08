@@ -1,19 +1,16 @@
 import { Stepper } from "@mantine/core";
-import { useState } from "react";
+import { useOnboarding } from "../../hooks/use-onboarding";
+import { StepCompleted } from "../step-completed/step-completed";
 import { UserInterest } from "../user-interest/user-interest";
 import { UserLocation } from "../user-location/user-location";
 import { UserOrigin } from "../user-origin/user-origin";
 import { UserProfile } from "../user-profile/user-profile";
 
 export function QuestionStepper() {
-  const [active, setActive] = useState(1);
-  const nextStep = () =>
-    setActive((current) => (current < 3 ? current + 1 : current));
-  const prevStep = () =>
-    setActive((current) => (current > 0 ? current - 1 : current));
+  const { active } = useOnboarding();
 
   return (
-    <Stepper active={4} onStepClick={setActive}>
+    <Stepper active={active}>
       <Stepper.Step label="Sobre você" description="Perfil do usuário">
         <UserProfile />
       </Stepper.Step>
@@ -30,7 +27,7 @@ export function QuestionStepper() {
         <UserOrigin />
       </Stepper.Step>
       <Stepper.Completed>
-        Cadastro concluído! Clique em voltar para revisar as etapas anteriores.
+        <StepCompleted />
       </Stepper.Completed>
     </Stepper>
   );
