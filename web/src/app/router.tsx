@@ -1,4 +1,4 @@
-import { Onboarding } from "@/modules/onboarding/onboarding";
+import { Onboarding } from "@/modules/onboarding";
 import { Profile } from "@/modules/profile";
 import { ClerkProvider, Protect } from "@clerk/react-router";
 import { Center } from "@mantine/core";
