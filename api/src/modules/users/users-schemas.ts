@@ -16,7 +16,7 @@ const onboardingResponseSchema = z.object({
 export const onboardingRouteSchema = {
   tags: ["users"],
   body: z.object({
-    bio: z.string(),
+    bio: z.string().optional().default(""),
     profileResponse: z.enum(profileQuestionValues),
     objectiveResponse: z.enum(objectiveQuestionValues),
     locationResponse: z.enum(locationQuestionValues),

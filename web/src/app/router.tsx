@@ -1,4 +1,5 @@
-import { Onboarding } from "@/modules/onboarding/onboarding";
+import { Onboarding } from "@/modules/onboarding";
+import { ForceOnboarding } from "@/modules/onboarding/components/force-onboarding/force-onboarding";
 import { Profile } from "@/modules/profile";
 import { ClerkProvider, Protect } from "@clerk/react-router";
 import { Center } from "@mantine/core";
@@ -26,14 +27,18 @@ export function AppRouter() {
       >
         <Routes>
           <Route path={PathConstants.root} element={<Landing />} />
+
           <Route
             path={PathConstants.profile}
             element={
               <Protect fallback={<RedirectHome />}>
-                <Profile />
+                <ForceOnboarding>
+                  <Profile />
+                </ForceOnboarding>
               </Protect>
             }
           />
+
           <Route
             path={PathConstants.onboarding}
             element={

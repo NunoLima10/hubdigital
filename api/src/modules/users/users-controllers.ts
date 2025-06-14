@@ -30,7 +30,7 @@ async function onboardingHandler(
   });
 
   await clerkClient.users.updateUserMetadata(userId, {
-    privateMetadata: {
+    publicMetadata: {
       onboarded: true,
     },
   });
