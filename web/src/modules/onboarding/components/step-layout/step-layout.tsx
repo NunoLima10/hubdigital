@@ -9,8 +9,8 @@ type StepLayout = PropsWithChildren & {
 export function StepLayout({ children, title }: StepLayout) {
   const { isFist, isLast, next, previous, needSelection } = useOnboarding();
   return (
-    <Stack mih={400} p={"md"}>
-      <Text ta={"center"} fw={500} fz={"h2"}>
+    <Stack mih={400}  gap={"xs"} mt={"lg"}>
+      <Text fw={500} fz={"h3"}>
         {title}
       </Text>
       <Stack />

@@ -1,0 +1,14 @@
+.container{
+
+    margin-top: 15%;
+    justify-content: center;
+     @media (max-width: $mantine-breakpoint-sm) {
+   margin-top: 5%;
+  }
+}
+
+.stepper {
+       @media (max-width: $mantine-breakpoint-md) {
+    width: 100%;
+  }
+}

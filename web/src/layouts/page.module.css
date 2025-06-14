@@ -1,17 +1,17 @@
 .container{
     height: "auto";
-    margin: 0  20%;
+    margin: 0 20%;
 
     @media (max-width: $mantine-breakpoint-xl) {
-        margin: 0  5%;
+        margin: 2% 5%;
         flex-direction: column;
     }
 
     @media (max-width: $mantine-breakpoint-lg) {
-        margin: 0  2%;
+        margin: 2%;
     }
     @media (max-width: $mantine-breakpoint-xs) {
-        margin: 0  0%;
+        margin: 2%;
     }
 }
 
