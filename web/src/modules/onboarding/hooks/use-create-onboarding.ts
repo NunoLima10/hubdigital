@@ -1,4 +1,5 @@
 import { API } from "@/api/api";
+import { CreateOptions, PostResponse } from "@/types";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { z } from "zod";
@@ -20,20 +21,23 @@ const schema = z.object({
 export type OnboardingResponse = z.infer<typeof schema>;
 
 async function postOnboarding(responses: OnboardingResponse) {
-  const response = await API.post<void>("/users/onboarding", responses);
-  //   return response.data;
+  const response = await API.post<PostResponse>("/users/onboarding", responses);
+  return response.data;
 }
 
-export function usePostOnboarding() {
+export function useCreateOnboarding(options?: CreateOptions) {
   const { mutate, isPending } = useMutation<
-    void,
+    PostResponse,
     AxiosError,
     OnboardingResponse
   >({
     mutationFn: postOnboarding,
-    onSuccess: () => {},
-    onError: (error) => {},
+    onSuccess: options?.onSuccess,
+    onError: options?.onError,
+    meta: {
+      errorMessage: options?.errorMessage ?? "Erro ao enviar onboarding",
+    },
   });
 
-  return { postResponses: mutate, schema, isPending };
+  return { createOnboarding: mutate, schema, isPending };
 }

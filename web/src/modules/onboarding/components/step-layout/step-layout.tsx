@@ -1,4 +1,4 @@
-import { Button, Flex, Stack, Text } from "@mantine/core";
+import { Button, Flex, Stack, Text, Tooltip } from "@mantine/core";
 import { PropsWithChildren } from "react";
 import { useOnboarding } from "../../hooks/use-onboarding";
 
@@ -21,7 +21,13 @@ export function StepLayout({ children, title }: StepLayout) {
             Voltar
           </Button>
         )}
-        {!isLast && <Button disabled={!needSelection} onClick={next}>Proximo</Button>}
+        {!isLast && (
+          <Tooltip label="Selecione uma opção para continuar" withArrow disabled={needSelection}>
+            <Button disabled={!needSelection} onClick={next}>
+              Proximo
+            </Button>
+          </Tooltip>
+        )}
       </Flex>
     </Stack>
   );

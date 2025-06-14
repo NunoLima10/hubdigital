@@ -1,11 +1,14 @@
+import { PathConstants } from "@/app/router";
+import { useUser } from "@clerk/react-router";
 import { useForm, UseFormReturnType } from "@mantine/form";
 import { useCounter } from "@mantine/hooks";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { createContext, PropsWithChildren, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   OnboardingResponse,
-  usePostOnboarding,
-} from "../hooks/use-post-onboarding";
+  useCreateOnboarding,
+} from "../hooks/use-create-onboarding";
 
 type OnboardingContextType = {
   form: UseFormReturnType<OnboardingResponse>;
@@ -18,6 +21,7 @@ type OnboardingContextType = {
   isDispora: boolean;
   onSelectDispora: (e: React.ChangeEvent<HTMLInputElement>) => void;
   needSelection: boolean;
+  isPending: boolean;
 };
 
 export const OnboardingContext = createContext<
@@ -29,13 +33,16 @@ function OnboardingProvider({ children }: PropsWithChildren) {
   const max = 4;
   const [step, handlers] = useCounter(0, { min, max });
   const [isDispora, setIsDispora] = useState(false);
-  const { postResponses, schema, isPending } = usePostOnboarding();
+  const navigate = useNavigate();
+  const { user } = useUser();
+  const { createOnboarding, schema, isPending } = useCreateOnboarding({
+    onSuccess: async () => {
+      await user?.reload();
+      navigate(PathConstants.profile);
+    },
+  });
 
   const form = useForm<OnboardingResponse>({
-    // initialValues:  {
-    //   title: "",
-    //   content: "",
-    // },
     validate: zodResolver(schema),
   });
 
@@ -54,7 +61,7 @@ function OnboardingProvider({ children }: PropsWithChildren) {
     (step === 3 && !!form.values.foundUsByResponse);
 
   function submit() {
-    console.log(form.values);
+    createOnboarding(form.values);
   }
 
   const value = {
@@ -68,6 +75,7 @@ function OnboardingProvider({ children }: PropsWithChildren) {
     isDispora,
     onSelectDispora,
     needSelection,
+    isPending,
   };
 
   return (
