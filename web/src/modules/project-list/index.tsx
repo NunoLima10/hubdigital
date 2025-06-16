@@ -44,11 +44,6 @@ export function ProjectList() {
         iconUrl={less}
         website="https://less.chuva.io/"
       />
-      <Flex gap={"xxxs"}>
-        <Button variant="gradient">Danger</Button>
-        <Button variant="danger">Danger</Button>
-      </Flex>
-
       <Projectcard.Loading />
     </Stack>
   );
