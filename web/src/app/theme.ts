@@ -1,4 +1,23 @@
-import { createTheme, darken, lighten, virtualColor } from "@mantine/core";
+import {
+  createTheme,
+  darken,
+  defaultVariantColorsResolver,
+  VariantColorsResolver,
+  virtualColor,
+} from "@mantine/core";
+
+export const spacing = {
+  none: "0",
+  xxxs: "0.25rem",
+  xxs: "0.375rem",
+  xs: "0.625rem",
+  sm: "0.75rem",
+  md: "1rem",
+  lg: "1.25rem",
+  xl: "2rem",
+  xxl: "2.5rem",
+  xxxl: "3rem",
+} as const;
 
 const light = {
   body: "#e8ebed",
@@ -39,19 +58,34 @@ const darkPrimary = {
   hover: "#be4f30",
   text: "#e5e5e5",
   buttonOuntline: "#e05d38",
-  lightButton: "#e05d38", 
+  lightButton: "#e05d38",
   link: "#e05d38",
+};
+const variantColorResolver: VariantColorsResolver = (input) => {
+  const defaultResolvedColors = defaultVariantColorsResolver(input);
+
+  if (input.variant === "danger") {
+    return {
+      background: "#ef4444",
+      hover: darken("#ef4444", 0.2),
+      color: "#ffffff",
+      border: "none",
+    };
+  }
+
+  return defaultResolvedColors;
 };
 
 export const theme = createTheme({
-  defaultRadius: "0.5rem",
+  variantColorResolver: variantColorResolver,
+  defaultRadius: "md",
   white: light.body,
   black: light.text,
   primaryColor: "primary",
   primaryShade: 5,
   defaultGradient: {
-    from: "#d6e4f0",
-    to: "#2a3656",
+    from: "#e05d38",
+    to: "yellow",
     deg: 113,
   },
   colors: {
@@ -112,4 +146,5 @@ export const theme = createTheme({
       "yellow",
     ],
   },
+  spacing,
 });
