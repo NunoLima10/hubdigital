@@ -2,7 +2,7 @@ import calendarios from "@assets/calendarios.webp";
 import less from "@assets/less.webp";
 import nhafarmacia from "@assets/nhafarmacia.webp";
 import notifika from "@assets/notifika.webp";
-import { Stack } from "@mantine/core";
+import { Button, Flex, Stack } from "@mantine/core";
 import { Projectcard } from "./components/project-card/project-card";
 
 export function ProjectList() {
@@ -44,7 +44,6 @@ export function ProjectList() {
         iconUrl={less}
         website="https://less.chuva.io/"
       />
-
       <Projectcard.Loading />
     </Stack>
   );
