@@ -1,10 +1,10 @@
-import { PathConstants } from "@/app/router";
-import { useUser } from "@clerk/react-router";
+import { useUser } from "@clerk/clerk-react";
 import { useForm, UseFormReturnType } from "@mantine/form";
 import { useCounter } from "@mantine/hooks";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { createContext, PropsWithChildren, useState } from "react";
-import { useNavigate } from "react-router-dom";
+
+import { useNavigate } from "@tanstack/react-router";
 import {
   OnboardingResponse,
   useCreateOnboarding,
@@ -33,12 +33,14 @@ function OnboardingProvider({ children }: PropsWithChildren) {
   const max = 4;
   const [step, handlers] = useCounter(0, { min, max });
   const [isDispora, setIsDispora] = useState(false);
+
   const navigate = useNavigate();
+
   const { user } = useUser();
   const { createOnboarding, schema, isPending } = useCreateOnboarding({
     onSuccess: async () => {
       await user?.reload();
-      navigate(PathConstants.profile);
+      navigate({ to: "/dashboard" });
     },
   });
 
