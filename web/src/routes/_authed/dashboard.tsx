@@ -1,4 +1,5 @@
 import { Page } from "@/layouts/page";
+import { ForceOnboarding } from "@/modules/onboarding/components/force-onboarding/force-onboarding";
 import { Profile } from "@/modules/profile";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -7,5 +8,9 @@ export const Route = createFileRoute("/_authed/dashboard")({
 });
 
 function RouteComponent() {
-  return <Page leftSection={<Profile />}>Dashboard</Page>;
+  return (
+    <ForceOnboarding>
+      <Page leftSection={<Profile />}>Dashboard</Page>;
+    </ForceOnboarding>
+  );
 }
