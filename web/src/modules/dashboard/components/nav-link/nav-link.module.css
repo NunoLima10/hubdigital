@@ -1,0 +1,34 @@
+.link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+  font-weight: 500;
+  color: var(--mantine-color-dimmed);
+
+  @mixin hover {
+    border-radius: var(--mantine-radius-sm);
+    background-color: var(--mantine-color-default-hover);
+   
+  }
+}
+
+.active {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  /* font-size: var(--mantine-font-size-sm); */
+
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-default);
+  font-weight: 500;
+  background-color: var(--mantine-primary-color-light);
+  color: var(--mantine-primary-color-filled-hover);
+
+  @mixin hover {
+    background-color: var(--mantine-primary-color-light);
+    color: var(--mantine-primary-color-filled-hover);
+  }
+}

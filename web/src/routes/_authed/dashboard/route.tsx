@@ -1,7 +1,8 @@
 import { Page } from "@/layouts/page";
+import { DashboardHeader } from "@/modules/dashboard/components/hearder/header";
+import { SideBar } from "@/modules/dashboard/components/side-bar/side-bar";
 import { ForceOnboarding } from "@/modules/onboarding/components/force-onboarding/force-onboarding";
-import { Profile } from "@/modules/profile";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/dashboard")({
   component: RouteComponent,
@@ -10,7 +11,9 @@ export const Route = createFileRoute("/_authed/dashboard")({
 function RouteComponent() {
   return (
     <ForceOnboarding>
-      <Page leftSection={<Profile />}>Dashboard</Page>;
+      <Page header={<DashboardHeader />} leftSection={<SideBar />}>
+        <Outlet />
+      </Page>
     </ForceOnboarding>
   );
 }

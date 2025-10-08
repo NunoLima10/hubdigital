@@ -13,7 +13,7 @@ export function Header() {
  
 
   function goToDashboard() {
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/dashboard/projects" });
   }
 
   return (

@@ -1,0 +1,10 @@
+.container {
+  height: 60px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: rem(100px);
+
+  @media (max-width: $mantine-breakpoint-lg) {
+    margin-bottom: rem(10px);
+  }
+}

@@ -13,7 +13,8 @@ import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
 import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
-import { Route as AuthedDashboardRouteImport } from './routes/_authed/dashboard'
+import { Route as AuthedDashboardRouteRouteImport } from './routes/_authed/dashboard/route'
+import { Route as AuthedDashboardProjectsRouteImport } from './routes/_authed/dashboard/projects'
 
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
@@ -34,37 +35,50 @@ const AuthedOnboardingRoute = AuthedOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AuthedRoute,
 } as any)
-const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
+const AuthedDashboardRouteRoute = AuthedDashboardRouteRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
 } as any)
+const AuthedDashboardProjectsRoute = AuthedDashboardProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AuthedDashboardRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/dashboard': typeof AuthedDashboardRoute
+  '/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRoute
   '/sign-in/$': typeof SignInSplatRoute
+  '/dashboard/projects': typeof AuthedDashboardProjectsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/dashboard': typeof AuthedDashboardRoute
+  '/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRoute
   '/sign-in/$': typeof SignInSplatRoute
+  '/dashboard/projects': typeof AuthedDashboardProjectsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
-  '/_authed/dashboard': typeof AuthedDashboardRoute
+  '/_authed/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRoute
   '/sign-in/$': typeof SignInSplatRoute
+  '/_authed/dashboard/projects': typeof AuthedDashboardProjectsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/onboarding' | '/sign-in/$'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/onboarding'
+    | '/sign-in/$'
+    | '/dashboard/projects'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/onboarding' | '/sign-in/$'
+  to: '/' | '/dashboard' | '/onboarding' | '/sign-in/$' | '/dashboard/projects'
   id:
     | '__root__'
     | '/'
@@ -72,6 +86,7 @@ export interface FileRouteTypes {
     | '/_authed/dashboard'
     | '/_authed/onboarding'
     | '/sign-in/$'
+    | '/_authed/dashboard/projects'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -114,19 +129,37 @@ declare module '@tanstack/react-router' {
       id: '/_authed/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthedDashboardRouteImport
+      preLoaderRoute: typeof AuthedDashboardRouteRouteImport
       parentRoute: typeof AuthedRoute
+    }
+    '/_authed/dashboard/projects': {
+      id: '/_authed/dashboard/projects'
+      path: '/projects'
+      fullPath: '/dashboard/projects'
+      preLoaderRoute: typeof AuthedDashboardProjectsRouteImport
+      parentRoute: typeof AuthedDashboardRouteRoute
     }
   }
 }
 
+interface AuthedDashboardRouteRouteChildren {
+  AuthedDashboardProjectsRoute: typeof AuthedDashboardProjectsRoute
+}
+
+const AuthedDashboardRouteRouteChildren: AuthedDashboardRouteRouteChildren = {
+  AuthedDashboardProjectsRoute: AuthedDashboardProjectsRoute,
+}
+
+const AuthedDashboardRouteRouteWithChildren =
+  AuthedDashboardRouteRoute._addFileChildren(AuthedDashboardRouteRouteChildren)
+
 interface AuthedRouteChildren {
-  AuthedDashboardRoute: typeof AuthedDashboardRoute
+  AuthedDashboardRouteRoute: typeof AuthedDashboardRouteRouteWithChildren
   AuthedOnboardingRoute: typeof AuthedOnboardingRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
-  AuthedDashboardRoute: AuthedDashboardRoute,
+  AuthedDashboardRouteRoute: AuthedDashboardRouteRouteWithChildren,
   AuthedOnboardingRoute: AuthedOnboardingRoute,
 }
 
