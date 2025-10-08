@@ -11,7 +11,6 @@
   @mixin hover {
     border-radius: var(--mantine-radius-sm);
     background-color: var(--mantine-color-default-hover);
-   
   }
 }
 
@@ -31,4 +30,16 @@
     background-color: var(--mantine-primary-color-light);
     color: var(--mantine-primary-color-filled-hover);
   }
+}
+
+.disabled{
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  font-size: var(--mantine-font-size-sm);
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+  font-weight: 500;
+  color: var(--mantine-color-dimmed);
+  opacity: 0.3;
 }

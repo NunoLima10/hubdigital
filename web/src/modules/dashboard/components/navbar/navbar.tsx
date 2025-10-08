@@ -25,6 +25,7 @@ export function DashboardNav() {
           to="/onboarding"
           title="Metricas"
           icon={<IconChartBarPopular size={18} />}
+          disabled
         />
       </Stack>
       <Space h={"sm"}></Space>
@@ -41,11 +42,13 @@ export function DashboardNav() {
           to="/onboarding"
           title="Favoritos"
           icon={<IconHeart size={18} />}
+          disabled
         />
         <NavLink
           to="/onboarding"
           title="Configurações"
           icon={<IconSettings size={18} />}
+          disabled
         />
       </Stack>
     </Stack>
