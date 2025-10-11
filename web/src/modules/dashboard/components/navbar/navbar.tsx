@@ -17,8 +17,8 @@ export function DashboardNav() {
       </Badge>
       <Stack gap={"xxs"}>
         <NavLink
-          to="/dashboard/projects"
-          title="Projetos"
+          to="/dashboard/releases"
+          title="Lançamentos"
           icon={<IconRocket size={18} />}
         />
         <NavLink

@@ -14,7 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SignInSplatRouteImport } from './routes/sign-in.$'
 import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
 import { Route as AuthedDashboardRouteRouteImport } from './routes/_authed/dashboard/route'
-import { Route as AuthedDashboardProjectsRouteImport } from './routes/_authed/dashboard/projects'
+import { Route as AuthedDashboardReleasesRouteImport } from './routes/_authed/dashboard/releases'
 
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
@@ -40,9 +40,9 @@ const AuthedDashboardRouteRoute = AuthedDashboardRouteRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
 } as any)
-const AuthedDashboardProjectsRoute = AuthedDashboardProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
+const AuthedDashboardReleasesRoute = AuthedDashboardReleasesRouteImport.update({
+  id: '/releases',
+  path: '/releases',
   getParentRoute: () => AuthedDashboardRouteRoute,
 } as any)
 
@@ -51,14 +51,14 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRoute
   '/sign-in/$': typeof SignInSplatRoute
-  '/dashboard/projects': typeof AuthedDashboardProjectsRoute
+  '/dashboard/releases': typeof AuthedDashboardReleasesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRoute
   '/sign-in/$': typeof SignInSplatRoute
-  '/dashboard/projects': typeof AuthedDashboardProjectsRoute
+  '/dashboard/releases': typeof AuthedDashboardReleasesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -67,7 +67,7 @@ export interface FileRoutesById {
   '/_authed/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRoute
   '/sign-in/$': typeof SignInSplatRoute
-  '/_authed/dashboard/projects': typeof AuthedDashboardProjectsRoute
+  '/_authed/dashboard/releases': typeof AuthedDashboardReleasesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -76,9 +76,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/onboarding'
     | '/sign-in/$'
-    | '/dashboard/projects'
+    | '/dashboard/releases'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/onboarding' | '/sign-in/$' | '/dashboard/projects'
+  to: '/' | '/dashboard' | '/onboarding' | '/sign-in/$' | '/dashboard/releases'
   id:
     | '__root__'
     | '/'
@@ -86,7 +86,7 @@ export interface FileRouteTypes {
     | '/_authed/dashboard'
     | '/_authed/onboarding'
     | '/sign-in/$'
-    | '/_authed/dashboard/projects'
+    | '/_authed/dashboard/releases'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,22 +132,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/_authed/dashboard/projects': {
-      id: '/_authed/dashboard/projects'
-      path: '/projects'
-      fullPath: '/dashboard/projects'
-      preLoaderRoute: typeof AuthedDashboardProjectsRouteImport
+    '/_authed/dashboard/releases': {
+      id: '/_authed/dashboard/releases'
+      path: '/releases'
+      fullPath: '/dashboard/releases'
+      preLoaderRoute: typeof AuthedDashboardReleasesRouteImport
       parentRoute: typeof AuthedDashboardRouteRoute
     }
   }
 }
 
 interface AuthedDashboardRouteRouteChildren {
-  AuthedDashboardProjectsRoute: typeof AuthedDashboardProjectsRoute
+  AuthedDashboardReleasesRoute: typeof AuthedDashboardReleasesRoute
 }
 
 const AuthedDashboardRouteRouteChildren: AuthedDashboardRouteRouteChildren = {
-  AuthedDashboardProjectsRoute: AuthedDashboardProjectsRoute,
+  AuthedDashboardReleasesRoute: AuthedDashboardReleasesRoute,
 }
 
 const AuthedDashboardRouteRouteWithChildren =
