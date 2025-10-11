@@ -1,14 +1,26 @@
-import { useClerk } from "@clerk/react-router";
+import { SignedOut, useAuth, useClerk } from "@clerk/clerk-react";
 import { Button } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
 
 export function LoginButton() {
-  const { openSignIn, isSignedIn } = useClerk();
-  if (isSignedIn) return null;
+  const { isLoaded } = useAuth();
+  const { openSignIn } = useClerk();
 
   return (
-    <Button onClick={() => openSignIn({})} leftSection={<IconUser size={18} />}>
-      Login
-    </Button>
+    <>
+      <SignedOut>
+        <Button
+          onClick={() => openSignIn({})}
+          leftSection={<IconUser size={18} />}
+        >
+          Login
+        </Button>
+      </SignedOut>
+      {!isLoaded && (
+        <Button leftSection={<IconUser size={18} />} loading>
+          Login
+        </Button>
+      )}
+    </>
   );
 }

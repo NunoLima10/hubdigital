@@ -1,15 +1,19 @@
+import { Footer } from "@/components/footer/footer";
 import { Header } from "@/components/header/header";
+import { Page } from "@/layouts/page";
 import { ProjectList } from "@/modules/project-list";
 import { Container, Stack, Text, Title } from "@mantine/core";
-import classes from "./landing.module.css";
-import { Footer } from "@/components/footer/footer";
+import { createFileRoute } from "@tanstack/react-router";
 
+export const Route = createFileRoute("/")({
+  component: RouteComponent,
+});
 
-export function Landing() {
+function RouteComponent() {
   return (
-    <Container className={classes.container}>
-      <Header />
-      <Stack>
+    <Page>
+      <Header/>
+      <Stack mt={100}>
         <Title ta={"center"} order={1}>
           HubDigital Cabo Verde
         </Title>
@@ -22,7 +26,7 @@ export function Landing() {
         </Container>
         <ProjectList />
       </Stack>
-      <Footer/>
-    </Container>
+      <Footer />
+    </Page>
   );
 }

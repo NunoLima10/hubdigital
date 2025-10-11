@@ -1,10 +1,8 @@
 import { Button, Stack, Text, Title } from "@mantine/core";
-import { useNavigate } from "react-router-dom";
 import { useOnboarding } from "../../hooks/use-onboarding";
 import { StepLayout } from "../step-layout/step-layout";
 
 export function StepCompleted() {
-
   const { submit, isPending } = useOnboarding();
 
   return (
