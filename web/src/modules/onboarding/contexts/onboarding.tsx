@@ -40,7 +40,7 @@ function OnboardingProvider({ children }: PropsWithChildren) {
   const { createOnboarding, schema, isPending } = useCreateOnboarding({
     onSuccess: async () => {
       await user?.reload();
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/dashboard/releases" });
     },
   });
 
