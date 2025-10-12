@@ -116,8 +116,6 @@ describe("Users module - onboarding (e2e)", () => {
       },
     });
 
-    console.log({ response });
-
     expect(response.statusCode).toBe(401);
     const body = response.json();
     expect(body.error).toBeDefined();

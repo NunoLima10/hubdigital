@@ -1,4 +1,5 @@
 import { errorResponseSchema } from "@/plugins/error-handler";
+import { routeErrorResponses } from "@/shared/schemas";
 import {
   foundUsByQuestionValues,
   locationQuestionValues,
@@ -22,8 +23,6 @@ export const onboardingRouteSchema = {
         id: z.number(),
       }),
     }),
-    400: errorResponseSchema,
-    401: errorResponseSchema,
-    500: errorResponseSchema,
+    ...routeErrorResponses
   },
 };

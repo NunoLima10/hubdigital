@@ -13,7 +13,8 @@
     "db:seed": "tsx --env-file .env src/scripts/seeds.ts",
     "dbml:generate": "tsx src/db/dbml.ts",
     "better-auth:generate": "npx @better-auth/cli generate --config src/lib/auth/index.ts --output src/db/schemas/users.ts --yes",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -24,7 +25,10 @@
     "drizzle-dbml-generator": "^0.10.0",
     "drizzle-kit": "^0.31.1",
     "tsx": "^4.19.4",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@testcontainers/postgresql": "^10.10.3",
+    "testcontainers": "^10.10.3",
+    "vitest": "^2.1.4"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",
