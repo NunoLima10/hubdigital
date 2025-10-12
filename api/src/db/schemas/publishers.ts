@@ -7,7 +7,7 @@ import {
 import { InferInsertModel } from "drizzle-orm";
 import { pgEnum, pgTable, serial, text, varchar } from "drizzle-orm/pg-core";
 import { timestamps } from "./timestamps";
-import { users } from "./users";
+import { users } from "./auth";
 import { uniqueIndex } from "drizzle-orm/pg-core";
 
 export const profileResponseEnum = pgEnum(

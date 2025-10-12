@@ -1,6 +1,6 @@
 import { relations } from "drizzle-orm";
 import { publishers } from "./publishers";
-import { users } from "./users";
+import { users } from "./auth";
 
 export const userRelations = relations(users, ({ one }) => ({
   publisher: one(publishers, {
