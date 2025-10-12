@@ -4,13 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx --watch src/main.ts",
+    "dev": "tsx --watch --env-file .env src/main.ts",
     "build": "tsc && tsc-alias",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed:dev": "tsx src/db/seeds/dev.ts",
+    "db:seed": "tsx --env-file .env src/scripts/seeds.ts",
     "dbml:generate": "tsx src/db/dbml.ts",
     "better-auth:generate": "npx @better-auth/cli generate --config src/lib/auth/index.ts --output src/db/schemas/users.ts --yes",
     "test": "echo \"Error: no test specified\" && exit 1"

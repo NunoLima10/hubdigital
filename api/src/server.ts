@@ -17,6 +17,7 @@ import {
 } from "fastify-type-provider-zod";
 import { usersRoutes } from "./modules/users/users-routes";
 import { config } from "./config";
+import betterAuth from "./plugins/better-auth";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -48,6 +49,8 @@ export async function buildServer(db: DB) {
     max: 100,
     timeWindow: "1 minute",
   });
+
+  await server.register(betterAuth);
 
   await server.register(errorHandlerPlugin);
 
