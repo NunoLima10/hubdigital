@@ -13,11 +13,18 @@ import { join } from "node:path";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import type { FastifyInstance } from "fastify";
+import "../setup-env";
+import { setupDB, teardownDB } from "../../src/db";
+import { publishers, users } from "@/db/schemas";
+import { buildServer } from "@/server";
+import { eq } from "drizzle-orm";
 
-const getSessionMock = vi.fn();
-const updateUserMock = vi.fn();
+const { getSessionMock, updateUserMock } = vi.hoisted(() => ({
+  getSessionMock: vi.fn(),
+  updateUserMock: vi.fn(),
+}));
 
-vi.mock("@/lib/auth", () => ({
+vi.mock("../../src/lib/auth", () => ({
   auth: {
     api: {
       getSession: getSessionMock,
@@ -33,12 +40,6 @@ describe("Users module - onboarding (e2e)", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>>;
   let connectionUri: string;
 
-  let setupDB: typeof import("@/db").setupDB;
-  let teardownDB: typeof import("@/db").teardownDB;
-  let buildServer: typeof import("@/server").buildServer;
-  let publishers: typeof import("@/db/schemas").publishers;
-  let users: typeof import("@/db/schemas").users;
-
   let dbClient: Awaited<ReturnType<typeof setupDB>>["dbClient"];
   let db: Awaited<ReturnType<typeof setupDB>>["db"];
   let server: FastifyInstance;
@@ -49,10 +50,6 @@ describe("Users module - onboarding (e2e)", () => {
     connectionUri = container.getConnectionUri();
 
     process.env.DATABASE_URL = connectionUri;
-
-    ({ setupDB, teardownDB } = await import("@/db"));
-    ({ buildServer } = await import("@/server"));
-    ({ publishers, users } = await import("@/db/schemas"));
 
     const setupResult = await setupDB(connectionUri, { migrating: true });
     await migrate(setupResult.db, { migrationsFolder });
@@ -152,7 +149,7 @@ describe("Users module - onboarding (e2e)", () => {
     });
 
     const publisher = await db.query.publishers.findFirst({
-      where: (table, { eq: equals }) => equals(table.userId, currentUserId),
+      where: eq(publishers.userId, currentUserId),
     });
 
     expect(publisher).toMatchObject({

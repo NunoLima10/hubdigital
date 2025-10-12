@@ -13,3 +13,6 @@ process.env.GITHUB_CLIENT_ID =
   process.env.GITHUB_CLIENT_ID ?? "test-github-client-id";
 process.env.GITHUB_CLIENT_SECRET =
   process.env.GITHUB_CLIENT_SECRET ?? "test-github-client-secret";
+process.env.DATABASE_URL =
+  process.env.DATABASE_URL ??
+  "postgres://test-user:test-password@localhost:5432/test-db";
