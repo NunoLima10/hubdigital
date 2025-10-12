@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx --watch --env-file .env src/main.ts",
     "build": "tsc && tsc-alias",
+    "start": "node dist/main.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
@@ -21,13 +22,14 @@
   "license": "ISC",
   "packageManager": "pnpm@10.8.0",
   "devDependencies": {
+    "@testcontainers/postgresql": "^10.10.3",
     "@types/node": "^22.15.23",
     "drizzle-dbml-generator": "^0.10.0",
     "drizzle-kit": "^0.31.1",
+    "testcontainers": "^10.10.3",
+    "tsc-alias": "^1.8.16",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
-    "@testcontainers/postgresql": "^10.10.3",
-    "testcontainers": "^10.10.3",
     "vitest": "^2.1.4"
   },
   "dependencies": {
