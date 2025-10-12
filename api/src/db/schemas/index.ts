@@ -1,2 +1,3 @@
-export * from "./account";
-export * from "./profile";
+export * from "./publishers";
+export * from "./users";
+export * from "./relations";

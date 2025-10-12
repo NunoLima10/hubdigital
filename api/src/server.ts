@@ -4,9 +4,7 @@ import corsPlugin from "@/plugins/cors";
 import errorHandlerPlugin from "@/plugins/error-handler";
 import rateLimitPlugin from "@/plugins/rate-limiter";
 import swaggerPlugin from "@/plugins/swagger";
-import { env } from "@/utils/env";
 import { loggerOptions } from "@/utils/logger";
-import { clerkPlugin } from "@clerk/fastify";
 import Fastify, {
   FastifyInstance,
   FastifyReply,
@@ -18,6 +16,7 @@ import {
   ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import { usersRoutes } from "./modules/users/users-routes";
+import { config } from "./config";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -36,18 +35,13 @@ export async function buildServer(db: DB) {
 
   await server.register(corsPlugin, {
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    origin: env.ALLOWED_ORIGINS,
+    origin: config.ALLOWED_ORIGINS,
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   });
 
-  await server.register(clerkPlugin, {
-    publishableKey: env.CLERK_PUBLISHABLE_KEY,
-    secretKey: env.CLERK_SECRET_KEY,
-  });
-
   await server.register(cookiesPlugin, {
-    secret: env.COOKIE_SECRET,
+    secret: config.COOKIE_SECRET,
   });
 
   await server.register(rateLimitPlugin, {
@@ -64,8 +58,8 @@ export async function buildServer(db: DB) {
     title: "Hub Digital API",
     description: "Backend API para Hub Digital",
     version: "0.1.0",
-    host: env.HOST,
-    port: env.PORT,
+    host: config.HOST,
+    port: config.PORT,
     path: "/docs",
   });
 
