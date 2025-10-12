@@ -73,7 +73,6 @@ describe("Users module - onboarding (e2e)", () => {
       name: "Test User",
       email: `test-${currentUserId}@example.com`,
       role: "user",
-      onboardingComplete: false,
     });
 
     server = await buildServer(db);
@@ -164,7 +163,7 @@ describe("Users module - onboarding (e2e)", () => {
     expect(updateUserMock).toHaveBeenCalledWith(
       expect.objectContaining({
         body: expect.objectContaining({
-          onboardingComplete: true,
+          onboardedAt: expect.any(Date),
         }),
       })
     );

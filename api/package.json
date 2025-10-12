@@ -13,7 +13,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file .env src/scripts/seeds.ts",
     "dbml:generate": "tsx src/db/dbml.ts",
-    "better-auth:generate": "npx @better-auth/cli generate --config src/lib/auth/index.ts --output src/db/schemas/users.ts --yes",
+    "better-auth:gen": "npx @better-auth/cli generate --output src/db/schemas/auth.ts --yes",
     "test": "vitest run",
     "test:watch": "vitest"
   },

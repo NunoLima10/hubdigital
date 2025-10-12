@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import { UserRole } from "@/lib/auth/plugins/admin";
+import { UserRole } from "@/lib/plugins/admin";
 import { fromNodeHeaders } from "better-auth/node";
 import { FastifyInstance, FastifyRequest } from "fastify";
 import fastifyPlugin from "fastify-plugin";

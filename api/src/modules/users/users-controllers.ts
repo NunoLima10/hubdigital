@@ -2,9 +2,9 @@ import { UnauthorizedAccessError } from "@/utils/custom-errors";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { onboardingRouteSchema } from "./users-schemas";
 import { UserService } from "./users-services";
-import { auth } from "@/lib/auth";
 import { fromNodeHeaders } from "better-auth/node";
 import { z } from "zod";
+import { auth } from "@/lib/auth";
 
 async function onboardingHandler(
   req: FastifyRequest<{ Body: z.infer<typeof onboardingRouteSchema.body> }>,
@@ -32,7 +32,7 @@ async function onboardingHandler(
   await auth.api.updateUser({
     headers: fromNodeHeaders(req.headers),
     body: {
-      onboardingComplete: true as any,
+      onboardedAt: new Date(),
     },
   });
 

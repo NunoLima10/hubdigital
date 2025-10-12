@@ -8,6 +8,7 @@ import { InferInsertModel } from "drizzle-orm";
 import { pgEnum, pgTable, serial, text, varchar } from "drizzle-orm/pg-core";
 import { timestamps } from "./timestamps";
 import { users } from "./users";
+import { uniqueIndex } from "drizzle-orm/pg-core";
 
 export const profileResponseEnum = pgEnum(
   "profile_responses",
@@ -37,6 +38,8 @@ export const publishers = pgTable("publishers", {
   locationResponse: locationResponseEnum("location_response").notNull(),
   foundUsByResponse: foundUsByResponseEnum("found_us_by_response").notNull(),
   ...timestamps,
-});
+}, (table) => [
+  uniqueIndex('publisher_user_idx').on(table.userId)
+]);
 
 export type PublisherInsertModel = InferInsertModel<typeof publishers>;

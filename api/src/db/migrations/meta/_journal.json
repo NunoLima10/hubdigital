@@ -15,6 +15,20 @@
       "when": 1760285798854,
       "tag": "0001_purple_penance",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1760308090538,
+      "tag": "0002_narrow_red_ghost",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1760308279131,
+      "tag": "0003_busy_doctor_strange",
+      "breakpoints": true
     }
   ]
 }
