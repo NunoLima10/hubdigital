@@ -7,12 +7,6 @@ import {
 } from "@/utils/constants";
 import { z } from "zod";
 
-const onboardingResponseSchema = z.object({
-  data: z.object({
-    id: z.number(),
-  }),
-});
-
 export const onboardingRouteSchema = {
   tags: ["users"],
   body: z.object({
@@ -23,12 +17,13 @@ export const onboardingRouteSchema = {
     foundUsByResponse: z.enum(foundUsByQuestionValues),
   }),
   response: {
-    201: onboardingResponseSchema,
+    201: z.object({
+      data: z.object({
+        id: z.number(),
+      }),
+    }),
     400: errorResponseSchema,
     401: errorResponseSchema,
     500: errorResponseSchema,
   },
 };
-
-export type OnboardingResponse = z.infer<typeof onboardingResponseSchema>;
-export type OnboardingBody = z.infer<typeof onboardingRouteSchema.body>;

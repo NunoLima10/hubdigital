@@ -16,6 +16,8 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
+    minPasswordLength: 8,
+    maxPasswordLength: 128,
   },
   socialProviders: {
     // google: {
@@ -27,12 +29,14 @@ export const auth = betterAuth({
     //   clientSecret: config.GITHUB_CLIENT_SECRET
     // }
   },
-  plugins: [adminPlugin({
-    defaultRole: 'user',
-    adminRoles: ADMIN_ROLES,
-    ac: ADMIN_AC,
-    roles: ROLES_AC,
-  })],
+  plugins: [
+    adminPlugin({
+      defaultRole: "user",
+      adminRoles: ADMIN_ROLES,
+      ac: ADMIN_AC,
+      roles: ROLES_AC,
+    }),
+  ],
   advanced: {
     defaultCookieAttributes: {
       secure: true,
@@ -44,6 +48,16 @@ export const auth = betterAuth({
   session: {
     cookieCache: {
       enabled: false,
+    },
+  },
+  user: {
+    additionalFields: {
+      onboardingComplete: {
+        type: "boolean",
+        required: false,
+        defaultValue: null,
+        input: false, // don't allow user to set role
+      },
     },
   },
 });

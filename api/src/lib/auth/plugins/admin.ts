@@ -1,4 +1,4 @@
-import { adminAc, defaultStatements } from "better-auth/plugins";
+import { adminAc, defaultStatements } from "better-auth/plugins/admin/access";
 import { createAccessControl } from "better-auth/plugins/access";
 
 export const adminRoles = ["admin", "user"] as const;
