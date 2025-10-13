@@ -1,6 +1,6 @@
 {
-  "id": "d4df9c58-3433-4cf5-a6c0-ded963375026",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "c126e8b3-fcda-408f-b0e1-c12ad058d34c",
+  "prevId": "0d445732-c0a7-440a-b5c3-0a26c496a1ec",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -69,7 +69,23 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "publisher_user_idx": {
+          "name": "publisher_user_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "publishers_user_id_users_id_fk": {
           "name": "publishers_user_id_users_id_fk",
@@ -357,6 +373,12 @@
         },
         "ban_expires": {
           "name": "ban_expires",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "onboarded_at": {
+          "name": "onboarded_at",
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false

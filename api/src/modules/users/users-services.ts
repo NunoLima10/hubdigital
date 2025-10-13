@@ -1,26 +1,15 @@
 import { DB } from "@/db";
-import {
-  AccountInsertModel,
-  accounts,
-  profiles,
-  ProfilInsertModel,
-} from "@/db/schemas";
+import { PublisherInsertModel, publishers } from "@/db/schemas";
+
 import { errorLogger } from "@/utils/error-logger";
 
-async function createProfile(db: DB, values: ProfilInsertModel) {
-  const [result] = await db.insert(profiles).values(values).returning({
-    id: profiles.id,
-  });
-  return result;
-}
-async function createAccount(db: DB, values: AccountInsertModel) {
-  const [result] = await db.insert(accounts).values(values).returning({
-    id: profiles.id,
+async function createPublisher(db: DB, values: PublisherInsertModel) {
+  const [result] = await db.insert(publishers).values(values).returning({
+    id: publishers.id,
   });
   return result;
 }
 
-export const usersService = {
-  createProfile: errorLogger(createProfile, "usersService.createProfile"),
-  createAccount: errorLogger(createAccount, "usersService.createAccount"),
+export const UserService = {
+  createPublisher: errorLogger(createPublisher, "usersService.createPublisher"),
 };

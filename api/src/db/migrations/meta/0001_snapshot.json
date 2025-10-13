@@ -1,6 +1,6 @@
 {
-  "id": "d4df9c58-3433-4cf5-a6c0-ded963375026",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "653280a5-d648-47d2-a92e-9064e137d492",
+  "prevId": "d4df9c58-3433-4cf5-a6c0-ded963375026",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -358,6 +358,12 @@
         "ban_expires": {
           "name": "ban_expires",
           "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "onboarding_complete": {
+          "name": "onboarding_complete",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": false
         }

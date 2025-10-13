@@ -1,47 +1,46 @@
-import { InvalidOAuth, InvalidTokenError } from "@/utils/custom-errors";
-import { clerkClient, getAuth } from "@clerk/fastify";
+import { UnauthorizedAccessError } from "@/utils/custom-errors";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { OnboardingBody, OnboardingResponse } from "./users-schemas";
-import { usersService } from "./users-services";
+import { onboardingRouteSchema } from "./users-schemas";
+import { UserService } from "./users-services";
+import { fromNodeHeaders } from "better-auth/node";
+import { z } from "zod";
+import { auth } from "@/lib/auth";
 
 async function onboardingHandler(
-  req: FastifyRequest<{ Body: OnboardingBody }>,
+  req: FastifyRequest<{ Body: z.infer<typeof onboardingRouteSchema.body> }>,
   reply: FastifyReply
 ) {
-  const { userId } = getAuth(req);
+  if (!req.user) throw new UnauthorizedAccessError();
 
-  if (!userId) throw new InvalidTokenError();
+  const {
+    bio,
+    foundUsByResponse,
+    locationResponse,
+    objectiveResponse,
+    profileResponse,
+  } = req.body;
 
-  const user = await clerkClient.users.getUser(userId);
-
-  const profile = await usersService.createProfile(req.db, req.body);
-
-  const email = user.emailAddresses.pop()?.emailAddress;
-  const fullName = user.fullName;
-
-  if (!email || !fullName) throw new InvalidOAuth();
-
-  const account = await usersService.createAccount(req.db, {
-    clerk_user_id: userId,
-    profileId: profile.id,
-    email: email,
-    fullName: fullName,
-    avatarUrl: user.imageUrl,
+  const publisher = await UserService.createPublisher(req.db, {
+    bio,
+    foundUsByResponse,
+    locationResponse,
+    objectiveResponse,
+    profileResponse,
+    userId: req.user.id,
   });
 
-  await clerkClient.users.updateUserMetadata(userId, {
-    publicMetadata: {
-      onboarded: true,
+  await auth.api.updateUser({
+    headers: fromNodeHeaders(req.headers),
+    body: {
+      onboardedAt: new Date(),
     },
   });
 
-  const response: OnboardingResponse = {
+  return reply.status(201).send({
     data: {
-      id: account.id,
+      id: publisher.id,
     },
-  };
-
-  return reply.status(201).send(response);
+  });
 }
 
 export const usersController = {

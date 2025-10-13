@@ -1,10 +1,10 @@
+import { config } from "@/config";
 import pino from "pino";
-import { env } from "./env";
 
-const isDev = env.NODE_ENV !== "production";
+const isDev = config.NODE_ENV !== "production";
 
 export const loggerOptions = {
-  level: env.LOG_LEVEL,
+  level: config.LOG_LEVEL,
   transport: isDev
     ? {
         target: "pino-pretty",

@@ -5,8 +5,10 @@ import {
   profileQuestionValues,
 } from "@/utils/constants";
 import { InferInsertModel } from "drizzle-orm";
-import { pgEnum, pgTable, serial, varchar } from "drizzle-orm/pg-core";
+import { pgEnum, pgTable, serial, text, varchar } from "drizzle-orm/pg-core";
 import { timestamps } from "./timestamps";
+import { users } from "./auth";
+import { uniqueIndex } from "drizzle-orm/pg-core";
 
 export const profileResponseEnum = pgEnum(
   "profile_responses",
@@ -25,14 +27,19 @@ export const foundUsByResponseEnum = pgEnum(
   foundUsByQuestionValues
 );
 
-export const profiles = pgTable("profiles", {
+export const publishers = pgTable("publishers", {
   id: serial("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   bio: varchar("bio").notNull(),
   profileResponse: profileResponseEnum("profile_response").notNull(),
   objectiveResponse: objectiveResponseEnum("objective_response").notNull(),
   locationResponse: locationResponseEnum("location_response").notNull(),
   foundUsByResponse: foundUsByResponseEnum("found_us_by_response").notNull(),
   ...timestamps,
-});
+}, (table) => [
+  uniqueIndex('publisher_user_idx').on(table.userId)
+]);
 
-export type ProfilInsertModel = InferInsertModel<typeof profiles>;
+export type PublisherInsertModel = InferInsertModel<typeof publishers>;
