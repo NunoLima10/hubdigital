@@ -1,26 +1,32 @@
-import { SignedOut, useAuth, useClerk } from "@clerk/clerk-react";
 import { Button } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
+import { useState } from "react";
+import { authClient } from "../../lib/auth-client";
+import { SignedOut } from "../signed-out/signed-out";
 
 export function LoginButton() {
-  const { isLoaded } = useAuth();
-  const { openSignIn } = useClerk();
+  const { signIn } = authClient;
+  const { useSession } = authClient;
+  const [isloading, setIsloading] = useState(false);
+
+  async function handelLoginDemo() {
+    setIsloading(true);
+    await signIn.email({
+      email: "demo.publisher@hubdigital.cv",
+      password: "demo1234",
+    });
+    setIsloading(false);
+  }
 
   return (
-    <>
-      <SignedOut>
-        <Button
-          onClick={() => openSignIn({})}
-          leftSection={<IconUser size={18} />}
-        >
-          Login
-        </Button>
-      </SignedOut>
-      {!isLoaded && (
-        <Button leftSection={<IconUser size={18} />} loading>
-          Login
-        </Button>
-      )}
-    </>
+    <SignedOut>
+      <Button
+        onClick={handelLoginDemo}
+        leftSection={<IconUser size={18} />}
+        loading={isloading}
+      >
+        Login
+      </Button>
+    </SignedOut>
   );
 }

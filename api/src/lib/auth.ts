@@ -1,11 +1,12 @@
+import { config } from "@/config";
+import { db } from "@/db";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "@/db";
-import { config } from "@/config";
 import { admin as adminPlugin } from "better-auth/plugins";
-import { ROLES_AC, ac as ADMIN_AC, ADMIN_ROLES } from "./plugins/admin";
+import { ac as ADMIN_AC, ADMIN_ROLES, ROLES_AC } from "./plugins/admin";
 
 const authConfig = {
+  trustedOrigins: config.ALLOWED_ORIGINS,
   baseURL: config.BETTER_AUTH_URL,
   secret: config.BETTER_AUTH_SECRET,
   basePath: "/v1/auth",
@@ -37,4 +38,3 @@ const authConfig = {
 export const auth = betterAuth(authConfig) as ReturnType<
   typeof betterAuth<typeof authConfig>
 >;
-

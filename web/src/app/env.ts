@@ -3,7 +3,6 @@ import * as z from "zod";
 const createEnv = () => {
   const EnvSchema = z.object({
     API_URL: z.string().optional().default("http://localhost:3000/v1"),
-    CLERK_PUBLISHABLE_KEY: z.string(),
   });
 
   const envVars = Object.entries(import.meta.env).reduce<

@@ -1,9 +1,9 @@
-import { useUser } from "@clerk/clerk-react";
 import { useForm, UseFormReturnType } from "@mantine/form";
 import { useCounter } from "@mantine/hooks";
 import { zodResolver } from "mantine-form-zod-resolver";
 import { createContext, PropsWithChildren, useState } from "react";
 
+import { authClient } from "@/lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
 import {
   OnboardingResponse,
@@ -29,18 +29,20 @@ export const OnboardingContext = createContext<
 >(undefined);
 
 function OnboardingProvider({ children }: PropsWithChildren) {
+  const { useSession, getSession } = authClient;
+  const { refetch } = useSession();
+  const navigate = useNavigate();
+
+  const [isDispora, setIsDispora] = useState(false);
+
   const min = 0;
   const max = 4;
   const [step, handlers] = useCounter(0, { min, max });
-  const [isDispora, setIsDispora] = useState(false);
 
-  const navigate = useNavigate();
-
-  const { user } = useUser();
   const { createOnboarding, schema, isPending } = useCreateOnboarding({
     onSuccess: async () => {
-      await user?.reload();
-      navigate({ to: "/dashboard/releases" });
+      getSession({ query: { disableCookieCache: true } });
+      refetch();
     },
   });
 

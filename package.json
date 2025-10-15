@@ -13,7 +13,7 @@
     "api:db:gen": "pnpm --filter @hubdigital/api db:generate",
     "api:db:migrate": "pnpm --filter @hubdigital/api db:migrate",
     "api:dbml": "pnpm --filter @hubdigital/api dbml:generate",
-    "api:db:seed:dev": "pnpm --filter @hubdigital/api db:seed:dev",
+    "api:db:seed": "pnpm --filter @hubdigital/api db:seed",
     "api:build": "pnpm run --filter @hubdigital/api build",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"

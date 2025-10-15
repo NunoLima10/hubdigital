@@ -1,14 +1,12 @@
-import { useClerk, useUser } from "@clerk/clerk-react";
-import { Avatar, Group, Menu, Skeleton, Text, Title } from "@mantine/core";
+import { authClient } from "@/lib/auth-client";
+import { Avatar, Group, Menu, Text, Title } from "@mantine/core";
 import { IconLogout } from "@tabler/icons-react";
 
 export function UserButton() {
-  const { signOut } = useClerk();
-  const { isSignedIn, user, isLoaded } = useUser();
+  const { useSession, signOut } = authClient;
+  const { data } = useSession();
 
-  if (!isLoaded) return <Skeleton circle w={35} h={35} />;
-
-  if (!isSignedIn) return null;
+  const user = data?.user;
 
   return (
     <Menu
@@ -18,19 +16,19 @@ export function UserButton() {
       withinPortal
     >
       <Menu.Target>
-        <Avatar src={user?.imageUrl} radius="xl" size={35}>
+        <Avatar src={user?.image} radius="xl" size={35}>
           TS
         </Avatar>
       </Menu.Target>
       <Menu.Dropdown>
         <Group py={"xs"} px={"md"} gap={0}>
-          <Title order={4}>{user?.fullName}</Title>
-          <Text c={"dimmed"}>{user?.emailAddresses.toString()}</Text>
+          <Title order={4}>{user?.name}</Title>
+          <Text c={"dimmed"}>{user?.email}</Text>
         </Group>
         <Menu.Divider />
 
         <Menu.Item
-          onClick={() => signOut({})}
+          onClick={() => signOut()}
           leftSection={<IconLogout size={16} />}
         >
           Terminar Sessão
