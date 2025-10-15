@@ -16,7 +16,8 @@
     "api:db:seed": "pnpm --filter @hubdigital/api db:seed",
     "api:build": "pnpm run --filter @hubdigital/api build",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "api:setup": "pnpm docker:down -v && pnpm docker:up  && pnpm api:db:gen && pnpm api:db:migrate && pnpm api:db:seed"
   },
   "keywords": [],
   "author": "",

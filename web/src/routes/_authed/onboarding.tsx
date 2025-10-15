@@ -13,7 +13,7 @@ function RouteComponent() {
   const { data } = useSession();
 
   // @ts-ignore
-  const onboarded = data?.user.onboardingComplete;
+  const onboarded = data?.user.onboardedAt;
 
   if (onboarded) return <Navigate to={"/dashboard/releases"} replace />;
 

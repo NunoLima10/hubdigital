@@ -6,7 +6,6 @@ import { SignedOut } from "../signed-out/signed-out";
 
 export function LoginButton() {
   const { signIn } = authClient;
-  const { useSession } = authClient;
   const [isloading, setIsloading] = useState(false);
 
   async function handelLoginDemo() {
