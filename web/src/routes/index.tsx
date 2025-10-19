@@ -26,7 +26,7 @@ function RouteComponent() {
         </Container>
         <ProjectList />
       </Stack>
-      <Footer />
+      {/* <Footer /> */}
     </Page>
   );
 }

@@ -1,4 +1,5 @@
 import { errorResponseSchema } from "@/plugins/error-handler";
+import { routeErrorResponses } from "@/shared/schemas";
 import {
   foundUsByQuestionValues,
   locationQuestionValues,
@@ -6,12 +7,6 @@ import {
   profileQuestionValues,
 } from "@/utils/constants";
 import { z } from "zod";
-
-const onboardingResponseSchema = z.object({
-  data: z.object({
-    id: z.number(),
-  }),
-});
 
 export const onboardingRouteSchema = {
   tags: ["users"],
@@ -23,12 +18,11 @@ export const onboardingRouteSchema = {
     foundUsByResponse: z.enum(foundUsByQuestionValues),
   }),
   response: {
-    201: onboardingResponseSchema,
-    400: errorResponseSchema,
-    401: errorResponseSchema,
-    500: errorResponseSchema,
+    201: z.object({
+      data: z.object({
+        id: z.number(),
+      }),
+    }),
+    ...routeErrorResponses
   },
 };
-
-export type OnboardingResponse = z.infer<typeof onboardingResponseSchema>;
-export type OnboardingBody = z.infer<typeof onboardingRouteSchema.body>;

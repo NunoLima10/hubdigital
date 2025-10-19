@@ -1,12 +1,14 @@
-import { useUser } from "@clerk/clerk-react";
+import { authClient } from "@/lib/auth-client";
 import { Navigate } from "@tanstack/react-router";
 import { PropsWithChildren } from "react";
 
 export function ForceOnboarding({ children }: PropsWithChildren) {
-  const { user } = useUser();
+  const { useSession } = authClient;
+  const { data } = useSession();
 
-  const onboarded = user?.publicMetadata?.onboarded;
-
+  // @ts-ignore
+  const onboarded = data?.user.onboardedAt;
+  console.log(data?.user);
 
   if (!onboarded) return <Navigate to={"/onboarding"} replace />;
   return children;

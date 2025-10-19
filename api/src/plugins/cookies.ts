@@ -1,6 +1,5 @@
-import { cookies } from "@/utils/cookies";
 import fastifyCookie from "@fastify/cookie";
-import { FastifyInstance, FastifyReply } from "fastify";
+import { FastifyInstance } from "fastify";
 import fastifyPlugin from "fastify-plugin";
 
 type cookiesPluginOptions = {
@@ -26,24 +25,6 @@ const cookiesPlugin = async (
     secret: options.secret,
     parseOptions: {},
   });
-
-  fastify.decorateReply(
-    "setCookieRefreshToken",
-    function (this: FastifyReply, refreshToken: string) {
-      this.setCookie(
-        cookies.refreshToken.key,
-        refreshToken,
-        cookies.refreshToken.opts
-      );
-    }
-  );
-
-  fastify.decorateReply(
-    "clearCookieRefreshToken",
-    function (this: FastifyReply) {
-      this.clearCookie(cookies.refreshToken.key, cookies.refreshToken.opts);
-    }
-  );
 };
 
 export default fastifyPlugin(cookiesPlugin);
