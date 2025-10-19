@@ -1,3 +1,50 @@
+enum access {
+  open_source
+  closed_source
+  private_beta
+  public_beta
+}
+
+enum audience {
+  students
+  developers
+  businesses
+  government
+  general_public
+}
+
+enum businessModel {
+  b2b
+  b2c
+  b2g
+  c2c
+  nonprofit
+}
+
+enum platform {
+  web
+  mobile
+  desktop
+  api
+  other
+}
+
+enum pricing {
+  free
+  freemium
+  paid
+}
+
+enum projectStage {
+  idea
+  development
+  mvp
+  launched
+  growth
+  maintenance
+  archived
+}
+
 enum found_us_by_responses {
   "social-media"
   friends
@@ -33,18 +80,88 @@ enum profile_responses {
 }
 
 table accounts {
+  id text [pk, not null]
+  account_id text [not null]
+  provider_id text [not null]
+  user_id text [not null]
+  access_token text
+  refresh_token text
+  id_token text
+  access_token_expires_at timestamp
+  refresh_token_expires_at timestamp
+  scope text
+  password text
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null]
+}
+
+table sessions {
+  id text [pk, not null]
+  expires_at timestamp [not null]
+  token text [not null, unique]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null]
+  ip_address text
+  user_agent text
+  user_id text [not null]
+  impersonated_by text
+}
+
+table users {
+  id text [pk, not null]
+  name text [not null]
+  email text [not null, unique]
+  email_verified boolean [not null, default: false]
+  image text
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+  role text
+  banned boolean [default: false]
+  ban_reason text
+  ban_expires timestamp
+  onboarded_at timestamp
+}
+
+table verifications {
+  id text [pk, not null]
+  identifier text [not null]
+  value text [not null]
+  expires_at timestamp [not null]
+  created_at timestamp [not null, default: `now()`]
+  updated_at timestamp [not null, default: `now()`]
+}
+
+table categories {
   id serial [pk, not null, increment]
-  clerk_user_id text [not null]
-  profile_id integer [not null]
-  email text [not null]
-  fullName text [not null]
-  avatar_url text
+  key varchar [not null, unique]
+  name varchar [not null]
   created_at "timestamp with time zone" [not null, default: `now()`]
   updated_at "timestamp with time zone" [not null, default: `now()`]
 }
 
-table profiles {
+table projects {
   id serial [pk, not null, increment]
+  name varchar [not null]
+  slug text [not null, unique]
+  short_description varchar [not null]
+  description text
+  website_url text [not null]
+  logo_url text [not null]
+  banner_image_url text
+  github_url text
+  pricing pricing [not null]
+  businessModel businessModel [not null]
+  access access [not null]
+  projectStage projectStage [not null]
+  audience projectStage [not null]
+  id integer [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+}
+
+table publishers {
+  id serial [pk, not null, increment]
+  user_id text [not null]
   bio varchar [not null]
   profile_response profile_responses [not null]
   objective_response objective_responses [not null]
@@ -52,6 +169,12 @@ table profiles {
   found_us_by_response found_us_by_responses [not null]
   created_at "timestamp with time zone" [not null, default: `now()`]
   updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    user_id [name: 'publisher_user_idx', unique]
+  }
 }
 
-ref: accounts.profile_id - profiles.id
+ref: projects.id - categories.id
+
+ref: users.id - publishers.user_id
