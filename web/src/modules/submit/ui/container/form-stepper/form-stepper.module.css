@@ -1,0 +1,17 @@
+.container {
+  justify-content: center;
+  @media (max-width: $mantine-breakpoint-sm) {
+    margin-top: 5%;
+  }
+}
+.stepper {
+  width: 100%;
+}
+.stepIcon {
+  @mixin light {
+    color: var(--mantine-primary-color-filled);
+  }
+  @mixin dark {
+    color: white;
+  }
+}

@@ -1,15 +1,12 @@
 import { Flex, Stepper } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-// import { useOnboarding } from "../../hooks/use-onboarding";
-// import { StepCompleted } from "../step-completed/step-completed";
-// import { UserInterest } from "../user-interest/user-interest";
-// import { UserLocation } from "../user-location/user-location";
-// import { UserOrigin } from "../user-origin/user-origin";
-// import { UserProfile } from "../user-profile/user-profile";
 
 import { IconCopyCheck, IconForms, IconList } from "@tabler/icons-react";
-import { useSubmitForm } from "../../hooks/use-submit-form";
-import { StepLayout } from "../step-layout/step-layout";
+import { useSubmitForm } from "../../../hooks/use-submit-form";
+import { StepLayout } from "../../components/step-layout/step-layout";
+import { ProjectCategories } from "../project-categories/project-categories";
+import { ProjectForm } from "../project-form/project-form";
+import { ProjectReview } from "../project-review/project-review";
 import classes from "./form-stepper.module.css";
 
 export function FormStepper() {
@@ -22,27 +19,34 @@ export function FormStepper() {
         active={active}
         orientation={matches ? "horizontal" : "vertical"}
         className={classes.stepper}
+        classNames={{ stepIcon: classes.stepIcon }}
       >
         <Stepper.Step
           label="Descrição"
           icon={<IconForms size={22} />}
           description={"Descreve teu projeto"}
         >
-          <StepLayout title="1">1</StepLayout>
+          <StepLayout>
+            <ProjectForm />
+          </StepLayout>
         </Stepper.Step>
         <Stepper.Step
           label="Categoria"
           icon={<IconList size={22} />}
           description="Enquadre teu projeto"
         >
-          <StepLayout title="2">2</StepLayout>
+          <StepLayout>
+            <ProjectCategories />
+          </StepLayout>
         </Stepper.Step>
         <Stepper.Step
           label="Revisão"
           icon={<IconCopyCheck size={22} />}
           description="Revise tua publicação"
         >
-          <StepLayout title="3">3</StepLayout>
+          <StepLayout>
+            <ProjectReview />
+          </StepLayout>
         </Stepper.Step>
         <Stepper.Completed>validar</Stepper.Completed>
       </Stepper>
