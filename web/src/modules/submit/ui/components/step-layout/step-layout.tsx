@@ -1,19 +1,11 @@
-import { Button, Flex, Stack, Text, Tooltip } from "@mantine/core";
+import { Button, Flex, Stack, Tooltip } from "@mantine/core";
 import { PropsWithChildren } from "react";
-import { useSubmitForm } from "../../hooks/use-submit-form";
+import { useSubmitForm } from "../../../hooks/use-submit-form";
 
-type StepLayout = PropsWithChildren & {
-  title: string;
-};
-
-export function StepLayout({ children, title }: StepLayout) {
+export function StepLayout({ children }: PropsWithChildren) {
   const { isFist, isLast, next, previous } = useSubmitForm();
   return (
     <Stack mih={400} gap={"xs"} mt={"lg"}>
-      <Text fw={500} fz={"h3"}>
-        {title}
-      </Text>
-      <Stack />
       {children}
       <Flex justify={"flex-end"} gap={"sm"} mt="auto">
         {!isFist && (

@@ -1,0 +1,42 @@
+.card {
+  height: rem(60px);
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.icon {
+  border-radius: var(--mantine-radius-lg);
+  width: rem(70px);
+  height: rem(70px);
+
+  @media (max-width: $mantine-breakpoint-sm) {
+    width: rem(60px);
+    height: rem(60px);
+    border-radius: var(--mantine-radius-md);
+  }
+}
+
+.titleLink {
+  text-decoration: none;
+  font-weight: bold;
+  color: var(--mantine-color-text);
+
+  @mixin hover {
+    text-decoration: underline;
+    color: var(--mantine-primary-color-filled);
+  }
+}
+
+
+
+.topics {
+  @media (max-width: $mantine-breakpoint-xs) {
+    display: none;
+  }
+}
+
+.label {
+  line-height: 0;
+}
