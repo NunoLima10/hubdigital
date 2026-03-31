@@ -18,9 +18,10 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
+      "@/*": ["./src/*", "../api/src/*"],
       "@app/*": ["./src/app/*"],
-      "@assets/*": ["./src/assets/*"]
+      "@assets/*": ["./src/assets/*"],
+      "@hubdigital/api/*": ["../api/src/*"]
     }
   },
   "include": ["src", "src/types/**/*.d.ts"],

@@ -18,6 +18,8 @@ import {
 import { usersRoutes } from "./modules/users/users-routes";
 import { config } from "./config";
 import betterAuth from "./plugins/better-auth";
+import { RPCHandler } from "@orpc/server/fastify";
+import { appRouter } from "./orpc/router";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -67,6 +69,18 @@ export async function buildServer(db: DB) {
   });
 
   await server.register(usersRoutes, { prefix: "/v1/users" });
+
+  const rpcHandler = new RPCHandler(appRouter);
+  server.all("/v1/rpc/*", async (req, reply) => {
+    const { matched } = await rpcHandler.handle(req, reply, {
+      prefix: "/v1/rpc",
+      context: { db: req.db, user: req.user, req },
+    });
+
+    if (!matched) {
+      reply.status(404).send({ error: "Not found" });
+    }
+  });
 
   server.get("/", async (req: FastifyRequest, reply: FastifyReply) => {
     reply.redirect("/docs");
