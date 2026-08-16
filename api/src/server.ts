@@ -16,6 +16,8 @@ import {
   ZodTypeProvider,
 } from "fastify-type-provider-zod";
 import { usersRoutes } from "./modules/users/users-routes";
+import { projectsRoutes } from "./modules/projects/projects-routes";
+import { categoriesRoutes } from "./modules/categories/categories-routes";
 import { config } from "./config";
 import betterAuth from "./plugins/better-auth";
 
@@ -67,6 +69,8 @@ export async function buildServer(db: DB) {
   });
 
   await server.register(usersRoutes, { prefix: "/v1/users" });
+  await server.register(projectsRoutes, { prefix: "/v1/projects" });
+  await server.register(categoriesRoutes, { prefix: "/v1/categories" });
 
   server.get("/", async (req: FastifyRequest, reply: FastifyReply) => {
     reply.redirect("/docs");
