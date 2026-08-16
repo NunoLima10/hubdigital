@@ -1,6 +1,6 @@
 export type Project = {
   id: number;
-  iconUrl: string;
+  iconUrl?: string;
   website: string;
   title: string;
   description: string;

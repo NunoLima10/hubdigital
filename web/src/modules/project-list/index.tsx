@@ -1,50 +1,61 @@
-import calendarios from "@assets/calendarios.webp";
-import less from "@assets/less.webp";
-import nhafarmacia from "@assets/nhafarmacia.webp";
-import notifika from "@assets/notifika.webp";
-import { Button, Flex, Stack } from "@mantine/core";
+import { pricingLabels } from "@/modules/submit/options";
+import { ProjectMinimal } from "@/modules/submit/types/project";
+import { Stack, Text } from "@mantine/core";
+import { useProjects } from "./hooks/use-projects";
 import { Projectcard } from "./components/project-card/project-card";
 
+function toCardProps(project: ProjectMinimal) {
+  return {
+    id: project.id,
+    title: project.name,
+    description: project.shortDescription,
+    website: project.websiteUrl,
+    iconUrl: project.logoUrl ?? undefined,
+    topis: [project.category?.name, pricingLabels[project.pricing]].filter(
+      Boolean
+    ) as string[],
+    upCount: 0,
+  };
+}
+
 export function ProjectList() {
+  const { data, isLoading, isError } = useProjects();
+
+  if (isLoading) {
+    return (
+      <Stack gap={40}>
+        <Projectcard.Loading />
+        <Projectcard.Loading />
+        <Projectcard.Loading />
+      </Stack>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Stack align="center" py="xl">
+        <Text c="dimmed">
+          Não foi possível carregar os projetos. Tenta novamente mais tarde.
+        </Text>
+      </Stack>
+    );
+  }
+
+  if (!data || data.data.length === 0) {
+    return (
+      <Stack align="center" py="xl">
+        <Text c="dimmed">
+          Ainda não há projetos publicados. Sê o primeiro a partilhar o teu!
+        </Text>
+      </Stack>
+    );
+  }
+
   return (
     <Stack gap={40}>
-      <Projectcard
-        title="Notifika"
-        id={1}
-        description="Conectamos empresas a clientes, tornando a comunicação direta mais eficiente em tempo real."
-        topis={["Comunicação", "SaaS", "B2B"]}
-        upCount={0}
-        iconUrl={notifika}
-        website="https://notifika.cv/"
-      />
-      <Projectcard
-        title="NhaFarma"
-        id={2}
-        description="Encontre farmácias de serviço em Cabo Verde, com praticidade e eficiência."
-        topis={["Informação", "SaaS", "B2C"]}
-        upCount={10}
-        iconUrl={nhafarmacia}
-        website="https://www.nhafarma.cv/"
-      />
-      <Projectcard
-        title="Calendario.cv"
-        id={3}
-        description="Encontre farmácias de serviço em Cabo Verde, com praticidade e eficiência."
-        topis={["Informação", "SaaS", "B2C"]}
-        upCount={100}
-        iconUrl={calendarios}
-        website="https://www.calendario.cv/"
-      />
-      <Projectcard
-        title="Chuva Less"
-        id={4}
-        description="O Less automatiza a criação, o gerenciamento e a implantação de sua infraestrutura de nuvem"
-        topis={["Serviço", "Cloud", "B2B"]}
-        upCount={1000}
-        iconUrl={less}
-        website="https://less.chuva.io/"
-      />
-      <Projectcard.Loading />
+      {data.data.map((project) => (
+        <Projectcard key={project.id} {...toCardProps(project)} />
+      ))}
     </Stack>
   );
 }
