@@ -1,11 +1,13 @@
+import { ProjectIcon } from "@/components/project-icon/project-icon";
 import { Badge, Flex, Stack, Text } from "@mantine/core";
 import classes from "./project-card.module.css";
 
 type ProjectCardProps = {
-  iconUrl: string;
+  iconUrl?: string;
   websiteUrl: string;
   name: string;
   description: string;
+  badges?: string[];
 };
 
 export function ProjectCard({
@@ -13,10 +15,11 @@ export function ProjectCard({
   iconUrl,
   websiteUrl,
   description,
+  badges = [],
 }: ProjectCardProps) {
   return (
     <Flex gap={"xs"}>
-      <img src={iconUrl} className={classes.icon}></img>
+      <ProjectIcon iconUrl={iconUrl} className={classes.icon} size={70} />
       <Stack gap={"none"}>
         <Text
           className={classes.titleLink}
@@ -30,15 +33,11 @@ export function ProjectCard({
         </Text>
         <Text size="sm">{description}</Text>
         <Flex gap={"xs"} visibleFrom="xs">
-          <Badge variant="dot" size="sm">
-            SaaS
-          </Badge>
-          <Badge variant="dot" size="sm">
-            AI
-          </Badge>
-          <Badge variant="dot" size="sm">
-            B2B
-          </Badge>
+          {badges.map((badge) => (
+            <Badge key={badge} variant="dot" size="sm">
+              {badge}
+            </Badge>
+          ))}
         </Flex>
       </Stack>
     </Flex>

@@ -18,12 +18,14 @@ type ImageSelectorProps = {
   label: string;
   recomandations?: string;
   actionLabel?: string;
+  required?: boolean;
 };
 
 export function ImageSelector({
   label,
   recomandations,
   actionLabel = " Carregar imagem",
+  required = false,
 }: ImageSelectorProps) {
   const [file, setFile] = useState<File | null>(null);
   const bannerPreview = useImagePreview(file);
@@ -37,7 +39,7 @@ export function ImageSelector({
   return (
     <Stack gap={"xxs"} align="flex-start" w={"100%"}>
       <Flex align={"center"} justify={"space-between"} w={"100%"}>
-        <Input.Wrapper label={label} withAsterisk></Input.Wrapper>
+        <Input.Wrapper label={label} withAsterisk={required}></Input.Wrapper>
         <Text c={"dimmed"} size="sm">
           {recomandations}
         </Text>
