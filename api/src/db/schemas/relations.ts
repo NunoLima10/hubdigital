@@ -11,11 +11,12 @@ export const userRelations = relations(users, ({ one }) => ({
   }),
 }));
 
-export const publisherRelations = relations(publishers, ({ one }) => ({
+export const publisherRelations = relations(publishers, ({ one, many }) => ({
   user: one(users, {
     fields: [publishers.userId],
     references: [users.id],
   }),
+  projects: many(projects),
 }));
 
 export const projectRelations = relations(projects, ({ one }) => ({
@@ -23,11 +24,12 @@ export const projectRelations = relations(projects, ({ one }) => ({
     fields: [projects.categoryId],
     references: [categories.id],
   }),
+  publisher: one(publishers, {
+    fields: [projects.publisherId],
+    references: [publishers.id],
+  }),
 }));
 
-export const categoriesRelations = relations(categories, ({ one }) => ({
-  project: one(projects, {
-    fields: [categories.id],
-    references: [projects.categoryId],
-  }),
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  projects: many(projects),
 }));
