@@ -3,11 +3,13 @@ import { IconTrash } from "@tabler/icons-react";
 import Placeholder from "@tiptap/extension-placeholder";
 import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-const content = "";
 
-type DescriptionEditorProps = {};
+type DescriptionEditorProps = {
+  value?: string;
+  onChange?: (html: string) => void;
+};
 
-export function DescriptionEditor({}: DescriptionEditorProps) {
+export function DescriptionEditor({ value, onChange }: DescriptionEditorProps) {
   const editor = useEditor({
     shouldRerenderOnTransaction: true,
     extensions: [
@@ -15,7 +17,10 @@ export function DescriptionEditor({}: DescriptionEditorProps) {
       Link,
       Placeholder.configure({ placeholder: "Descreve em detalhes" }),
     ],
-    content,
+    content: value ?? "",
+    onUpdate: ({ editor }) => {
+      onChange?.(editor.isEmpty ? "" : editor.getHTML());
+    },
   });
 
   return (

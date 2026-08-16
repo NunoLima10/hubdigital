@@ -11,7 +11,7 @@ import classes from "./form-stepper.module.css";
 
 export function FormStepper() {
   const matches = useMediaQuery("(min-width: 48em)");
-  const { active } = useSubmitForm();
+  const { active, form } = useSubmitForm();
 
   return (
     <Flex className={classes.container}>
@@ -27,7 +27,7 @@ export function FormStepper() {
           description={"Descreve teu projeto"}
         >
           <StepLayout>
-            <ProjectForm />
+            <ProjectForm form={form} />
           </StepLayout>
         </Stepper.Step>
         <Stepper.Step
@@ -36,7 +36,7 @@ export function FormStepper() {
           description="Enquadre teu projeto"
         >
           <StepLayout>
-            <ProjectCategories />
+            <ProjectCategories form={form} />
           </StepLayout>
         </Stepper.Step>
         <Stepper.Step

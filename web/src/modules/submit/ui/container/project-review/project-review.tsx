@@ -1,38 +1,87 @@
-import { SimpleGrid, Skeleton, Stack, Text } from "@mantine/core";
+import { Box, SimpleGrid, Stack, Text } from "@mantine/core";
+import { useSubmitForm } from "../../../hooks/use-submit-form";
+import { useCategories } from "../../../hooks/use-categories";
+import {
+  accessLabels,
+  audienceLabels,
+  businessModelLabels,
+  platformLabels,
+  pricingLabels,
+  projectStageLabels,
+} from "../../../options";
 import { CategoriesDisplay } from "../../components/categories-diplay/categories-display";
 import { ProjectCard } from "../../components/project-card/project-card";
 
-type ProjectReviewProps = {};
+export function ProjectReview() {
+  const { form } = useSubmitForm();
+  const { data: categories } = useCategories();
 
-export function ProjectReview({}: ProjectReviewProps) {
+  const category = categories?.find((c) => c.id === form.values.categoryId);
+
+  const badges = [
+    form.values.pricing && pricingLabels[form.values.pricing],
+    form.values.businessModel && businessModelLabels[form.values.businessModel],
+  ].filter(Boolean) as string[];
+
   return (
     <Stack>
-      <Skeleton h={250} w={"100%"} animate={false}></Skeleton>
       <ProjectCard
-        name="Nome do projeto"
-        description="Este texto tem 50 caracteres do ipsa. Lorem ipsum dolor sit"
-        websiteUrl="https://hubdigital.cv/"
-        iconUrl="https://notifika.cv/assets/Icon3D-CREwZX7D.webp"
+        name={form.values.name || "Nome do projeto"}
+        description={
+          form.values.shortDescription || "Pequena descrição do projeto"
+        }
+        websiteUrl={form.values.websiteUrl || "#"}
+        badges={badges}
       />
       <SimpleGrid cols={{ base: 2, sm: 3 }} w={"100%"}>
-        <CategoriesDisplay label="Maturidade do projeto" badges={["Ideia"]} />
-        <CategoriesDisplay label="Plataformas suportadas" badges={["Web"]} />
-        <CategoriesDisplay label="Plataformas suportadas" badges={["Web"]} />
-        
+        <CategoriesDisplay
+          label="Categoria"
+          badges={category ? [category.name] : []}
+        />
+        <CategoriesDisplay
+          label="Maturidade do projeto"
+          badges={
+            form.values.projectStage
+              ? [projectStageLabels[form.values.projectStage]]
+              : []
+          }
+        />
+        <CategoriesDisplay
+          label="Plataformas suportadas"
+          badges={form.values.platform.map((p) => platformLabels[p])}
+        />
+        <CategoriesDisplay
+          label="Público-alvo"
+          badges={
+            form.values.audienceStage
+              ? [audienceLabels[form.values.audienceStage]]
+              : []
+          }
+        />
+        <CategoriesDisplay
+          label="Modelo de negócio"
+          badges={
+            form.values.businessModel
+              ? [businessModelLabels[form.values.businessModel]]
+              : []
+          }
+        />
+        <CategoriesDisplay
+          label="Acesso"
+          badges={
+            form.values.access ? [accessLabels[form.values.access]] : []
+          }
+        />
       </SimpleGrid>
 
-      <Text>
-        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Recusandae nam
-        sequi dicta? Ducimus ut eius accusantium. Obcaecati aperiam et quisquam
-        perferendis officia quos assumenda, pariatur, eveniet sunt nisi, nobis
-        alias. Lorem ipsum dolor sit amet consectetur adipisicing elit. A quas
-        adipisci doloremque non tenetur illum atque rem error molestias,
-        ducimus, amet reprehenderit praesentium id ad quia perferendis. Enim,
-        voluptatum molestias? Lorem ipsum dolor sit amet consectetur,
-        adipisicing elit. Atque ipsum veritatis reprehenderit recusandae ut
-        voluptatibus vitae quibusdam quisquam quis nesciunt quam voluptate
-        dolorum, doloremque et magni aliquam deleniti tempora dolor!
-      </Text>
+      {form.values.description && (
+        <Box
+          dangerouslySetInnerHTML={{ __html: form.values.description }}
+        />
+      )}
+      {!form.values.description && (
+        <Text c="dimmed">Nenhuma descrição detalhada foi adicionada.</Text>
+      )}
     </Stack>
   );
 }
