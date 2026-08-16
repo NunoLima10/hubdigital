@@ -1,3 +1,4 @@
+import { ProjectIcon } from "@/components/project-icon/project-icon";
 import {
   Anchor,
   Badge,
@@ -43,7 +44,7 @@ export function Projectcard({
   return (
     <Flex className={classes.card}>
       <Flex gap={"xs"}>
-        <img src={iconUrl} className={classes.icon}></img>
+        <ProjectIcon iconUrl={iconUrl} className={classes.icon} />
         <Stack gap={0}>
           <Anchor className={classes.titleLink} href={website} target="_blank">
             <Text className={classes.title}>{title}</Text>
