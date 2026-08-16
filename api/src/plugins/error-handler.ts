@@ -1,6 +1,9 @@
-import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
+import {
+  PG_ERR_FOREIGN_KEY_VIOLATION,
+  PG_ERR_UNIQUE_VIOLATION,
+} from "@/utils/constants";
 import { logger } from "@/utils/logger";
-import { FastifyPluginAsync } from "fastify";
+import { FastifyError, FastifyPluginAsync } from "fastify";
 import fastifyPlugin from "fastify-plugin";
 import { hasZodFastifySchemaValidationErrors } from "fastify-type-provider-zod";
 import { PostgresError } from "postgres";
@@ -17,7 +20,7 @@ export const errorResponseSchema = z.object({
 
 
 const customErrorHandler: FastifyPluginAsync = async (fastify) => {
-  fastify.setErrorHandler((error, req, reply) => {
+  fastify.setErrorHandler((error: FastifyError, req, reply) => {
     if (hasZodFastifySchemaValidationErrors(error)) {
       logger.warn({ error }, `Zod validation error: ${error.message}`);
       return reply.code(400).send({
@@ -36,6 +39,19 @@ const customErrorHandler: FastifyPluginAsync = async (fastify) => {
       return reply.code(409).send({
         error: {
           message: "O recurso já existe.",
+          code: error.code,
+        },
+      });
+    }
+
+    if (
+      error instanceof PostgresError &&
+      error.code === PG_ERR_FOREIGN_KEY_VIOLATION
+    ) {
+      logger.warn({ error }, "Database foreign key constraint violation");
+      return reply.code(400).send({
+        error: {
+          message: "Um dos recursos referenciados não existe.",
           code: error.code,
         },
       });

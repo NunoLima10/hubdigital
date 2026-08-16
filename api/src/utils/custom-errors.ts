@@ -30,6 +30,12 @@ export const ForbiddenError = createError(
   403
 );
 
+export const PublisherRequiredError = createError(
+  "FST_PUBLISHER_REQUIRED",
+  "Conclua o seu perfil de publicador antes de submeter um projeto.",
+  403
+);
+
 export const AccountLockedError = createError(
   "FST_ACCOUNT_LOCKED",
   "Sua conta foi temporariamente bloqueada por excesso de tentativas. Tente novamente mais tarde.",

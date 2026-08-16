@@ -33,6 +33,7 @@
     "vitest": "^2.1.4"
   },
   "dependencies": {
+    "@hubdigital/shared": "workspace:*",
     "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.0.1",
     "@fastify/error": "^4.2.0",
