@@ -2,10 +2,14 @@ import { NotFoundError } from "@/utils/custom-errors";
 import {
   CreateProjectReply,
   CreateProjectRequest,
+  GetProjectReply,
+  GetProjectRequest,
   ListMyProjectsReply,
   ListMyProjectsRequest,
   ListProjectsReply,
   ListProjectsRequest,
+  ToggleUpvoteReply,
+  ToggleUpvoteRequest,
   UpdateProjectReply,
   UpdateProjectRequest,
 } from "./projects-schemas";
@@ -58,7 +62,8 @@ async function listMyProjectsHandler(
   const { data, total } = await ProjectsService.listMyProjects(
     req.db,
     publisher.id,
-    req.query
+    req.query,
+    req.user?.id
   );
 
   return reply.status(200).send({
@@ -73,7 +78,8 @@ async function listProjectsHandler(
 ) {
   const { data, total } = await ProjectsService.listProjects(
     req.db,
-    req.query
+    req.query,
+    req.user?.id
   );
 
   return reply.status(200).send({
@@ -82,9 +88,49 @@ async function listProjectsHandler(
   });
 }
 
+async function getProjectHandler(
+  req: GetProjectRequest,
+  reply: GetProjectReply
+) {
+  const project = await ProjectsService.getProjectBySlug(
+    req.db,
+    req.params.slug,
+    req.user?.id
+  );
+
+  if (!project) {
+    throw new NotFoundError();
+  }
+
+  return reply.status(200).send({
+    data: project,
+  });
+}
+
+async function toggleUpvoteHandler(
+  req: ToggleUpvoteRequest,
+  reply: ToggleUpvoteReply
+) {
+  const result = await ProjectsService.toggleUpvote(
+    req.db,
+    req.params.id,
+    req.user!.id
+  );
+
+  if (!result) {
+    throw new NotFoundError();
+  }
+
+  return reply.status(200).send({
+    data: result,
+  });
+}
+
 export const projectsController = {
   createProjectHandler,
   updateProjectHandler,
   listMyProjectsHandler,
   listProjectsHandler,
+  getProjectHandler,
+  toggleUpvoteHandler,
 };

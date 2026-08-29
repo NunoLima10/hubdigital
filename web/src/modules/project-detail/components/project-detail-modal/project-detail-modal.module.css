@@ -1,0 +1,8 @@
+.toolbar {
+  border-bottom: 1px solid var(--mantine-color-default-border);
+}
+
+.body {
+  max-height: calc(90vh - 52px);
+  overflow-y: auto;
+}

@@ -36,6 +36,13 @@
       "when": 1786803764907,
       "tag": "0004_mushy_manta",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786847725100,
+      "tag": "0005_deep_toro",
+      "breakpoints": true
     }
   ]
 }
