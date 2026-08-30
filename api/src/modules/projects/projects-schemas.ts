@@ -108,3 +108,46 @@ type ListProjectsGeneric = {
 
 export type ListProjectsRequest = FastifyRequest<ListProjectsGeneric>;
 export type ListProjectsReply = FastifyReply<ListProjectsGeneric>;
+
+export const getProjectRouteSchema = {
+  tags: ["projects"],
+  params: z.object({
+    slug: z.string(),
+  }),
+  response: {
+    200: z.object({
+      data: projectSchema,
+    }),
+    ...routeErrorResponses,
+  },
+};
+
+type GetProjectGeneric = {
+  Params: z.infer<typeof getProjectRouteSchema.params>;
+};
+
+export type GetProjectRequest = FastifyRequest<GetProjectGeneric>;
+export type GetProjectReply = FastifyReply<GetProjectGeneric>;
+
+export const toggleUpvoteRouteSchema = {
+  tags: ["projects"],
+  params: z.object({
+    id: z.coerce.number().int().positive(),
+  }),
+  response: {
+    200: z.object({
+      data: z.object({
+        upvoted: z.boolean(),
+        upvoteCount: z.number(),
+      }),
+    }),
+    ...routeErrorResponses,
+  },
+};
+
+type ToggleUpvoteGeneric = {
+  Params: z.infer<typeof toggleUpvoteRouteSchema.params>;
+};
+
+export type ToggleUpvoteRequest = FastifyRequest<ToggleUpvoteGeneric>;
+export type ToggleUpvoteReply = FastifyReply<ToggleUpvoteGeneric>;

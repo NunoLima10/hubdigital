@@ -13,9 +13,14 @@ import { IconConfetti } from "@tabler/icons-react";
 import classes from "./project-card.module.css";
 
 import { useMediaQuery } from "@mantine/hooks";
-import { useState } from "react";
 import { useReward } from "react-rewards";
 import { Project } from "../../types/project";
+
+type ProjectcardProps = Project & {
+  onOpen?: () => void;
+  onUpvote?: () => void;
+  isUpvotePending?: boolean;
+};
 
 export function Projectcard({
   id,
@@ -24,29 +29,44 @@ export function Projectcard({
   iconUrl,
   topis,
   upCount,
+  hasUpvoted,
   website,
-}: Project) {
+  onOpen,
+  onUpvote,
+  isUpvotePending,
+}: ProjectcardProps) {
   // Equivalent to $mantine-breakpoint-xs -> 36em
   const rewardId = "rewardId" + id.toString();
 
   const isRowButton = useMediaQuery("(min-width: 36em)");
-  const [up, setUp] = useState(upCount);
 
-  const { reward, isAnimating } = useReward(rewardId, "confetti", {
-    lifetime: 2000,
+  const { reward } = useReward(rewardId, "confetti", {
+    // lifetime is a frame count (at 60fps), not milliseconds — 120 ≈ 2s
+    lifetime: 120,
   });
 
   function onClickUp() {
-    setUp((prev) => prev + 1);
-    reward();
+    if (!hasUpvoted) reward();
+    onUpvote?.();
   }
 
   return (
     <Flex className={classes.card}>
-      <Flex gap={"xs"}>
+      <Flex
+        gap={"xs"}
+        className={onOpen ? classes.clickable : undefined}
+        onClick={onOpen}
+        role={onOpen ? "button" : undefined}
+        tabIndex={onOpen ? 0 : undefined}
+      >
         <ProjectIcon iconUrl={iconUrl} className={classes.icon} />
         <Stack gap={0}>
-          <Anchor className={classes.titleLink} href={website} target="_blank">
+          <Anchor
+            className={classes.titleLink}
+            href={website}
+            target="_blank"
+            onClick={(event) => event.stopPropagation()}
+          >
             <Text className={classes.title}>{title}</Text>
           </Anchor>
           <Text lh={"sm"} fz="xs">
@@ -66,7 +86,8 @@ export function Projectcard({
       {!isRowButton && <span id={rewardId} />}
 
       <Button
-        variant="default"
+        variant={hasUpvoted ? "light" : "default"}
+        color={hasUpvoted ? "orange" : undefined}
         className={classes.upvotetest}
         leftSection={isRowButton ? <span id={rewardId} /> : null}
         rightSection={<IconConfetti size={18} className={classes.upvoteIcon} />}
@@ -77,9 +98,9 @@ export function Projectcard({
           label: classes.label,
         }}
         onClick={onClickUp}
-        disabled={isAnimating}
+        disabled={isUpvotePending}
       >
-        <Text size="sm">{up}</Text>
+        <Text size="sm">{upCount}</Text>
       </Button>
     </Flex>
   );

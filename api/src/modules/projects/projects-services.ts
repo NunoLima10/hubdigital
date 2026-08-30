@@ -1,5 +1,5 @@
 import { DB } from "@/db";
-import { publishers, projects } from "@/db/schemas";
+import { publishers, projects, projectUpvotes } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
 import { slugify } from "@/utils/slugify";
@@ -24,6 +24,19 @@ type CreateProjectInput = {
 };
 
 type UpdateProjectInput = Partial<Omit<CreateProjectInput, "publisherId">>;
+
+function withUpvotes<T extends { upvotes: { userId: string }[] }>(
+  project: T,
+  userId?: string
+) {
+  const { upvotes, ...rest } = project;
+
+  return {
+    ...rest,
+    upvoteCount: upvotes.length,
+    hasUpvoted: userId ? upvotes.some((upvote) => upvote.userId === userId) : false,
+  };
+}
 
 async function findPublisherByUserId(db: DB, userId: string) {
   return db.query.publishers.findFirst({
@@ -79,12 +92,13 @@ async function updateProject(
 async function listMyProjects(
   db: DB,
   publisherId: number,
-  { limit, offset }: { limit: number; offset: number }
+  { limit, offset }: { limit: number; offset: number },
+  userId?: string
 ) {
   const [data, [{ total }]] = await Promise.all([
     db.query.projects.findMany({
       where: eq(projects.publisherId, publisherId),
-      with: { category: true },
+      with: { category: true, upvotes: true },
       orderBy: desc(projects.createdAt),
       limit,
       offset,
@@ -95,16 +109,17 @@ async function listMyProjects(
       .where(eq(projects.publisherId, publisherId)),
   ]);
 
-  return { data, total };
+  return { data: data.map((project) => withUpvotes(project, userId)), total };
 }
 
 async function listProjects(
   db: DB,
-  { limit, offset }: { limit: number; offset: number }
+  { limit, offset }: { limit: number; offset: number },
+  userId?: string
 ) {
   const [data, [{ total }]] = await Promise.all([
     db.query.projects.findMany({
-      with: { category: true },
+      with: { category: true, upvotes: true },
       orderBy: desc(projects.createdAt),
       limit,
       offset,
@@ -112,7 +127,62 @@ async function listProjects(
     db.select({ total: count() }).from(projects),
   ]);
 
-  return { data, total };
+  return { data: data.map((project) => withUpvotes(project, userId)), total };
+}
+
+async function getProjectBySlug(db: DB, slug: string, userId?: string) {
+  const result = await db.query.projects.findFirst({
+    where: eq(projects.slug, slug),
+    with: {
+      category: true,
+      publisher: { with: { user: true } },
+      upvotes: true,
+    },
+  });
+
+  if (!result) return null;
+
+  const { publisher, ...project } = result;
+
+  return {
+    ...withUpvotes(project, userId),
+    author: publisher?.user
+      ? {
+          id: publisher.user.id,
+          name: publisher.user.name,
+          image: publisher.user.image,
+        }
+      : null,
+  };
+}
+
+async function toggleUpvote(db: DB, projectId: number, userId: string) {
+  const project = await db.query.projects.findFirst({
+    where: eq(projects.id, projectId),
+    columns: { id: true },
+  });
+
+  if (!project) return null;
+
+  const existing = await db.query.projectUpvotes.findFirst({
+    where: and(
+      eq(projectUpvotes.projectId, projectId),
+      eq(projectUpvotes.userId, userId)
+    ),
+  });
+
+  if (existing) {
+    await db.delete(projectUpvotes).where(eq(projectUpvotes.id, existing.id));
+  } else {
+    await db.insert(projectUpvotes).values({ projectId, userId });
+  }
+
+  const [{ upvoteCount }] = await db
+    .select({ upvoteCount: count() })
+    .from(projectUpvotes)
+    .where(eq(projectUpvotes.projectId, projectId));
+
+  return { upvoted: !existing, upvoteCount };
 }
 
 export const ProjectsService = {
@@ -127,4 +197,9 @@ export const ProjectsService = {
     "projectsService.listMyProjects"
   ),
   listProjects: errorLogger(listProjects, "projectsService.listProjects"),
+  getProjectBySlug: errorLogger(
+    getProjectBySlug,
+    "projectsService.getProjectBySlug"
+  ),
+  toggleUpvote: errorLogger(toggleUpvote, "projectsService.toggleUpvote"),
 };

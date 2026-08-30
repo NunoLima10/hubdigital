@@ -1,0 +1,19 @@
+.banner {
+  position: relative;
+  width: 100%;
+  min-height: rem(220px);
+  border-radius: var(--mantine-radius-md);
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder {
+  border: 1.5px dashed var(--mantine-color-default-border);
+  background-color: var(--mantine-color-default-hover);
+  color: var(--mantine-color-dimmed);
+}

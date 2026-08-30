@@ -594,4 +594,128 @@ describe("Projects module (e2e)", () => {
       expect(body.meta.total).toBe(0);
     });
   });
+
+  describe("POST /v1/projects/:id/upvote", () => {
+    async function insertProject() {
+      const [publisher] = await db
+        .insert(publishers)
+        .values({
+          userId: currentUserId,
+          bio: "Building things",
+          profileResponse: "founder",
+          objectiveResponse: "launch-product",
+          locationResponse: "CV1",
+          foundUsByResponse: "social-media",
+        })
+        .returning({ id: publishers.id });
+
+      const [project] = await db
+        .insert(projects)
+        .values({
+          publisherId: publisher.id,
+          categoryId,
+          slug: "meu-projeto",
+          name: "Meu Projeto",
+          shortDescription: validProjectPayload.shortDescription,
+          websiteUrl: validProjectPayload.websiteUrl,
+          pricing: "free",
+          platform: ["web"],
+          businessModel: "b2c",
+          access: "public_beta",
+          projectStage: "mvp",
+          audienceStage: "general_public",
+        })
+        .returning({ id: projects.id });
+
+      return project;
+    }
+
+    it("rejects the request when the user is unauthenticated", async () => {
+      const project = await insertProject();
+      getSessionMock.mockResolvedValue(null);
+
+      const response = await server.inject({
+        method: "POST",
+        url: `/v1/projects/${project.id}/upvote`,
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it("returns 404 when the project does not exist", async () => {
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const response = await server.inject({
+        method: "POST",
+        url: "/v1/projects/999999/upvote",
+      });
+
+      expect(response.statusCode).toBe(404);
+    });
+
+    it("adds an upvote for the current user on first call", async () => {
+      const project = await insertProject();
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const response = await server.inject({
+        method: "POST",
+        url: `/v1/projects/${project.id}/upvote`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().data).toEqual({
+        upvoted: true,
+        upvoteCount: 1,
+      });
+    });
+
+    it("removes the upvote when called again by the same user", async () => {
+      const project = await insertProject();
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      await server.inject({
+        method: "POST",
+        url: `/v1/projects/${project.id}/upvote`,
+      });
+
+      const response = await server.inject({
+        method: "POST",
+        url: `/v1/projects/${project.id}/upvote`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().data).toEqual({
+        upvoted: false,
+        upvoteCount: 0,
+      });
+    });
+
+    it("reflects the vote on the project detail endpoint", async () => {
+      const project = await insertProject();
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      await server.inject({
+        method: "POST",
+        url: `/v1/projects/${project.id}/upvote`,
+      });
+
+      const response = await server.inject({
+        method: "GET",
+        url: "/v1/projects/meu-projeto",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data.upvoteCount).toBe(1);
+      expect(body.data.hasUpvoted).toBe(true);
+    });
+  });
 });

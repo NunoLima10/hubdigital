@@ -14,6 +14,12 @@ export const categorySummarySchema = z.object({
   name: z.string(),
 });
 
+export const projectAuthorSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  image: z.string().nullable(),
+});
+
 export const projectBodySchema = z.object({
   name: z.string().min(2).max(120),
   shortDescription: z.string().min(10).max(200),
@@ -48,6 +54,9 @@ export const projectSchema = z.object({
   audienceStage: z.enum(audienceValues),
   categoryId: z.number(),
   category: categorySummarySchema.nullable().optional(),
+  author: projectAuthorSchema.nullable().optional(),
+  upvoteCount: z.number(),
+  hasUpvoted: z.boolean(),
   createdAt: z.string(),
   updatedAt: z.string(),
 });
@@ -62,11 +71,14 @@ export const projectMinimalFields = {
   pricing: true,
   category: true,
   createdAt: true,
+  upvoteCount: true,
+  hasUpvoted: true,
 } as const;
 
 export const projectMinimalSchema = projectSchema.pick(projectMinimalFields);
 
 export type CategorySummary = z.infer<typeof categorySummarySchema>;
+export type ProjectAuthor = z.infer<typeof projectAuthorSchema>;
 export type ProjectBody = z.infer<typeof projectBodySchema>;
 export type Project = z.infer<typeof projectSchema>;
 export type ProjectMinimal = z.infer<typeof projectMinimalSchema>;

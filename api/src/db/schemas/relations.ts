@@ -1,14 +1,16 @@
 import { relations } from "drizzle-orm";
 import { users } from "./auth";
 import { categories } from "./categories";
+import { projectUpvotes } from "./project-upvotes";
 import { projects } from "./projects";
 import { publishers } from "./publishers";
 
-export const userRelations = relations(users, ({ one }) => ({
+export const userRelations = relations(users, ({ one, many }) => ({
   publisher: one(publishers, {
     fields: [users.id],
     references: [publishers.userId],
   }),
+  upvotes: many(projectUpvotes),
 }));
 
 export const publisherRelations = relations(publishers, ({ one, many }) => ({
@@ -19,7 +21,7 @@ export const publisherRelations = relations(publishers, ({ one, many }) => ({
   projects: many(projects),
 }));
 
-export const projectRelations = relations(projects, ({ one }) => ({
+export const projectRelations = relations(projects, ({ one, many }) => ({
   category: one(categories, {
     fields: [projects.categoryId],
     references: [categories.id],
@@ -28,8 +30,20 @@ export const projectRelations = relations(projects, ({ one }) => ({
     fields: [projects.publisherId],
     references: [publishers.id],
   }),
+  upvotes: many(projectUpvotes),
 }));
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
   projects: many(projects),
+}));
+
+export const projectUpvoteRelations = relations(projectUpvotes, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectUpvotes.projectId],
+    references: [projects.id],
+  }),
+  user: one(users, {
+    fields: [projectUpvotes.userId],
+    references: [users.id],
+  }),
 }));
