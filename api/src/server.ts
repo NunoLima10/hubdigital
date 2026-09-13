@@ -19,6 +19,7 @@ import { usersRoutes } from "./modules/users/users-routes";
 import { projectsRoutes } from "./modules/projects/projects-routes";
 import { categoriesRoutes } from "./modules/categories/categories-routes";
 import { commentsRoutes } from "./modules/comments/comments-routes";
+import { adminRoutes } from "./modules/admin/admin-routes";
 import { makersRoutes } from "./modules/makers/makers-routes";
 import { reportsRoutes } from "./modules/reports/reports-routes";
 import { settingsRoutes } from "./modules/settings/settings-routes";
@@ -87,6 +88,7 @@ export async function buildServer(db: DB) {
   await server.register(reportsRoutes, { prefix: "/v1/reports" });
   await server.register(settingsRoutes, { prefix: "/v1/settings" });
   // Registered last, and behind its own role guard — see modules/admin/admin-routes.
+  await server.register(adminRoutes, { prefix: "/v1/admin" });
 
   server.get("/", async (req: FastifyRequest, reply: FastifyReply) => {
     reply.redirect("/docs");
