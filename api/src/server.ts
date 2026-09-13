@@ -18,7 +18,10 @@ import {
 import { usersRoutes } from "./modules/users/users-routes";
 import { projectsRoutes } from "./modules/projects/projects-routes";
 import { categoriesRoutes } from "./modules/categories/categories-routes";
+import { commentsRoutes } from "./modules/comments/comments-routes";
 import { makersRoutes } from "./modules/makers/makers-routes";
+import { reportsRoutes } from "./modules/reports/reports-routes";
+import { settingsRoutes } from "./modules/settings/settings-routes";
 import { config } from "./config";
 import betterAuth from "./plugins/better-auth";
 import uploaderPlugin from "./plugins/uploader";
@@ -77,7 +80,13 @@ export async function buildServer(db: DB) {
   await server.register(usersRoutes, { prefix: "/v1/users" });
   await server.register(projectsRoutes, { prefix: "/v1/projects" });
   await server.register(categoriesRoutes, { prefix: "/v1/categories" });
+  // Registered at /v1 because it owns both /projects/:slug/comments and
+  // /comments/:id.
+  await server.register(commentsRoutes, { prefix: "/v1" });
   await server.register(makersRoutes, { prefix: "/v1/makers" });
+  await server.register(reportsRoutes, { prefix: "/v1/reports" });
+  await server.register(settingsRoutes, { prefix: "/v1/settings" });
+  // Registered last, and behind its own role guard — see modules/admin/admin-routes.
 
   server.get("/", async (req: FastifyRequest, reply: FastifyReply) => {
     reply.redirect("/docs");
