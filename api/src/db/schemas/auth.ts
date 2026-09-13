@@ -1,4 +1,5 @@
-import { pgTable, text, timestamp, boolean } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { boolean, index, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
@@ -16,7 +17,21 @@ export const users = pgTable("users", {
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires"),
   onboardedAt: timestamp("onboarded_at"),
-});
+  // Hidden, not banned: the account signs in and sees its own content, nobody
+  // else does, and it is told why (specs/ADMIN.md §A4). `banned` above is Better
+  // Auth's own hard ban — the account cannot sign in at all.
+  //
+  // Declared with `input: false` in lib/auth.ts's `additionalFields` so the
+  // Better Auth CLI keeps these columns on regeneration and no user can set
+  // their own sanction state through updateUser.
+  shadowBannedAt: timestamp("shadow_banned_at"),
+  shadowBannedBy: text("shadow_banned_by"),
+  shadowBanReason: text("shadow_ban_reason"),
+}, (table) => [
+  index("users_shadow_banned_idx")
+    .on(table.shadowBannedAt)
+    .where(sql`${table.shadowBannedAt} is not null`),
+]);
 
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
