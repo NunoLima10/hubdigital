@@ -1,14 +1,21 @@
 import { ImageSelector } from "@/components/image-selector/image-selector";
 import { UseFormReturnType } from "@mantine/form";
-import { Stack, Text, TextInput } from "@mantine/core";
+import { Stack, TextInput } from "@mantine/core";
 import { CreateProjectInput } from "../../../types/project";
 import { DescriptionEditor } from "../../components/description-editor/description-editor";
 
 type ProjectFormProps = {
   form: UseFormReturnType<CreateProjectInput>;
+  /** Public URLs of images already saved on the project, when editing. */
+  logoPreviewUrl?: string;
+  bannerPreviewUrl?: string;
 };
 
-export function ProjectForm({ form }: ProjectFormProps) {
+export function ProjectForm({
+  form,
+  logoPreviewUrl,
+  bannerPreviewUrl,
+}: ProjectFormProps) {
   return (
     <Stack>
       <TextInput
@@ -38,18 +45,25 @@ export function ProjectForm({ form }: ProjectFormProps) {
         value={form.values.description}
         onChange={(html) => form.setFieldValue("description", html)}
       />
-      <Text size="sm" c="dimmed">
-        O envio de logo e banner estará disponível em breve.
-      </Text>
       <ImageSelector
         label="Logo"
-        recomandations="Recomendações"
+        type="project_logo"
+        recomandations="PNG, JPG ou WebP até 5 MB"
         actionLabel="Carregar Logo"
+        value={form.values.logoUrl}
+        previewUrl={logoPreviewUrl}
+        onChange={(fileKey) => form.setFieldValue("logoUrl", fileKey)}
+        error={form.errors.logoUrl as string | undefined}
       />
       <ImageSelector
         label="Banner"
-        recomandations="Recomendações"
+        type="project_banner"
+        recomandations="PNG, JPG ou WebP até 5 MB"
         actionLabel="Carregar Banner"
+        value={form.values.bannerImageUrl}
+        previewUrl={bannerPreviewUrl}
+        onChange={(fileKey) => form.setFieldValue("bannerImageUrl", fileKey)}
+        error={form.errors.bannerImageUrl as string | undefined}
       />
     </Stack>
   );

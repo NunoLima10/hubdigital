@@ -25,7 +25,7 @@ async function postOnboarding(responses: OnboardingResponse) {
   return response.data;
 }
 
-export function useCreateOnboarding(options?: CreateOptions) {
+export function useCreateOnboarding(options?: CreateOptions<PostResponse>) {
   const { mutate, isPending } = useMutation<
     PostResponse,
     AxiosError,

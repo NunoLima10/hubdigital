@@ -1,13 +1,32 @@
 import { Project } from "@/modules/submit/types/project";
-import { Skeleton, SimpleGrid, Stack, Text } from "@mantine/core";
+import {
+  Button,
+  Flex,
+  Modal,
+  Skeleton,
+  SimpleGrid,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { useState } from "react";
 import { useMyProjects } from "../../hooks/use-my-projects";
+import {
+  useDeleteProject,
+  usePublishProject,
+} from "../../hooks/use-project-actions";
 import { EditProjectModal } from "../edit-project-modal/edit-project-modal";
 import { ReleasesItem } from "../releases-item/releases-item";
 
 export function ReleasesList() {
   const { data, isLoading, isError } = useMyProjects();
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null);
+
+  const { publishProject, pendingProjectId: publishingId } =
+    usePublishProject();
+  const { deleteProject, pendingProjectId: deletingId } = useDeleteProject({
+    onSuccess: () => setDeletingProject(null),
+  });
 
   if (isLoading) {
     return (
@@ -50,13 +69,50 @@ export function ReleasesList() {
             key={project.id}
             project={project}
             onEdit={setEditingProject}
+            onPublish={() => publishProject(project.id)}
+            onDelete={setDeletingProject}
+            isPublishing={publishingId === project.id}
+            isDeleting={deletingId === project.id}
           />
         ))}
       </SimpleGrid>
+
       <EditProjectModal
         project={editingProject}
         onClose={() => setEditingProject(null)}
       />
+
+      <Modal
+        opened={!!deletingProject}
+        onClose={() => setDeletingProject(null)}
+        title="Remover projeto"
+        centered
+      >
+        <Stack>
+          <Text size="sm">
+            Queres mesmo remover <b>{deletingProject?.name}</b>? Deixará de
+            aparecer no site e nos rankings.
+          </Text>
+          <Flex justify="flex-end" gap="sm">
+            <Button
+              variant="default"
+              onClick={() => setDeletingProject(null)}
+              disabled={!!deletingId}
+            >
+              Cancelar
+            </Button>
+            <Button
+              color="red"
+              loading={!!deletingId}
+              onClick={() =>
+                deletingProject && deleteProject(deletingProject.id)
+              }
+            >
+              Remover
+            </Button>
+          </Flex>
+        </Stack>
+      </Modal>
     </>
   );
 }

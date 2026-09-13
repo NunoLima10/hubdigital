@@ -19,7 +19,9 @@ async function patchProject({ id, payload }: UpdateProjectVariables) {
   return response.data;
 }
 
-export function useUpdateProject(options?: CreateOptions) {
+export function useUpdateProject(
+  options?: CreateOptions<ItemResponse<UpdateProjectResponse>>
+) {
   const { mutate, isPending } = useMutation<
     ItemResponse<UpdateProjectResponse>,
     AxiosError<{ error: { message: string } }>,

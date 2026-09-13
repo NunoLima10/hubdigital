@@ -1,3 +1,4 @@
+import { toAssetUrl } from "@/utils/asset-url";
 import { Box, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useSubmitForm } from "../../../hooks/use-submit-form";
 import { useCategories } from "../../../hooks/use-categories";
@@ -5,6 +6,7 @@ import {
   accessLabels,
   audienceLabels,
   businessModelLabels,
+  islandLabels,
   platformLabels,
   pricingLabels,
   projectStageLabels,
@@ -31,12 +33,17 @@ export function ProjectReview() {
           form.values.shortDescription || "Pequena descrição do projeto"
         }
         websiteUrl={form.values.websiteUrl || "#"}
+        iconUrl={toAssetUrl(form.values.logoUrl)}
         badges={badges}
       />
       <SimpleGrid cols={{ base: 2, sm: 3 }} w={"100%"}>
         <CategoriesDisplay
           label="Categoria"
           badges={category ? [category.name] : []}
+        />
+        <CategoriesDisplay
+          label="Ilha de origem"
+          badges={form.values.island ? [islandLabels[form.values.island]] : []}
         />
         <CategoriesDisplay
           label="Maturidade do projeto"
