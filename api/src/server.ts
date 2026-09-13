@@ -20,6 +20,7 @@ import { projectsRoutes } from "./modules/projects/projects-routes";
 import { categoriesRoutes } from "./modules/categories/categories-routes";
 import { config } from "./config";
 import betterAuth from "./plugins/better-auth";
+import uploaderPlugin from "./plugins/uploader";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -37,7 +38,9 @@ export async function buildServer(db: DB) {
   });
 
   await server.register(corsPlugin, {
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    // PATCH is used by project updates, maker profiles and the admin settings
+    // page; leaving it out made every one of those fail the CORS preflight.
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     origin: config.ALLOWED_ORIGINS,
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -67,6 +70,8 @@ export async function buildServer(db: DB) {
     port: config.PORT,
     path: "/docs",
   });
+
+  await server.register(uploaderPlugin);
 
   await server.register(usersRoutes, { prefix: "/v1/users" });
   await server.register(projectsRoutes, { prefix: "/v1/projects" });

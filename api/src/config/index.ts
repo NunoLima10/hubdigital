@@ -4,7 +4,7 @@ const NODE_ENVS = ["development", "test", "production"] as const;
 
 export const envSchema = z.object({
   NODE_ENV: z.enum(NODE_ENVS).default("development"),
-  PORT: z.coerce.number().int().positive().default(3000),
+  PORT: z.coerce.number().int().positive().default(3001),
   HOST: z.string().default("0.0.0.0"),
   LOG_LEVEL: z
     .string()
@@ -13,7 +13,7 @@ export const envSchema = z.object({
 
   COOKIE_SECRET: z.string(),
 
-  BETTER_AUTH_URL: z.string().url().default("http://localhost:3000"),
+  BETTER_AUTH_URL: z.string().url().default("http://localhost:3001"),
   BETTER_AUTH_SECRET: z
     .string()
     .min(32, "BETTER_AUTH_SECRET must be at least 32 characters long"),
@@ -44,6 +44,14 @@ export const envSchema = z.object({
 
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(100),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+
+  CLOUDFLARE_PUBLIC_URL: z.string().url().optional(),
+  CLOUDFLARE_BUCKET: z.string().optional(),
+  CLOUDFLARE_ENDPOINT: z.string().url().optional(),
+  CLOUDFLARE_ACCESS_KEY_ID: z.string().optional(),
+  CLOUDFLARE_ACCESS_KEY_SECRET: z.string().optional(),
+  CLOUDFLARE_REGION: z.string().default("auto"),
+  UPLOADER_URL_EXPIRES_IN: z.coerce.number().int().positive().default(300),
 });
 
 const env = envSchema.parse(process.env);
