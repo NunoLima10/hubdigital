@@ -81,3 +81,24 @@
     transform: translate(0, 20%);
   }
 }
+
+.rank,
+.rankTop {
+  align-self: center;
+  min-width: rem(28px);
+  font-size: rem(18px);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--mantine-color-dimmed);
+
+  @media (max-width: $mantine-breakpoint-xs) {
+    min-width: rem(20px);
+    font-size: rem(15px);
+  }
+}
+
+/* The podium is the whole point of a weekly cycle, so give it its own weight. */
+.rankTop {
+  color: var(--mantine-color-orange-6);
+}

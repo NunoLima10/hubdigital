@@ -15,11 +15,14 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RankingsWeekRouteImport } from './routes/rankings/$week'
 import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
+import { Route as MakersHandleRouteImport } from './routes/makers/$handle'
 import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
 import { Route as AuthedDashboardRouteRouteImport } from './routes/_authed/dashboard/route'
 import { Route as AuthedDashboardSubmitRouteImport } from './routes/_authed/dashboard/submit'
 import { Route as AuthedDashboardReleasesRouteImport } from './routes/_authed/dashboard/releases'
+import { Route as AuthedDashboardProfileRouteImport } from './routes/_authed/dashboard/profile'
 
 const SignUpRoute = SignUpRouteImport.update({
   id: '/sign-up',
@@ -50,9 +53,19 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RankingsWeekRoute = RankingsWeekRouteImport.update({
+  id: '/rankings/$week',
+  path: '/rankings/$week',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
   id: '/projects/$slug',
   path: '/projects/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MakersHandleRoute = MakersHandleRouteImport.update({
+  id: '/makers/$handle',
+  path: '/makers/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthedOnboardingRoute = AuthedOnboardingRouteImport.update({
@@ -75,6 +88,11 @@ const AuthedDashboardReleasesRoute = AuthedDashboardReleasesRouteImport.update({
   path: '/releases',
   getParentRoute: () => AuthedDashboardRouteRoute,
 } as any)
+const AuthedDashboardProfileRoute = AuthedDashboardProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthedDashboardRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -84,7 +102,10 @@ export interface FileRoutesByFullPath {
   '/sign-up': typeof SignUpRoute
   '/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRoute
+  '/makers/$handle': typeof MakersHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
+  '/rankings/$week': typeof RankingsWeekRoute
+  '/dashboard/profile': typeof AuthedDashboardProfileRoute
   '/dashboard/releases': typeof AuthedDashboardReleasesRoute
   '/dashboard/submit': typeof AuthedDashboardSubmitRoute
 }
@@ -96,7 +117,10 @@ export interface FileRoutesByTo {
   '/sign-up': typeof SignUpRoute
   '/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRoute
+  '/makers/$handle': typeof MakersHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
+  '/rankings/$week': typeof RankingsWeekRoute
+  '/dashboard/profile': typeof AuthedDashboardProfileRoute
   '/dashboard/releases': typeof AuthedDashboardReleasesRoute
   '/dashboard/submit': typeof AuthedDashboardSubmitRoute
 }
@@ -110,7 +134,10 @@ export interface FileRoutesById {
   '/sign-up': typeof SignUpRoute
   '/_authed/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRoute
+  '/makers/$handle': typeof MakersHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
+  '/rankings/$week': typeof RankingsWeekRoute
+  '/_authed/dashboard/profile': typeof AuthedDashboardProfileRoute
   '/_authed/dashboard/releases': typeof AuthedDashboardReleasesRoute
   '/_authed/dashboard/submit': typeof AuthedDashboardSubmitRoute
 }
@@ -124,7 +151,10 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/dashboard'
     | '/onboarding'
+    | '/makers/$handle'
     | '/projects/$slug'
+    | '/rankings/$week'
+    | '/dashboard/profile'
     | '/dashboard/releases'
     | '/dashboard/submit'
   fileRoutesByTo: FileRoutesByTo
@@ -136,7 +166,10 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/dashboard'
     | '/onboarding'
+    | '/makers/$handle'
     | '/projects/$slug'
+    | '/rankings/$week'
+    | '/dashboard/profile'
     | '/dashboard/releases'
     | '/dashboard/submit'
   id:
@@ -149,7 +182,10 @@ export interface FileRouteTypes {
     | '/sign-up'
     | '/_authed/dashboard'
     | '/_authed/onboarding'
+    | '/makers/$handle'
     | '/projects/$slug'
+    | '/rankings/$week'
+    | '/_authed/dashboard/profile'
     | '/_authed/dashboard/releases'
     | '/_authed/dashboard/submit'
   fileRoutesById: FileRoutesById
@@ -161,7 +197,9 @@ export interface RootRouteChildren {
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
+  MakersHandleRoute: typeof MakersHandleRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
+  RankingsWeekRoute: typeof RankingsWeekRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -208,11 +246,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rankings/$week': {
+      id: '/rankings/$week'
+      path: '/rankings/$week'
+      fullPath: '/rankings/$week'
+      preLoaderRoute: typeof RankingsWeekRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/projects/$slug': {
       id: '/projects/$slug'
       path: '/projects/$slug'
       fullPath: '/projects/$slug'
       preLoaderRoute: typeof ProjectsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/makers/$handle': {
+      id: '/makers/$handle'
+      path: '/makers/$handle'
+      fullPath: '/makers/$handle'
+      preLoaderRoute: typeof MakersHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authed/onboarding': {
@@ -243,15 +295,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardReleasesRouteImport
       parentRoute: typeof AuthedDashboardRouteRoute
     }
+    '/_authed/dashboard/profile': {
+      id: '/_authed/dashboard/profile'
+      path: '/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof AuthedDashboardProfileRouteImport
+      parentRoute: typeof AuthedDashboardRouteRoute
+    }
   }
 }
 
 interface AuthedDashboardRouteRouteChildren {
+  AuthedDashboardProfileRoute: typeof AuthedDashboardProfileRoute
   AuthedDashboardReleasesRoute: typeof AuthedDashboardReleasesRoute
   AuthedDashboardSubmitRoute: typeof AuthedDashboardSubmitRoute
 }
 
 const AuthedDashboardRouteRouteChildren: AuthedDashboardRouteRouteChildren = {
+  AuthedDashboardProfileRoute: AuthedDashboardProfileRoute,
   AuthedDashboardReleasesRoute: AuthedDashboardReleasesRoute,
   AuthedDashboardSubmitRoute: AuthedDashboardSubmitRoute,
 }
@@ -279,7 +340,9 @@ const rootRouteChildren: RootRouteChildren = {
   ResetPasswordRoute: ResetPasswordRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
+  MakersHandleRoute: MakersHandleRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
+  RankingsWeekRoute: RankingsWeekRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
