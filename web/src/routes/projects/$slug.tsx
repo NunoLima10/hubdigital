@@ -2,6 +2,7 @@ import { Header } from "@/components/header/header";
 import { Page } from "@/layouts/page";
 import { useProject } from "@/modules/project-detail/hooks/use-project";
 import { ProjectDetailView } from "@/modules/project-detail/components/project-detail-view/project-detail-view";
+import { Comments } from "@/modules/comments";
 import { Anchor, Container, Skeleton, Stack, Text } from "@mantine/core";
 import { IconArrowLeft } from "@tabler/icons-react";
 import { Link, createFileRoute } from "@tanstack/react-router";
@@ -38,7 +39,12 @@ function RouteComponent() {
             <Text c="dimmed">Não foi possível carregar este projeto.</Text>
           )}
 
-          {data && <ProjectDetailView project={data} />}
+          {data && (
+            <>
+              <ProjectDetailView project={data} />
+              <Comments slug={slug} />
+            </>
+          )}
         </Stack>
       </Container>
       {/* <Footer /> */}
