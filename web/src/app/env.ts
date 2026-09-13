@@ -2,7 +2,11 @@ import * as z from "zod";
 
 const createEnv = () => {
   const EnvSchema = z.object({
-    API_URL: z.string().optional().default("http://localhost:3000/v1"),
+    API_URL: z.string().optional().default("http://localhost:3001/v1"),
+    // Public R2 bucket URL, matching the API's CLOUDFLARE_PUBLIC_URL. Only needed
+    // to preview an image before the project is saved — once saved, the API
+    // returns fully resolved URLs.
+    ASSETS_URL: z.string().optional().default(""),
   });
 
   const envVars = Object.entries(import.meta.env).reduce<
