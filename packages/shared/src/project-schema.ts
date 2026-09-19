@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fileUploadTypeValues } from "./file-upload";
-import { islandValues } from "./island-options";
+import { locationSchema } from "./location-schema";
 import { projectStatusValues } from "./project-status";
 import {
   accessValues,
@@ -50,7 +50,7 @@ export const projectBodySchema = z.object({
   access: z.enum(accessValues),
   projectStage: z.enum(projectStageValues),
   audienceStage: z.enum(audienceValues),
-  island: z.enum(islandValues),
+  location: locationSchema,
   categoryId: z.number().int().positive(),
 });
 
@@ -71,7 +71,8 @@ export const projectSchema = z.object({
   access: z.enum(accessValues),
   projectStage: z.enum(projectStageValues),
   audienceStage: z.enum(audienceValues),
-  island: z.enum(islandValues).nullable(),
+  // Null for rows created before location existed.
+  location: locationSchema.nullable(),
   categoryId: z.number(),
   category: categorySummarySchema.nullable().optional(),
   author: projectAuthorSchema.nullable().optional(),
@@ -101,7 +102,7 @@ export const projectMinimalFields = {
   websiteUrl: true,
   logoUrl: true,
   pricing: true,
-  island: true,
+  location: true,
   category: true,
   createdAt: true,
   launchedAt: true,

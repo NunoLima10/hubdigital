@@ -247,9 +247,11 @@ below, and none are filterable.
 **DB**
 - `tsvector` over `name` + `short_description`, GIN index (plain `ILIKE` is fine at launch
   volume if the index is deferred).
-- `island` enum on `projects`: the ten islands (`santo_antao`, `sao_vicente`, `sao_nicolau`,
-  `sal`, `boa_vista`, `maio`, `santiago`, `fogo`, `brava`) plus `diaspora`, following the
-  `pgEnum` pattern already in `schemas/projects.ts`.
+- Location on `projects`, defined in `@hubdigital/shared` (`location-schema.ts`): a `country`
+  (`cv`, then the diaspora countries `pt`, `us`, `fr`, `nl`, `lu`, `it`, `br`, `es`, `other`). For `cv`, `island` is required (the nine inhabited islands,
+  as cv-location codes `CV1`–`CV9`) and `municipality` and `zone` are optional refinements,
+  stored as codes from the same dataset (a zone requires its municipality). Abroad countries carry nothing
+  below the country. Column layout is decided when the DB work happens.
 
 **API:** add `q`, `categoryId`, `island`, `pricing`, `projectStage`, `platform`, `sort` to the
 list querystring. Response shape unchanged.

@@ -1,33 +1,32 @@
 /**
- * The ten inhabited islands plus the diaspora. Ordered north to south the way
- * Cape Verdeans list them, not alphabetically.
+ * The nine inhabited islands, keyed by their public location code (the same
+ * codes the cv-location dataset uses), ordered north to south the way Cape
+ * Verdeans list them. Every municipality and zone code starts with the code of
+ * the island it belongs to, so these are the roots of the whole hierarchy.
+ * Santa Luzia is left out: it is uninhabited and has no entry in that dataset.
  */
 export const islandValues = [
-  "santo_antao",
-  "sao_vicente",
-  "santa_luzia",
-  "sao_nicolau",
-  "sal",
-  "boa_vista",
-  "maio",
-  "santiago",
-  "fogo",
-  "brava",
-  "diaspora",
+  "CV1",
+  "CV2",
+  "CV3",
+  "CV4",
+  "CV5",
+  "CV6",
+  "CV7",
+  "CV8",
+  "CV9",
 ] as const;
 
 export type Island = (typeof islandValues)[number];
 
 export const islandLabels: Record<Island, string> = {
-  santo_antao: "Santo Antão",
-  sao_vicente: "São Vicente",
-  santa_luzia: "Santa Luzia",
-  sao_nicolau: "São Nicolau",
-  sal: "Sal",
-  boa_vista: "Boa Vista",
-  maio: "Maio",
-  santiago: "Santiago",
-  fogo: "Fogo",
-  brava: "Brava",
-  diaspora: "Diáspora",
+  CV1: "Santo Antão",
+  CV2: "São Vicente",
+  CV3: "São Nicolau",
+  CV4: "Sal",
+  CV5: "Boa Vista",
+  CV6: "Maio",
+  CV7: "Santiago",
+  CV8: "Fogo",
+  CV9: "Brava",
 };

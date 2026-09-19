@@ -8,7 +8,7 @@ import {
   reportStatusValues,
   reportTargetValues,
 } from "./moderation";
-import { islandValues } from "./island-options";
+import { locationSchema } from "./location-schema";
 import { projectStatusValues } from "./project-status";
 import { categorySummarySchema, projectAuthorSchema } from "./project-schema";
 import { userRoleValues } from "./roles";
@@ -100,7 +100,7 @@ export const adminProjectSchema = z.object({
   githubUrl: z.string().nullable(),
   logoUrl: z.string().nullable(),
   bannerImageUrl: z.string().nullable(),
-  island: z.enum(islandValues).nullable(),
+  location: locationSchema.nullable(),
   categoryId: z.number(),
   category: categorySummarySchema.nullable(),
   publisher: adminPublisherSchema.nullable(),

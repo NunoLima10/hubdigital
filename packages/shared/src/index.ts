@@ -2,6 +2,8 @@ export * from "./admin-schema";
 export * from "./comment-schema";
 export * from "./file-upload";
 export * from "./island-options";
+export * from "./location-options";
+export * from "./location-schema";
 export * from "./maker-schema";
 export * from "./moderation";
 export * from "./project-options";
