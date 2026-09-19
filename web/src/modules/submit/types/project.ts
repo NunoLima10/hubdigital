@@ -7,6 +7,7 @@ import {
   accessValues,
   audienceValues,
   businessModelValues,
+  islandValues,
   platformValues,
   pricingValues,
   projectStageValues,
@@ -18,12 +19,15 @@ export type CreateProjectInput = {
   description?: string;
   websiteUrl: string;
   githubUrl?: string;
+  logoUrl?: string | null;
+  bannerImageUrl?: string | null;
   pricing: (typeof pricingValues)[number] | "";
   platform: (typeof platformValues)[number][];
   businessModel: (typeof businessModelValues)[number] | "";
   access: (typeof accessValues)[number] | "";
   projectStage: (typeof projectStageValues)[number] | "";
   audienceStage: (typeof audienceValues)[number] | "";
+  island: (typeof islandValues)[number] | "";
   categoryId: number | "";
 };
 

@@ -5,6 +5,7 @@ import {
   accessOptions,
   audienceOptions,
   businessModelOptions,
+  islandOptions,
   platformOptions,
   pricingOptions,
   projectStageOptions,
@@ -28,6 +29,15 @@ export function ProjectCategories({ form }: ProjectCategoriesProps) {
   return (
     <Stack>
       <SimpleGrid cols={{ base: 1, sm: 2 }}>
+        <Select
+          label="Ilha de origem"
+          placeholder="Selecione a ilha"
+          description="De onde é construído o projeto"
+          data={islandOptions}
+          searchable
+          required
+          {...form.getInputProps("island")}
+        />
         <Select
           label="Maturidade do projeto"
           placeholder="Selecione a maturidade"

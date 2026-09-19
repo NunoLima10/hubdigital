@@ -22,12 +22,18 @@ function projectToFormValues(project: Project): CreateProjectInput {
     description: project.description ?? "",
     websiteUrl: project.websiteUrl,
     githubUrl: project.githubUrl ?? "",
+    // Left undefined on purpose: the API hands back resolved public URLs, not the
+    // storage keys the form submits. Undefined means "keep the saved image"; the
+    // selector shows it via previewUrl until the maker replaces or removes it.
+    logoUrl: undefined,
+    bannerImageUrl: undefined,
     pricing: project.pricing,
     platform: project.platform,
     businessModel: project.businessModel,
     access: project.access,
     projectStage: project.projectStage,
     audienceStage: project.audienceStage,
+    island: project.island ?? "",
     categoryId: project.categoryId,
   };
 }
@@ -73,7 +79,11 @@ function EditProjectForm({ project, onClose }: EditProjectFormProps) {
 
   return (
     <Stack>
-      <ProjectForm form={form} />
+      <ProjectForm
+        form={form}
+        logoPreviewUrl={project.logoUrl ?? undefined}
+        bannerPreviewUrl={project.bannerImageUrl ?? undefined}
+      />
       <Divider label="Categoria" labelPosition="left" />
       <ProjectCategories form={form} />
       <Flex justify="flex-end" gap="sm" mt="md">

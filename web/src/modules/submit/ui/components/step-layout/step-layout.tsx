@@ -3,8 +3,16 @@ import { PropsWithChildren } from "react";
 import { useSubmitForm } from "../../../hooks/use-submit-form";
 
 export function StepLayout({ children }: PropsWithChildren) {
-  const { isFist, isLast, next, previous, canProceed, submit, isPending } =
-    useSubmitForm();
+  const {
+    isFist,
+    isLast,
+    next,
+    previous,
+    canProceed,
+    saveDraft,
+    publish,
+    isPending,
+  } = useSubmitForm();
   return (
     <Stack mih={400} gap={"xs"} mt={"lg"}>
       {children}
@@ -26,9 +34,18 @@ export function StepLayout({ children }: PropsWithChildren) {
           </Tooltip>
         )}
         {isLast && (
-          <Button onClick={submit} loading={isPending}>
-            Publicar Projeto
-          </Button>
+          <>
+            <Button
+              onClick={saveDraft}
+              variant="default"
+              disabled={isPending}
+            >
+              Guardar rascunho
+            </Button>
+            <Button onClick={publish} loading={isPending}>
+              Publicar Projeto
+            </Button>
+          </>
         )}
       </Flex>
     </Stack>

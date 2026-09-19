@@ -29,13 +29,18 @@ type CreateProjectResponse = { id: number; slug: string };
 export function toCreateProjectPayload(
   values: CreateProjectInput
 ): CreateProjectPayload {
-  const { categoryId, githubUrl, description, ...rest } = values;
+  const { categoryId, githubUrl, description, logoUrl, bannerImageUrl, ...rest } =
+    values;
 
   return {
     ...rest,
     categoryId: Number(categoryId),
     githubUrl: githubUrl || undefined,
     description: description || undefined,
+    // Passed through untouched: undefined keeps the saved image on a PATCH,
+    // null clears it, a key sets a new one.
+    logoUrl,
+    bannerImageUrl,
   } as CreateProjectPayload;
 }
 
@@ -47,7 +52,9 @@ async function postProject(payload: CreateProjectPayload) {
   return response.data;
 }
 
-export function useCreateProject(options?: CreateOptions) {
+export function useCreateProject(
+  options?: CreateOptions<ItemResponse<CreateProjectResponse>>
+) {
   const { mutate, isPending } = useMutation<
     ItemResponse<CreateProjectResponse>,
     AxiosError<{ error: { message: string } }>,

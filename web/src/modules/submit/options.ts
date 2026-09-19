@@ -2,6 +2,8 @@ import {
   accessValues,
   audienceValues,
   businessModelValues,
+  islandLabels,
+  islandValues,
   platformValues,
   pricingValues,
   projectStageValues,
@@ -11,6 +13,8 @@ export {
   accessValues,
   audienceValues,
   businessModelValues,
+  islandLabels,
+  islandValues,
   platformValues,
   pricingValues,
   projectStageValues,
@@ -82,3 +86,4 @@ export const businessModelOptions = toSelectData(businessModelLabels);
 export const accessOptions = toSelectData(accessLabels);
 export const projectStageOptions = toSelectData(projectStageLabels);
 export const audienceOptions = toSelectData(audienceLabels);
+export const islandOptions = toSelectData(islandLabels);
