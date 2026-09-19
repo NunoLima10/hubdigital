@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { projectAuthorSchema } from "./project-schema.js";
+import { projectAuthorSchema } from "./project-schema";
 
 export const COMMENT_MAX_LENGTH = 2000;
 

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { projectMinimalSchema } from "./project-schema.js";
+import { projectMinimalSchema } from "./project-schema";
 
 /**
  * Lowercase letters, digits and single dashes — it has to survive being typed

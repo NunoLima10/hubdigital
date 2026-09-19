@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { fileUploadTypeValues } from "./file-upload.js";
-import { islandValues } from "./island-options.js";
-import { projectStatusValues } from "./project-status.js";
+import { fileUploadTypeValues } from "./file-upload";
+import { islandValues } from "./island-options";
+import { projectStatusValues } from "./project-status";
 import {
   accessValues,
   audienceValues,
@@ -9,7 +9,7 @@ import {
   platformValues,
   pricingValues,
   projectStageValues,
-} from "./project-options.js";
+} from "./project-options";
 
 // Images are not free-form URLs: the client uploads through POST /v1/uploads and
 // sends back the storage key it was given. Constraining the shape here keeps the

@@ -7,11 +7,11 @@ import {
   reportReasonValues,
   reportStatusValues,
   reportTargetValues,
-} from "./moderation.js";
-import { islandValues } from "./island-options.js";
-import { projectStatusValues } from "./project-status.js";
-import { categorySummarySchema, projectAuthorSchema } from "./project-schema.js";
-import { userRoleValues } from "./roles.js";
+} from "./moderation";
+import { islandValues } from "./island-options";
+import { projectStatusValues } from "./project-status";
+import { categorySummarySchema, projectAuthorSchema } from "./project-schema";
+import { userRoleValues } from "./roles";
 
 /**
  * Every sanction carries a written reason. It is mandatory because the person

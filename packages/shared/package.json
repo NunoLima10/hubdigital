@@ -12,12 +12,13 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc && tsc-alias --resolve-full-paths"
   },
   "peerDependencies": {
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "tsc-alias": "^1.8.16",
     "typescript": "^5.8.3",
     "zod": "^3.25.56"
   }
