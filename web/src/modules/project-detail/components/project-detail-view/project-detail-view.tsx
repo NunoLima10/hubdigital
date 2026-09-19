@@ -1,8 +1,11 @@
+import { ModerationNotice } from "@/modules/releases/components/moderation-notice/moderation-notice";
+import { ReportButton } from "@/modules/reports/components/report-button/report-button";
 import { ProjectBanner } from "@/components/project-banner/project-banner";
 import {
   accessLabels,
   audienceLabels,
   businessModelLabels,
+  islandLabels,
   platformLabels,
   pricingLabels,
   projectStageLabels,
@@ -36,6 +39,8 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
 
   return (
     <Stack gap="lg">
+      <ModerationNotice project={project} />
+
       <Flex justify="space-between" align="flex-start" wrap="wrap" gap="md">
         <Stack gap={6}>
           <Title order={2}>{project.name}</Title>
@@ -67,6 +72,10 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
         </Group>
       </Flex>
 
+      <Group gap="xs" justify="flex-end">
+        <ReportButton targetType="project" targetId={project.id} size="sm" />
+      </Group>
+
       <div className={classes.grid}>
         <ProjectBanner bannerUrl={project.bannerImageUrl} className={classes.banner} />
 
@@ -84,6 +93,10 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
             <Text fw={600}>Mais</Text>
             <SimpleGrid cols={{ base: 2, xs: 3 }} spacing="sm">
               <CategoriesDisplay label="Categoria" badges={categoryBadges} />
+              <CategoriesDisplay
+                label="Ilha"
+                badges={project.island ? [islandLabels[project.island]] : []}
+              />
               <CategoriesDisplay
                 label="Preço"
                 badges={[pricingLabels[project.pricing]]}
