@@ -31,6 +31,23 @@ const authConfig = {
         type: "date",
         required: false,
       },
+      // `input: false` is load-bearing: without it these are writable through
+      // updateUser and an account could lift its own sanction.
+      shadowBannedAt: {
+        type: "date",
+        required: false,
+        input: false,
+      },
+      shadowBannedBy: {
+        type: "string",
+        required: false,
+        input: false,
+      },
+      shadowBanReason: {
+        type: "string",
+        required: false,
+        input: false,
+      },
     },
   },
 } satisfies BetterAuthOptions;

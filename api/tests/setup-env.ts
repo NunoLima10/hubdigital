@@ -16,3 +16,13 @@ process.env.GITHUB_CLIENT_SECRET =
 process.env.DATABASE_URL =
   process.env.DATABASE_URL ??
   "postgres://test-user:test-password@localhost:5432/test-db";
+
+process.env.CLOUDFLARE_PUBLIC_URL =
+  process.env.CLOUDFLARE_PUBLIC_URL ?? "https://assets.test.hubdigital.cv";
+process.env.CLOUDFLARE_BUCKET = process.env.CLOUDFLARE_BUCKET ?? "test-bucket";
+process.env.CLOUDFLARE_ENDPOINT =
+  process.env.CLOUDFLARE_ENDPOINT ?? "https://test-account.r2.cloudflarestorage.com";
+process.env.CLOUDFLARE_ACCESS_KEY_ID =
+  process.env.CLOUDFLARE_ACCESS_KEY_ID ?? "test-access-key-id";
+process.env.CLOUDFLARE_ACCESS_KEY_SECRET =
+  process.env.CLOUDFLARE_ACCESS_KEY_SECRET ?? "test-access-key-secret";
