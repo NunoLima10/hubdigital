@@ -15,7 +15,13 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import type { FastifyInstance } from "fastify";
 import "../setup-env";
 import { setupDB, teardownDB } from "../../src/db";
-import { categories, projects, publishers, users } from "@/db/schemas";
+import {
+  categories,
+  projectUpvotes,
+  projects,
+  publishers,
+  users,
+} from "@/db/schemas";
 import { buildServer } from "@/server";
 import { eq } from "drizzle-orm";
 
@@ -45,7 +51,30 @@ const validProjectPayload = {
   access: "public_beta",
   projectStage: "mvp",
   audienceStage: "general_public",
+  island: "sao_vicente",
 } as const;
+
+/** A row shaped like a live project; override whatever the test cares about. */
+function projectFixture(
+  overrides: Partial<typeof projects.$inferInsert> &
+    Pick<typeof projects.$inferInsert, "publisherId" | "categoryId" | "slug">
+): typeof projects.$inferInsert {
+  return {
+    name: "Meu Projeto",
+    shortDescription: validProjectPayload.shortDescription,
+    websiteUrl: validProjectPayload.websiteUrl,
+    pricing: "free",
+    platform: ["web"],
+    businessModel: "b2c",
+    access: "public_beta",
+    projectStage: "mvp",
+    audienceStage: "general_public",
+    island: "sao_vicente",
+    status: "published",
+    launchedAt: new Date().toISOString(),
+    ...overrides,
+  };
+}
 
 describe("Projects module (e2e)", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>>;
@@ -234,6 +263,89 @@ describe("Projects module (e2e)", () => {
 
       expect(response.statusCode).toBe(400);
     });
+
+    it("stores image keys and returns them as public urls", async () => {
+      const [publisher] = await db
+        .insert(publishers)
+        .values({
+          userId: currentUserId,
+          bio: "Building things",
+          profileResponse: "founder",
+          objectiveResponse: "launch-product",
+          locationResponse: "CV1",
+          foundUsByResponse: "social-media",
+        })
+        .returning({ id: publishers.id });
+
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const logoKey = "project_logo/abc-123-logo.png";
+      const bannerKey = "project_banner/abc-123-banner.png";
+
+      const createResponse = await server.inject({
+        method: "POST",
+        url: "/v1/projects",
+        payload: {
+          ...validProjectPayload,
+          categoryId,
+          logoUrl: logoKey,
+          bannerImageUrl: bannerKey,
+        },
+      });
+
+      expect(createResponse.statusCode).toBe(201);
+      expect(publisher).toBeDefined();
+
+      // Stored as the raw object key...
+      const [record] = await db.query.projects.findMany();
+      expect(record.logoUrl).toBe(logoKey);
+      expect(record.bannerImageUrl).toBe(bannerKey);
+
+      // ...and handed out as a resolved public url.
+      const detailResponse = await server.inject({
+        method: "GET",
+        url: `/v1/projects/${createResponse.json().data.slug}`,
+      });
+
+      expect(detailResponse.json().data.logoUrl).toBe(
+        `https://assets.test.hubdigital.cv/${logoKey}`
+      );
+      expect(detailResponse.json().data.bannerImageUrl).toBe(
+        `https://assets.test.hubdigital.cv/${bannerKey}`
+      );
+    });
+
+    it("rejects an image field that is not an upload key", async () => {
+      await db.insert(publishers).values({
+        userId: currentUserId,
+        bio: "Building things",
+        profileResponse: "founder",
+        objectiveResponse: "launch-product",
+        locationResponse: "CV1",
+        foundUsByResponse: "social-media",
+      });
+
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const response = await server.inject({
+        method: "POST",
+        url: "/v1/projects",
+        payload: {
+          ...validProjectPayload,
+          categoryId,
+          logoUrl: "https://evil.example.com/tracker.png",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+
+      const projectRecords = await db.query.projects.findMany();
+      expect(projectRecords).toHaveLength(0);
+    });
   });
 
   describe("GET /v1/projects/mine", () => {
@@ -295,6 +407,8 @@ describe("Projects module (e2e)", () => {
           access: "public_beta",
           projectStage: "mvp",
           audienceStage: "general_public",
+          status: "published",
+          launchedAt: new Date().toISOString(),
         },
         {
           publisherId: otherPublisher.id,
@@ -309,6 +423,8 @@ describe("Projects module (e2e)", () => {
           access: "public_beta",
           projectStage: "mvp",
           audienceStage: "general_public",
+          status: "published",
+          launchedAt: new Date().toISOString(),
         },
       ]);
 
@@ -386,6 +502,8 @@ describe("Projects module (e2e)", () => {
           access: "public_beta",
           projectStage: "mvp",
           audienceStage: "general_public",
+          status: "published",
+          launchedAt: new Date().toISOString(),
         })
         .returning({ id: projects.id });
 
@@ -461,6 +579,8 @@ describe("Projects module (e2e)", () => {
           access: "public_beta",
           projectStage: "mvp",
           audienceStage: "general_public",
+          status: "published",
+          launchedAt: new Date().toISOString(),
         })
         .returning({ id: projects.id });
 
@@ -545,6 +665,8 @@ describe("Projects module (e2e)", () => {
           access: "public_beta",
           projectStage: "mvp",
           audienceStage: "general_public",
+          status: "published",
+          launchedAt: new Date().toISOString(),
         },
         {
           publisherId: otherPublisher.id,
@@ -559,6 +681,8 @@ describe("Projects module (e2e)", () => {
           access: "public_beta",
           projectStage: "mvp",
           audienceStage: "general_public",
+          status: "published",
+          launchedAt: new Date().toISOString(),
         },
       ]);
 
@@ -624,6 +748,8 @@ describe("Projects module (e2e)", () => {
           access: "public_beta",
           projectStage: "mvp",
           audienceStage: "general_public",
+          status: "published",
+          launchedAt: new Date().toISOString(),
         })
         .returning({ id: projects.id });
 
@@ -696,6 +822,47 @@ describe("Projects module (e2e)", () => {
       });
     });
 
+    it("records the voter's ip and user agent for later auditing", async () => {
+      const [publisher] = await db
+        .insert(publishers)
+        .values({
+          userId: currentUserId,
+          bio: "Building things",
+          profileResponse: "founder",
+          objectiveResponse: "launch-product",
+          locationResponse: "CV1",
+          foundUsByResponse: "social-media",
+        })
+        .returning({ id: publishers.id });
+
+      const [project] = await db
+        .insert(projects)
+        .values(
+          projectFixture({
+            publisherId: publisher.id,
+            categoryId,
+            slug: "auditavel",
+          })
+        )
+        .returning({ id: projects.id });
+
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const response = await server.inject({
+        method: "POST",
+        url: "/v1/projects/" + project.id + "/upvote",
+        headers: { "user-agent": "HubDigitalTest/1.0" },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const [upvote] = await db.query.projectUpvotes.findMany();
+      expect(upvote.userAgent).toBe("HubDigitalTest/1.0");
+      expect(upvote.ipAddress).toBeTruthy();
+    });
+
     it("reflects the vote on the project detail endpoint", async () => {
       const project = await insertProject();
       getSessionMock.mockResolvedValue({
@@ -716,6 +883,531 @@ describe("Projects module (e2e)", () => {
       const body = response.json();
       expect(body.data.upvoteCount).toBe(1);
       expect(body.data.hasUpvoted).toBe(true);
+    });
+  });
+
+  describe("publication lifecycle", () => {
+    async function seedPublisher(userId: string) {
+      const [publisher] = await db
+        .insert(publishers)
+        .values({
+          userId,
+          bio: "Building things",
+          profileResponse: "founder",
+          objectiveResponse: "launch-product",
+          locationResponse: "CV1",
+          foundUsByResponse: "social-media",
+        })
+        .returning({ id: publishers.id });
+
+      return publisher;
+    }
+
+    it("creates projects as drafts that visitors cannot see", async () => {
+      await seedPublisher(currentUserId);
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const created = await server.inject({
+        method: "POST",
+        url: "/v1/projects",
+        payload: { ...validProjectPayload, categoryId },
+      });
+
+      expect(created.statusCode).toBe(201);
+
+      const record = await db.query.projects.findFirst({
+        where: eq(projects.id, created.json().data.id),
+      });
+      expect(record?.status).toBe("draft");
+      expect(record?.launchedAt).toBeNull();
+
+      getSessionMock.mockResolvedValue(null);
+      const listed = await server.inject({
+        method: "GET",
+        url: "/v1/projects?period=all",
+      });
+
+      expect(listed.json().data).toHaveLength(0);
+    });
+
+    it("publishes a draft and puts it in the current week", async () => {
+      const publisher = await seedPublisher(currentUserId);
+      const [project] = await db
+        .insert(projects)
+        .values(
+          projectFixture({
+            publisherId: publisher.id,
+            categoryId,
+            slug: "meu-rascunho",
+            status: "draft",
+            launchedAt: null,
+          })
+        )
+        .returning({ id: projects.id });
+
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const response = await server.inject({
+        method: "POST",
+        url: "/v1/projects/" + project.id + "/publish",
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(response.json().data.status).toBe("published");
+
+      const listed = await server.inject({
+        method: "GET",
+        url: "/v1/projects",
+      });
+
+      expect(listed.json().data).toHaveLength(1);
+      expect(listed.json().data[0].slug).toBe("meu-rascunho");
+    });
+
+    it("does not move the launch date when publishing twice", async () => {
+      const publisher = await seedPublisher(currentUserId);
+      const launchedAt = new Date("2026-08-25T10:00:00Z").toISOString();
+      const [project] = await db
+        .insert(projects)
+        .values(
+          projectFixture({
+            publisherId: publisher.id,
+            categoryId,
+            slug: "ja-publicado",
+            launchedAt,
+          })
+        )
+        .returning({ id: projects.id });
+
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const response = await server.inject({
+        method: "POST",
+        url: "/v1/projects/" + project.id + "/publish",
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const record = await db.query.projects.findFirst({
+        where: eq(projects.id, project.id),
+      });
+      expect(new Date(record!.launchedAt!).toISOString()).toBe(launchedAt);
+    });
+
+    it("refuses to publish a project owned by someone else", async () => {
+      const otherUserId = randomUUID();
+      await db.insert(users).values({
+        id: otherUserId,
+        name: "Other User",
+        email: "other-" + otherUserId + "@example.com",
+        role: "user",
+      });
+      const otherPublisher = await seedPublisher(otherUserId);
+      await seedPublisher(currentUserId);
+
+      const [project] = await db
+        .insert(projects)
+        .values(
+          projectFixture({
+            publisherId: otherPublisher.id,
+            categoryId,
+            slug: "projeto-alheio",
+            status: "draft",
+            launchedAt: null,
+          })
+        )
+        .returning({ id: projects.id });
+
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const response = await server.inject({
+        method: "POST",
+        url: "/v1/projects/" + project.id + "/publish",
+      });
+
+      expect(response.statusCode).toBe(404);
+
+      const record = await db.query.projects.findFirst({
+        where: eq(projects.id, project.id),
+      });
+      expect(record?.status).toBe("draft");
+    });
+
+    it("soft deletes a project and hides it everywhere", async () => {
+      const publisher = await seedPublisher(currentUserId);
+      const [project] = await db
+        .insert(projects)
+        .values(
+          projectFixture({
+            publisherId: publisher.id,
+            categoryId,
+            slug: "para-apagar",
+          })
+        )
+        .returning({ id: projects.id });
+
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const response = await server.inject({
+        method: "DELETE",
+        url: "/v1/projects/" + project.id,
+      });
+
+      expect(response.statusCode).toBe(204);
+
+      // The row survives so the slug is not reused and vote history is kept.
+      const record = await db.query.projects.findFirst({
+        where: eq(projects.id, project.id),
+      });
+      expect(record?.deletedAt).not.toBeNull();
+
+      const mine = await server.inject({
+        method: "GET",
+        url: "/v1/projects/mine",
+      });
+      expect(mine.json().data).toHaveLength(0);
+
+      const detail = await server.inject({
+        method: "GET",
+        url: "/v1/projects/para-apagar",
+      });
+      expect(detail.statusCode).toBe(404);
+    });
+
+    it("shows a draft to its owner but not to anyone else", async () => {
+      const publisher = await seedPublisher(currentUserId);
+      await db.insert(projects).values(
+        projectFixture({
+          publisherId: publisher.id,
+          categoryId,
+          slug: "rascunho-privado",
+          status: "draft",
+          launchedAt: null,
+        })
+      );
+
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+      const asOwner = await server.inject({
+        method: "GET",
+        url: "/v1/projects/rascunho-privado",
+      });
+      expect(asOwner.statusCode).toBe(200);
+      expect(asOwner.json().data.status).toBe("draft");
+
+      getSessionMock.mockResolvedValue(null);
+      const asVisitor = await server.inject({
+        method: "GET",
+        url: "/v1/projects/rascunho-privado",
+      });
+      expect(asVisitor.statusCode).toBe(404);
+    });
+  });
+
+  describe("weekly launch cycle", () => {
+    let publisherId: number;
+
+    beforeEach(async () => {
+      const [publisher] = await db
+        .insert(publishers)
+        .values({
+          userId: currentUserId,
+          bio: "Building things",
+          profileResponse: "founder",
+          objectiveResponse: "launch-product",
+          locationResponse: "CV1",
+          foundUsByResponse: "social-media",
+        })
+        .returning({ id: publishers.id });
+
+      publisherId = publisher.id;
+      getSessionMock.mockResolvedValue(null);
+    });
+
+    /** Eight days back always lands in an earlier ISO week. */
+    function lastWeekIso() {
+      return new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString();
+    }
+
+    it("defaults to this week and leaves earlier launches out", async () => {
+      await db.insert(projects).values([
+        projectFixture({ publisherId, categoryId, slug: "desta-semana" }),
+        projectFixture({
+          publisherId,
+          categoryId,
+          slug: "da-semana-passada",
+          launchedAt: lastWeekIso(),
+        }),
+      ]);
+
+      const response = await server.inject({
+        method: "GET",
+        url: "/v1/projects",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = response.json();
+      expect(body.data).toHaveLength(1);
+      expect(body.data[0].slug).toBe("desta-semana");
+      expect(body.meta.week).toMatch(/^\d{4}-W\d{2}$/);
+    });
+
+    it("returns the previous cycle for period=last_week", async () => {
+      await db.insert(projects).values([
+        projectFixture({ publisherId, categoryId, slug: "desta-semana" }),
+        projectFixture({
+          publisherId,
+          categoryId,
+          slug: "da-semana-passada",
+          launchedAt: lastWeekIso(),
+        }),
+      ]);
+
+      const response = await server.inject({
+        method: "GET",
+        url: "/v1/projects?period=last_week",
+      });
+
+      expect(response.json().data).toHaveLength(1);
+      expect(response.json().data[0].slug).toBe("da-semana-passada");
+    });
+
+    it("ranks by upvote count, most voted first", async () => {
+      const inserted = await db
+        .insert(projects)
+        .values([
+          projectFixture({ publisherId, categoryId, slug: "poucos-votos" }),
+          projectFixture({ publisherId, categoryId, slug: "muitos-votos" }),
+        ])
+        .returning({ id: projects.id, slug: projects.slug });
+
+      const popular = inserted.find((p) => p.slug === "muitos-votos")!;
+
+      const voterIds = [randomUUID(), randomUUID()];
+      for (const voterId of voterIds) {
+        await db.insert(users).values({
+          id: voterId,
+          name: "Voter",
+          email: "voter-" + voterId + "@example.com",
+          role: "user",
+        });
+      }
+
+      await db
+        .insert(projectUpvotes)
+        .values(voterIds.map((userId) => ({ projectId: popular.id, userId })));
+
+      const response = await server.inject({
+        method: "GET",
+        url: "/v1/projects?sort=upvotes",
+      });
+
+      const slugs = response.json().data.map((p: { slug: string }) => p.slug);
+      expect(slugs).toEqual(["muitos-votos", "poucos-votos"]);
+      expect(response.json().data[0].upvoteCount).toBe(2);
+    });
+
+    it("serves a named week through the leaderboard and rejects unknown ones", async () => {
+      await db
+        .insert(projects)
+        .values(
+          projectFixture({ publisherId, categoryId, slug: "desta-semana" })
+        );
+
+      const current = await server.inject({
+        method: "GET",
+        url: "/v1/projects/leaderboard",
+      });
+
+      expect(current.statusCode).toBe(200);
+      expect(current.json().data).toHaveLength(1);
+
+      const named = await server.inject({
+        method: "GET",
+        url: "/v1/projects/leaderboard?week=" + current.json().meta.week,
+      });
+
+      expect(named.statusCode).toBe(200);
+      expect(named.json().data).toHaveLength(1);
+
+      const unknown = await server.inject({
+        method: "GET",
+        url: "/v1/projects/leaderboard?week=2025-W53",
+      });
+
+      expect(unknown.statusCode).toBe(404);
+    });
+  });
+
+  describe("search and filters", () => {
+    let publisherId: number;
+    let secondCategoryId: number;
+
+    beforeEach(async () => {
+      const [publisher] = await db
+        .insert(publishers)
+        .values({
+          userId: currentUserId,
+          bio: "Building things",
+          profileResponse: "founder",
+          objectiveResponse: "launch-product",
+          locationResponse: "CV1",
+          foundUsByResponse: "social-media",
+        })
+        .returning({ id: publishers.id });
+      publisherId = publisher.id;
+
+      const [second] = await db
+        .insert(categories)
+        .values({ key: "fintech", name: "Fintech" })
+        .returning({ id: categories.id });
+      secondCategoryId = second.id;
+
+      await db.insert(projects).values([
+        projectFixture({
+          publisherId,
+          categoryId,
+          slug: "tchiga",
+          name: "Tchiga",
+          shortDescription: "Boleias partilhadas entre as ilhas",
+          island: "santiago",
+          pricing: "free",
+          projectStage: "mvp",
+          platform: ["web"],
+        }),
+        projectFixture({
+          publisherId,
+          categoryId: secondCategoryId,
+          slug: "kriolu-learn",
+          name: "Kriolu Learn",
+          shortDescription: "Aprende crioulo caboverdiano com licoes curtas",
+          island: "sao_vicente",
+          pricing: "paid",
+          projectStage: "launched",
+          platform: ["mobile"],
+        }),
+      ]);
+
+      getSessionMock.mockResolvedValue(null);
+    });
+
+    async function search(query: string) {
+      const response = await server.inject({
+        method: "GET",
+        url: "/v1/projects?period=all&" + query,
+      });
+
+      expect(response.statusCode).toBe(200);
+      return response.json().data.map((p: { slug: string }) => p.slug);
+    }
+
+    it("matches free text against the name", async () => {
+      expect(await search("q=kriolu")).toEqual(["kriolu-learn"]);
+    });
+
+    it("matches free text against the short description", async () => {
+      expect(await search("q=boleias")).toEqual(["tchiga"]);
+    });
+
+    it("ignores case when searching", async () => {
+      expect(await search("q=TCHIGA")).toEqual(["tchiga"]);
+    });
+
+    it("filters by island", async () => {
+      expect(await search("island=sao_vicente")).toEqual(["kriolu-learn"]);
+      expect(await search("island=santiago")).toEqual(["tchiga"]);
+    });
+
+    it("filters by category", async () => {
+      expect(await search("categoryId=" + secondCategoryId)).toEqual([
+        "kriolu-learn",
+      ]);
+    });
+
+    it("filters by pricing and stage", async () => {
+      expect(await search("pricing=paid")).toEqual(["kriolu-learn"]);
+      expect(await search("projectStage=mvp")).toEqual(["tchiga"]);
+    });
+
+    it("filters by supported platform", async () => {
+      expect(await search("platform=mobile")).toEqual(["kriolu-learn"]);
+    });
+
+    it("combines filters", async () => {
+      expect(await search("q=kriolu&island=sao_vicente")).toEqual([
+        "kriolu-learn",
+      ]);
+      // Same text, wrong island: nothing matches.
+      expect(await search("q=kriolu&island=santiago")).toEqual([]);
+    });
+
+    it("never returns a draft through search", async () => {
+      await db
+        .update(projects)
+        .set({ status: "draft" })
+        .where(eq(projects.slug, "kriolu-learn"));
+
+      expect(await search("q=kriolu")).toEqual([]);
+    });
+
+    it("rejects an island that is not a real one", async () => {
+      const response = await server.inject({
+        method: "GET",
+        url: "/v1/projects?island=atlantis",
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("stores the island a project was submitted with", async () => {
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const response = await server.inject({
+        method: "POST",
+        url: "/v1/projects",
+        payload: {
+          ...validProjectPayload,
+          name: "Djunta Mon",
+          categoryId,
+          island: "fogo",
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+
+      const record = await db.query.projects.findFirst({
+        where: eq(projects.id, response.json().data.id),
+      });
+      expect(record?.island).toBe("fogo");
+    });
+
+    it("requires an island when creating a project", async () => {
+      getSessionMock.mockResolvedValue({
+        user: { id: currentUserId, role: "user" },
+      });
+
+      const { island: _omitted, ...withoutIsland } = validProjectPayload;
+
+      const response = await server.inject({
+        method: "POST",
+        url: "/v1/projects",
+        payload: { ...withoutIsland, name: "Sem Ilha", categoryId },
+      });
+
+      expect(response.statusCode).toBe(400);
     });
   });
 });

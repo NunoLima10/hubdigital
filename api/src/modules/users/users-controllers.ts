@@ -1,3 +1,4 @@
+import { MakersService } from "@/modules/makers/makers-services";
 import { UnauthorizedAccessError } from "@/utils/custom-errors";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { onboardingRouteSchema } from "./users-schemas";
@@ -20,12 +21,18 @@ async function onboardingHandler(
     profileResponse,
   } = req.body;
 
+  // Every publisher gets a profile URL from the moment they onboard, derived
+  // from their display name.
+  const name = await MakersService.findUserName(req.db, req.user.id);
+  const handle = await MakersService.generateUniqueHandle(req.db, name);
+
   const publisher = await UserService.createPublisher(req.db, {
     bio,
     foundUsByResponse,
     locationResponse,
     objectiveResponse,
     profileResponse,
+    handle,
     userId: req.user.id,
   });
 
