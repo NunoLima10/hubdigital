@@ -34,7 +34,7 @@ export function DashboardNav() {
       </Badge>
       <Stack gap={"xxs"}>
         <NavLink
-          to="/onboarding"
+          to="/dashboard/profile"
           title="Perfil"
           icon={<IconUser size={18} />}
         />

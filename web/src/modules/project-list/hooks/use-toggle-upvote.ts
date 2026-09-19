@@ -1,7 +1,8 @@
 import { API } from "@/api/api";
 import { ProjectMinimal } from "@/modules/submit/types/project";
-import { ItemResponse, ListResponse } from "@/types";
+import { ItemResponse } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ProjectsResponse } from "./use-projects";
 
 type ToggleUpvoteResponse = { upvoted: boolean; upvoteCount: number };
 
@@ -30,12 +31,14 @@ export function useToggleUpvote() {
     onMutate: async (projectId: number) => {
       await queryClient.cancelQueries({ queryKey: ["projects"] });
 
-      const previous = queryClient.getQueryData<ListResponse<ProjectMinimal>>(
-        ["projects"]
-      );
+      // The same project can sit in several cached listings at once (this week,
+      // last week, an archived leaderboard), so patch every one of them.
+      const previous = queryClient.getQueriesData<ProjectsResponse>({
+        queryKey: ["projects"],
+      });
 
-      queryClient.setQueryData<ListResponse<ProjectMinimal>>(
-        ["projects"],
+      queryClient.setQueriesData<ProjectsResponse>(
+        { queryKey: ["projects"] },
         (current) =>
           current && {
             ...current,
@@ -48,9 +51,29 @@ export function useToggleUpvote() {
       return { previous };
     },
     onError: (_error, _projectId, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(["projects"], context.previous);
-      }
+      context?.previous.forEach(([queryKey, data]) => {
+        queryClient.setQueryData(queryKey, data);
+      });
+    },
+    // The optimistic guess is derived from whatever the cache held; the response
+    // is authoritative, so write the real numbers back over it.
+    onSuccess: (result, projectId) => {
+      queryClient.setQueriesData<ProjectsResponse>(
+        { queryKey: ["projects"] },
+        (current) =>
+          current && {
+            ...current,
+            data: current.data.map((project) =>
+              project.id === projectId
+                ? {
+                    ...project,
+                    hasUpvoted: result.upvoted,
+                    upvoteCount: result.upvoteCount,
+                  }
+                : project
+            ),
+          }
+      );
     },
     meta: {
       errorMessage: "Erro ao votar no projeto",

@@ -8,4 +8,5 @@ export type Project = {
   topis: string[];
   upCount: number;
   hasUpvoted: boolean;
+  commentCount: number;
 };

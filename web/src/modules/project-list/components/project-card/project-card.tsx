@@ -9,7 +9,7 @@ import {
   Stack,
   Text,
 } from "@mantine/core";
-import { IconConfetti } from "@tabler/icons-react";
+import { IconConfetti, IconMessageCircle } from "@tabler/icons-react";
 import classes from "./project-card.module.css";
 
 import { useMediaQuery } from "@mantine/hooks";
@@ -17,8 +17,11 @@ import { useReward } from "react-rewards";
 import { Project } from "../../types/project";
 
 type ProjectcardProps = Project & {
+  /** Position in the current weekly ranking, 1-based. */
+  rank?: number;
   onOpen?: () => void;
-  onUpvote?: () => void;
+  /** Return false to signal the vote was not cast (e.g. sign-in required). */
+  onUpvote?: () => boolean | void;
   isUpvotePending?: boolean;
 };
 
@@ -30,7 +33,9 @@ export function Projectcard({
   topis,
   upCount,
   hasUpvoted,
+  commentCount,
   website,
+  rank,
   onOpen,
   onUpvote,
   isUpvotePending,
@@ -46,8 +51,10 @@ export function Projectcard({
   });
 
   function onClickUp() {
-    if (!hasUpvoted) reward();
-    onUpvote?.();
+    // Celebrate only when a vote actually lands — a logged-out click opens the
+    // sign-in prompt instead, and confetti there is a lie.
+    const cast = onUpvote?.();
+    if (cast !== false && !hasUpvoted) reward();
   }
 
   return (
@@ -59,6 +66,14 @@ export function Projectcard({
         role={onOpen ? "button" : undefined}
         tabIndex={onOpen ? 0 : undefined}
       >
+        {rank !== undefined && (
+          <Text
+            className={rank <= 3 ? classes.rankTop : classes.rank}
+            aria-label={`Posição ${rank}`}
+          >
+            {rank}
+          </Text>
+        )}
         <ProjectIcon iconUrl={iconUrl} className={classes.icon} />
         <Stack gap={0}>
           <Anchor
@@ -80,6 +95,12 @@ export function Projectcard({
                 </Badge>
               );
             })}
+            {commentCount > 0 && (
+              <Group gap={3} c="dimmed">
+                <IconMessageCircle size={14} />
+                <Text fz="xs">{commentCount}</Text>
+              </Group>
+            )}
           </Group>
         </Stack>
       </Flex>
