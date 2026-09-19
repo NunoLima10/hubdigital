@@ -1,0 +1,56 @@
+.root {
+  width: 100%;
+  padding-top: 10%;
+  max-width: 56rem;
+  margin-inline: auto;
+
+  @media (max-width: 62em) {
+    max-width: 24rem;
+  }
+}
+.rootWithoutImage {
+  width: 100%;
+  max-width: 28rem;
+  margin-inline: auto;
+}
+
+.card {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: clamp(24rem, 80dvh, 32rem);
+  padding: 0;
+}
+
+.contend {
+  flex: 1 1 50%;
+  width: auto;
+  padding: 1.25rem;
+  @media (max-width: 62em) {
+    flex: 1 1 100%;
+    width: 100%;
+    padding: 1rem;
+  }
+}
+.contendWithoutImage {
+  flex: 1 1 100%;
+  width: 100%;
+  padding: 1.25rem;
+
+  @media (max-width: 62em) {
+    padding: 1rem;
+  }
+}
+
+.image {
+  flex: 1 1 50%;
+  width: auto;
+  @media (max-width: 62em) {
+    display: none;
+  }
+}
+
+.image img {
+  height: 100%;
+  object-fit: cover;
+}
