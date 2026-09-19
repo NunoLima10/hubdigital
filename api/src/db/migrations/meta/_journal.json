@@ -43,6 +43,62 @@
       "when": 1786847725100,
       "tag": "0005_deep_toro",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1788049876893,
+      "tag": "0006_certain_vapor",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788050816816,
+      "tag": "0007_boring_klaw",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1788051597711,
+      "tag": "0008_supreme_mac_gargan",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1788053794952,
+      "tag": "0009_bored_thundra",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1788054177358,
+      "tag": "0010_rainy_sunspot",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1788054625767,
+      "tag": "0011_lovely_barracuda",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1788071294651,
+      "tag": "0012_dear_gressill",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1788071403152,
+      "tag": "0013_clever_hairball",
+      "breakpoints": true
     }
   ]
 }
