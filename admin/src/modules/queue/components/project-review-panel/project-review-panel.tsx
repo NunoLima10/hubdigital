@@ -1,6 +1,6 @@
 import { ProjectStatusBadge } from "@/components/status-badge/status-badge";
 import { relativeTime } from "@/utils/relative-time";
-import type { AdminProject } from "@hubdigital/shared";
+import { formatLocation, type AdminProject } from "@hubdigital/shared";
 import {
   Anchor,
   Badge,
@@ -57,7 +57,9 @@ export function ProjectReviewPanel({ project }: { project: AdminProject }) {
         {project.category && (
           <Badge variant="light">{project.category.name}</Badge>
         )}
-        {project.island && <Badge variant="outline">{project.island}</Badge>}
+        {project.location && (
+          <Badge variant="outline">{formatLocation(project.location)}</Badge>
+        )}
         {project.githubUrl && (
           <Anchor href={project.githubUrl} target="_blank" size="xs">
             GitHub

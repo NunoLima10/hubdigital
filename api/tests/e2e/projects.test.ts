@@ -51,7 +51,7 @@ const validProjectPayload = {
   access: "public_beta",
   projectStage: "mvp",
   audienceStage: "general_public",
-  island: "sao_vicente",
+  location: { country: "cv", island: "CV2" },
 } as const;
 
 /** A row shaped like a live project; override whatever the test cares about. */
@@ -69,7 +69,8 @@ function projectFixture(
     access: "public_beta",
     projectStage: "mvp",
     audienceStage: "general_public",
-    island: "sao_vicente",
+    country: "cv",
+    island: "CV2",
     status: "published",
     launchedAt: new Date().toISOString(),
     ...overrides,
@@ -1281,7 +1282,8 @@ describe("Projects module (e2e)", () => {
           slug: "tchiga",
           name: "Tchiga",
           shortDescription: "Boleias partilhadas entre as ilhas",
-          island: "santiago",
+          country: "cv",
+          island: "CV7",
           pricing: "free",
           projectStage: "mvp",
           platform: ["web"],
@@ -1292,7 +1294,8 @@ describe("Projects module (e2e)", () => {
           slug: "kriolu-learn",
           name: "Kriolu Learn",
           shortDescription: "Aprende crioulo caboverdiano com licoes curtas",
-          island: "sao_vicente",
+          country: "cv",
+          island: "CV2",
           pricing: "paid",
           projectStage: "launched",
           platform: ["mobile"],
@@ -1325,8 +1328,8 @@ describe("Projects module (e2e)", () => {
     });
 
     it("filters by island", async () => {
-      expect(await search("island=sao_vicente")).toEqual(["kriolu-learn"]);
-      expect(await search("island=santiago")).toEqual(["tchiga"]);
+      expect(await search("island=CV2")).toEqual(["kriolu-learn"]);
+      expect(await search("island=CV7")).toEqual(["tchiga"]);
     });
 
     it("filters by category", async () => {
@@ -1345,11 +1348,11 @@ describe("Projects module (e2e)", () => {
     });
 
     it("combines filters", async () => {
-      expect(await search("q=kriolu&island=sao_vicente")).toEqual([
+      expect(await search("q=kriolu&island=CV2")).toEqual([
         "kriolu-learn",
       ]);
       // Same text, wrong island: nothing matches.
-      expect(await search("q=kriolu&island=santiago")).toEqual([]);
+      expect(await search("q=kriolu&island=CV7")).toEqual([]);
     });
 
     it("never returns a draft through search", async () => {
@@ -1370,44 +1373,195 @@ describe("Projects module (e2e)", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("stores the island a project was submitted with", async () => {
-      getSessionMock.mockResolvedValue({
-        user: { id: currentUserId, role: "user" },
+    describe("location", () => {
+      function asOwner() {
+        getSessionMock.mockResolvedValue({
+          user: { id: currentUserId, role: "user" },
+        });
+      }
+
+      async function create(name: string, location?: unknown) {
+        const { location: _default, ...rest } = validProjectPayload;
+
+        return server.inject({
+          method: "POST",
+          url: "/v1/projects",
+          payload: { ...rest, name, categoryId, ...(location ? { location } : {}) },
+        });
+      }
+
+      it("stores a Cabo Verde location as flat columns", async () => {
+        asOwner();
+
+        const response = await create("Djunta Mon", {
+          country: "cv",
+          island: "CV8",
+          municipality: "CV882",
+        });
+
+        expect(response.statusCode).toBe(201);
+
+        const record = await db.query.projects.findFirst({
+          where: eq(projects.id, response.json().data.id),
+        });
+        expect(record).toMatchObject({
+          country: "cv",
+          island: "CV8",
+          municipality: "CV882",
+          zone: null,
+        });
       });
 
-      const response = await server.inject({
-        method: "POST",
-        url: "/v1/projects",
-        payload: {
-          ...validProjectPayload,
-          name: "Djunta Mon",
-          categoryId,
-          island: "fogo",
-        },
+      it("stores an abroad location with nothing below the country", async () => {
+        asOwner();
+
+        const response = await create("Kriolu Lisboa", { country: "pt" });
+
+        expect(response.statusCode).toBe(201);
+
+        const record = await db.query.projects.findFirst({
+          where: eq(projects.id, response.json().data.id),
+        });
+        expect(record).toMatchObject({
+          country: "pt",
+          island: null,
+          municipality: null,
+          zone: null,
+        });
       });
 
-      expect(response.statusCode).toBe(201);
+      it("returns the location nested, without the flat columns", async () => {
+        asOwner();
 
-      const record = await db.query.projects.findFirst({
-        where: eq(projects.id, response.json().data.id),
+        const created = await create("Djunta Mon", {
+          country: "cv",
+          island: "CV8",
+          municipality: "CV882",
+        });
+
+        const response = await server.inject({
+          method: "GET",
+          url: `/v1/projects/${created.json().data.slug}`,
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const { data } = response.json();
+        expect(data.location).toEqual({
+          country: "cv",
+          island: "CV8",
+          municipality: "CV882",
+        });
+        expect(data).not.toHaveProperty("country");
+        expect(data).not.toHaveProperty("island");
+        expect(data).not.toHaveProperty("municipality");
+        expect(data).not.toHaveProperty("zone");
       });
-      expect(record?.island).toBe("fogo");
-    });
 
-    it("requires an island when creating a project", async () => {
-      getSessionMock.mockResolvedValue({
-        user: { id: currentUserId, role: "user" },
+      it("returns a null location for a project that predates the field", async () => {
+        const [legacy] = await db
+          .insert(projects)
+          .values(
+            projectFixture({
+              publisherId,
+              categoryId,
+              slug: "antigo",
+              country: null,
+              island: null,
+            })
+          )
+          .returning({ slug: projects.slug });
+
+        const response = await server.inject({
+          method: "GET",
+          url: `/v1/projects/${legacy.slug}`,
+        });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.json().data.location).toBeNull();
       });
 
-      const { island: _omitted, ...withoutIsland } = validProjectPayload;
+      it("replaces the whole location on update, clearing the old island", async () => {
+        asOwner();
 
-      const response = await server.inject({
-        method: "POST",
-        url: "/v1/projects",
-        payload: { ...withoutIsland, name: "Sem Ilha", categoryId },
+        const created = await create("Mudou de Pais", {
+          country: "cv",
+          island: "CV7",
+          municipality: "CV774",
+        });
+        const id = created.json().data.id;
+
+        const response = await server.inject({
+          method: "PATCH",
+          url: `/v1/projects/${id}`,
+          payload: { location: { country: "us" } },
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const record = await db.query.projects.findFirst({
+          where: eq(projects.id, id),
+        });
+        expect(record).toMatchObject({
+          country: "us",
+          island: null,
+          municipality: null,
+        });
       });
 
-      expect(response.statusCode).toBe(400);
+      it("leaves the location alone when an update does not send one", async () => {
+        asOwner();
+
+        const created = await create("Fica Onde Esta", {
+          country: "cv",
+          island: "CV4",
+        });
+        const id = created.json().data.id;
+
+        const response = await server.inject({
+          method: "PATCH",
+          url: `/v1/projects/${id}`,
+          payload: { name: "Fica Onde Esta 2" },
+        });
+
+        expect(response.statusCode).toBe(200);
+
+        const record = await db.query.projects.findFirst({
+          where: eq(projects.id, id),
+        });
+        expect(record).toMatchObject({ country: "cv", island: "CV4" });
+      });
+
+      it("requires a location when creating a project", async () => {
+        asOwner();
+
+        const response = await create("Sem Sitio");
+
+        expect(response.statusCode).toBe(400);
+      });
+
+      it.each([
+        ["a Cabo Verde location without an island", { country: "cv" }],
+        [
+          "a municipality on the wrong island",
+          { country: "cv", island: "CV1", municipality: "CV774" },
+        ],
+        [
+          "an island alongside an abroad country",
+          { country: "pt", island: "CV7" },
+        ],
+        ["an unknown country", { country: "xx" }],
+        [
+          "a zone without its municipality",
+          { country: "cv", island: "CV7", zone: "CV77400000001" },
+        ],
+      ])("rejects %s", async (_label, location) => {
+        asOwner();
+
+        const response = await create("Localizacao Errada", location);
+
+        expect(response.statusCode).toBe(400);
+      });
     });
   });
 });

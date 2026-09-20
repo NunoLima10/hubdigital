@@ -1,16 +1,31 @@
 import { API } from "@/api/api";
 import { CreateOptions, ItemResponse } from "@/types";
-import { projectBodySchema, type ProjectBody } from "@hubdigital/shared";
+import {
+  locationSchema,
+  projectBodySchema,
+  type ProjectBody,
+  type ProjectLocation,
+} from "@hubdigital/shared";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { z } from "zod";
 import { CreateProjectInput } from "../types/project";
+import { locationFromFormValue, type LocationFormValue } from "../utils/location";
 
 // Reuses the shared API contract schema so field rules (lengths, enum
-// values, required-ness) can't drift between web and api. Only the two
-// fields where the Mantine form's raw values diverge from the wire
-// payload shape are overridden.
+// values, required-ness) can't drift between web and api. Only the fields
+// where the Mantine form's raw values diverge from the wire payload shape
+// are overridden.
 export const createProjectSchema = projectBodySchema.extend({
+  // The form keeps every level of the location as a flat, ""-defaulted object;
+  // it is reshaped into the API's nested location before the shared rules run,
+  // so the island-required / municipality-belongs-to-island checks are the same
+  // ones the server applies.
+  location: z.preprocess(
+    // preprocess only knows the value as unknown; it is the form's location.
+    (value) => locationFromFormValue(value as LocationFormValue),
+    locationSchema
+  ),
   githubUrl: z
     .string()
     .url("Informe um link válido")
@@ -29,11 +44,20 @@ type CreateProjectResponse = { id: number; slug: string };
 export function toCreateProjectPayload(
   values: CreateProjectInput
 ): CreateProjectPayload {
-  const { categoryId, githubUrl, description, logoUrl, bannerImageUrl, ...rest } =
-    values;
+  const {
+    categoryId,
+    githubUrl,
+    description,
+    logoUrl,
+    bannerImageUrl,
+    location,
+    ...rest
+  } = values;
 
   return {
     ...rest,
+    // Only called after the form validated, so this is a complete location.
+    location: locationFromFormValue(location) as ProjectLocation,
     categoryId: Number(categoryId),
     githubUrl: githubUrl || undefined,
     description: description || undefined,

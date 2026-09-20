@@ -2,6 +2,7 @@ import {
   accessValues,
   audienceValues,
   businessModelValues,
+  countryValues,
   islandValues,
   platformValues,
   pricingValues,
@@ -32,6 +33,7 @@ export const projectStageEnum = pgEnum("projectStage", projectStageValues);
 export const audienceStageEnum = pgEnum("audience", audienceValues);
 export const projectStatusEnum = pgEnum("project_status", projectStatusValues);
 export const islandEnum = pgEnum("island", islandValues);
+export const countryEnum = pgEnum("country", countryValues);
 
 export const projects = pgTable(
   "projects",
@@ -55,9 +57,17 @@ export const projects = pgTable(
     projectStage: projectStageEnum("projectStage").notNull(),
     audienceStage: audienceStageEnum("audience").notNull(),
     // Where the project is built from — the local answer to Product Hunt topics.
+    // Stored flat so each level can be indexed and filtered on, and assembled
+    // into the nested `location` shape at the API boundary (utils/location.ts).
+    //
     // Nullable because projects that predate the field have no truthful value;
-    // new submissions are required to pick one.
+    // new submissions are required to pick one. Inside Cabo Verde the island is
+    // required and municipality and zone refine it; abroad only the country is
+    // set. The levels are cross-checked by locationSchema, not by the database.
+    country: countryEnum("country"),
     island: islandEnum("island"),
+    municipality: varchar("municipality", { length: 5 }),
+    zone: varchar("zone", { length: 13 }),
     categoryId: integer("category_id")
       .notNull()
       .references(() => categories.id, { onDelete: "restrict" }),
@@ -98,6 +108,7 @@ export const projects = pgTable(
   (table) => [
     index("projects_launched_at_idx").on(table.launchedAt.desc(), table.id),
     index("projects_status_idx").on(table.status),
+    index("projects_country_idx").on(table.country),
     index("projects_island_idx").on(table.island),
     // The review queue is ordered by how long something has been waiting.
     index("projects_status_queued_idx").on(table.status, table.queuedAt),

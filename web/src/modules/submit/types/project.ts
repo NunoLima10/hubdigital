@@ -7,11 +7,11 @@ import {
   accessValues,
   audienceValues,
   businessModelValues,
-  islandValues,
   platformValues,
   pricingValues,
   projectStageValues,
 } from "../options";
+import type { LocationFormValue } from "../utils/location";
 
 export type CreateProjectInput = {
   name: string;
@@ -27,7 +27,7 @@ export type CreateProjectInput = {
   access: (typeof accessValues)[number] | "";
   projectStage: (typeof projectStageValues)[number] | "";
   audienceStage: (typeof audienceValues)[number] | "";
-  island: (typeof islandValues)[number] | "";
+  location: LocationFormValue;
   categoryId: number | "";
 };
 

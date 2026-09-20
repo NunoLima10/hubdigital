@@ -5,12 +5,12 @@ import {
   accessOptions,
   audienceOptions,
   businessModelOptions,
-  islandOptions,
   platformOptions,
   pricingOptions,
   projectStageOptions,
 } from "../../../options";
 import { CreateProjectInput } from "../../../types/project";
+import { LocationFields } from "../../components/location-fields/location-fields";
 
 type ProjectCategoriesProps = {
   form: UseFormReturnType<CreateProjectInput>;
@@ -28,16 +28,8 @@ export function ProjectCategories({ form }: ProjectCategoriesProps) {
 
   return (
     <Stack>
+      <LocationFields form={form} />
       <SimpleGrid cols={{ base: 1, sm: 2 }}>
-        <Select
-          label="Ilha de origem"
-          placeholder="Selecione a ilha"
-          description="De onde é construído o projeto"
-          data={islandOptions}
-          searchable
-          required
-          {...form.getInputProps("island")}
-        />
         <Select
           label="Maturidade do projeto"
           placeholder="Selecione a maturidade"

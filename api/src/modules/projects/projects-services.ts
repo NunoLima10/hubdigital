@@ -8,10 +8,15 @@ import {
 } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
+import {
+  LocationColumns,
+  locationToColumns,
+  withLocation,
+} from "@/utils/location";
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
 import { WeekRange } from "@/utils/week";
-import { ListSort } from "@hubdigital/shared";
+import { ListSort, ProjectLocation } from "@hubdigital/shared";
 import {
   SQL,
   and,
@@ -52,12 +57,20 @@ type CreateProjectInput = {
   categoryId: number;
   logoUrl?: string | null;
   bannerImageUrl?: string | null;
-  island: (typeof projects.$inferInsert)["island"];
+  location: ProjectLocation;
 };
 
 type UpdateProjectInput = Partial<Omit<CreateProjectInput, "publisherId">>;
 
-type SerializableProject = {
+/** The API takes a nested location; the table stores it flat. */
+function toRowValues<T extends { location?: ProjectLocation }>({
+  location,
+  ...input
+}: T) {
+  return { ...input, ...(location ? locationToColumns(location) : {}) };
+}
+
+type SerializableProject = LocationColumns & {
   upvotes: { userId: string }[];
   comments: { id: number }[];
   logoUrl?: string | null;
@@ -76,7 +89,7 @@ function serializeProject<T extends SerializableProject>(
   const { upvotes, comments: projectComments, ...rest } = project;
 
   return {
-    ...rest,
+    ...withLocation(rest),
     logoUrl: toPublicUrl(project.logoUrl),
     bannerImageUrl: toPublicUrl(project.bannerImageUrl),
     upvoteCount: upvotes.length,
@@ -129,7 +142,7 @@ async function findPublisherByUserId(db: DB, userId: string) {
 async function insertProject(db: DB, input: CreateProjectInput, slug: string) {
   const [result] = await db
     .insert(projects)
-    .values({ ...input, slug })
+    .values({ ...toRowValues(input), slug })
     .returning({ id: projects.id, slug: projects.slug });
 
   return result;
@@ -164,7 +177,7 @@ async function updateProject(
 ) {
   const [result] = await db
     .update(projects)
-    .set({ ...input, updatedAt: new Date().toISOString() })
+    .set({ ...toRowValues(input), updatedAt: new Date().toISOString() })
     .where(
       and(
         eq(projects.id, id),

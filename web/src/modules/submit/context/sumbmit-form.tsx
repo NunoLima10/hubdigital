@@ -13,6 +13,7 @@ import {
 } from "../hooks/use-create-project";
 import { usePublishProject } from "@/modules/releases/hooks/use-project-actions";
 import { CreateProjectInput } from "../types/project";
+import { emptyLocation, isLocationComplete } from "../utils/location";
 
 const stepFieldNames: (keyof CreateProjectInput)[][] = [
   ["name", "shortDescription", "websiteUrl"],
@@ -24,7 +25,7 @@ const stepFieldNames: (keyof CreateProjectInput)[][] = [
     "access",
     "categoryId",
     "pricing",
-    "island",
+    "location",
   ],
 ];
 
@@ -72,7 +73,7 @@ const initialValues: CreateProjectInput = {
   access: "",
   projectStage: "",
   audienceStage: "",
-  island: "",
+  location: emptyLocation,
   categoryId: "",
 };
 
@@ -124,6 +125,8 @@ function SumbmitProvider({ children }: PropsWithChildren) {
   const currentStepValidatedFields =
     stepValidatedFieldNames[step] ?? currentStepFields;
   const canProceed = currentStepFields.every((field) => {
+    if (field === "location") return isLocationComplete(form.values.location);
+
     const value = form.values[field];
     if (Array.isArray(value)) return value.length > 0;
     return value !== "" && value !== undefined && value !== null;
@@ -134,14 +137,19 @@ function SumbmitProvider({ children }: PropsWithChildren) {
 
     const result = form.validate();
 
-    (Object.keys(initialValues) as (keyof CreateProjectInput)[])
-      .filter((field) => !currentStepValidatedFields.includes(field))
-      .forEach((field) => form.clearFieldError(field));
+    // Errors are keyed by path, so a nested field reports as "location.island"
+    // rather than "location"; a step owns every path beneath its fields.
+    const inStep = (path: string) =>
+      currentStepValidatedFields.some(
+        (field) => path === field || path.startsWith(`${field}.`)
+      );
+    const errorPaths = Object.keys(result.errors);
 
-    const stepHasErrors = currentStepValidatedFields.some(
-      (field) => result.errors[field]
-    );
-    if (stepHasErrors) return;
+    errorPaths
+      .filter((path) => !inStep(path))
+      .forEach((path) => form.clearFieldError(path));
+
+    if (errorPaths.some(inStep)) return;
 
     handlers.increment();
   }
