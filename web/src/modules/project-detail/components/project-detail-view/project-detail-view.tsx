@@ -5,12 +5,12 @@ import {
   accessLabels,
   audienceLabels,
   businessModelLabels,
-  islandLabels,
   platformLabels,
   pricingLabels,
   projectStageLabels,
 } from "@/modules/submit/options";
 import { Project } from "@/modules/submit/types/project";
+import { formatLocation } from "@hubdigital/shared";
 import { CategoriesDisplay } from "@/modules/submit/ui/components/categories-diplay/categories-display";
 import {
   ActionIcon,
@@ -94,8 +94,10 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
             <SimpleGrid cols={{ base: 2, xs: 3 }} spacing="sm">
               <CategoriesDisplay label="Categoria" badges={categoryBadges} />
               <CategoriesDisplay
-                label="Ilha"
-                badges={project.island ? [islandLabels[project.island]] : []}
+                label="Localização"
+                badges={
+                  project.location ? [formatLocation(project.location)] : []
+                }
               />
               <CategoriesDisplay
                 label="Preço"

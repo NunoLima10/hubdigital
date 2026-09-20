@@ -2,8 +2,12 @@ import {
   accessValues,
   audienceValues,
   businessModelValues,
+  countryLabels,
+  countryValues,
   islandLabels,
   islandValues,
+  municipalitiesOf,
+  municipalityLabels,
   platformValues,
   pricingValues,
   projectStageValues,
@@ -13,8 +17,12 @@ export {
   accessValues,
   audienceValues,
   businessModelValues,
+  countryLabels,
+  countryValues,
   islandLabels,
   islandValues,
+  municipalitiesOf,
+  municipalityLabels,
   platformValues,
   pricingValues,
   projectStageValues,
@@ -87,3 +95,12 @@ export const accessOptions = toSelectData(accessLabels);
 export const projectStageOptions = toSelectData(projectStageLabels);
 export const audienceOptions = toSelectData(audienceLabels);
 export const islandOptions = toSelectData(islandLabels);
+export const countryOptions = toSelectData(countryLabels);
+
+/** The municipalities of one island, for the select that depends on it. */
+export function municipalityOptionsOf(island: (typeof islandValues)[number]) {
+  return municipalitiesOf(island).map((code) => ({
+    value: code,
+    label: municipalityLabels[code],
+  }));
+}

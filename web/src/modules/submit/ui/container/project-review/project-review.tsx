@@ -6,11 +6,11 @@ import {
   accessLabels,
   audienceLabels,
   businessModelLabels,
-  islandLabels,
   platformLabels,
   pricingLabels,
   projectStageLabels,
 } from "../../../options";
+import { formatLocationFormValue } from "../../../utils/location";
 import { CategoriesDisplay } from "../../components/categories-diplay/categories-display";
 import { ProjectCard } from "../../components/project-card/project-card";
 
@@ -19,6 +19,8 @@ export function ProjectReview() {
   const { data: categories } = useCategories();
 
   const category = categories?.find((c) => c.id === form.values.categoryId);
+
+  const locationLabel = formatLocationFormValue(form.values.location);
 
   const badges = [
     form.values.pricing && pricingLabels[form.values.pricing],
@@ -42,8 +44,8 @@ export function ProjectReview() {
           badges={category ? [category.name] : []}
         />
         <CategoriesDisplay
-          label="Ilha de origem"
-          badges={form.values.island ? [islandLabels[form.values.island]] : []}
+          label="Localização"
+          badges={locationLabel ? [locationLabel] : []}
         />
         <CategoriesDisplay
           label="Maturidade do projeto"

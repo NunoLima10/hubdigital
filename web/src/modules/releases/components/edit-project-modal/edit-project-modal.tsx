@@ -4,6 +4,7 @@ import {
 } from "@/modules/submit/hooks/use-create-project";
 import { useUpdateProject } from "@/modules/submit/hooks/use-update-project";
 import { CreateProjectInput, Project } from "@/modules/submit/types/project";
+import { locationToFormValue } from "@/modules/submit/utils/location";
 import { ProjectCategories } from "@/modules/submit/ui/container/project-categories/project-categories";
 import { ProjectForm } from "@/modules/submit/ui/container/project-form/project-form";
 import { Button, Divider, Flex, Modal, Stack } from "@mantine/core";
@@ -33,7 +34,7 @@ function projectToFormValues(project: Project): CreateProjectInput {
     access: project.access,
     projectStage: project.projectStage,
     audienceStage: project.audienceStage,
-    island: project.island ?? "",
+    location: locationToFormValue(project.location),
     categoryId: project.categoryId,
   };
 }
