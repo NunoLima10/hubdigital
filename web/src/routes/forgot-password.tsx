@@ -4,6 +4,9 @@ import { ForgotPassword } from "@/modules/auth/components/forgot-password/forgot
 import { GuestGuard } from "@/modules/auth/components/guest-guard/guest-guard";
 
 export const Route = createFileRoute("/forgot-password")({
+  // Depends on the visitor's session, and is worth nothing to a search engine:
+  // rendered in the browser only.
+  ssr: false,
   component: RouteComponent,
 });
 

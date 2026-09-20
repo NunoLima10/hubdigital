@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite dev",
     "build": "pnpm --filter @hubdigital/shared build && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -21,8 +22,10 @@
     "@mantine/notifications": "^8.3.5",
     "@mantine/tiptap": "^8.3.5",
     "@tabler/icons-react": "^3.31.0",
-    "@tanstack/react-query": "^5.76.1",
-    "@tanstack/react-router": "^1.121.27",
+    "@tanstack/react-query": "^5.103.1",
+    "@tanstack/react-router": "^1.170.38",
+    "@tanstack/react-router-ssr-query": "^1.167.3",
+    "@tanstack/react-start": "^1.168.56",
     "@tiptap/extension-link": "^3.7.2",
     "@tiptap/extension-placeholder": "^3.7.2",
     "@tiptap/pm": "^3.7.2",
@@ -33,16 +36,15 @@
     "mantine-form-zod-resolver": "^1.2.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "react-error-boundary": "^6.0.0",
     "react-rewards": "^2.1.0",
     "zod": "^3.25.56"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
-    "@tanstack/router-plugin": "^1.121.29",
+    "@types/node": "^22.15.23",
     "@types/react": "^19.1.4",
     "@types/react-dom": "^19.1.5",
-    "@vitejs/plugin-react-swc": "^3.9.0",
+    "@vitejs/plugin-react": "^5.2.0",
     "eslint": "^9.26.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
@@ -52,6 +54,6 @@
     "postcss-simple-vars": "^7.0.1",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1",
-    "vite": "^6.3.5"
+    "vite": "^7.3.6"
   }
 }

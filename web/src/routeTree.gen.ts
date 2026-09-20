@@ -9,34 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SignUpRouteImport } from './routes/sign-up'
-import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as AuthedRouteImport } from './routes/_authed'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RankingsWeekRouteImport } from './routes/rankings/$week'
-import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
-import { Route as MakersHandleRouteImport } from './routes/makers/$handle'
-import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
+import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AuthedDashboardRouteRouteImport } from './routes/_authed/dashboard/route'
-import { Route as AuthedDashboardSubmitRouteImport } from './routes/_authed/dashboard/submit'
-import { Route as AuthedDashboardReleasesRouteImport } from './routes/_authed/dashboard/releases'
+import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
+import { Route as MakersHandleRouteImport } from './routes/makers/$handle'
+import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
+import { Route as RankingsWeekRouteImport } from './routes/rankings/$week'
 import { Route as AuthedDashboardProfileRouteImport } from './routes/_authed/dashboard/profile'
+import { Route as AuthedDashboardReleasesRouteImport } from './routes/_authed/dashboard/releases'
+import { Route as AuthedDashboardSubmitRouteImport } from './routes/_authed/dashboard/submit'
 
-const SignUpRoute = SignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignInRoute = SignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const AuthedRoute = AuthedRouteImport.update({
+  id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -44,18 +38,34 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedRoute = AuthedRouteImport.update({
-  id: '/_authed',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RankingsWeekRoute = RankingsWeekRouteImport.update({
-  id: '/rankings/$week',
-  path: '/rankings/$week',
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthedDashboardRouteRoute = AuthedDashboardRouteRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedOnboardingRoute = AuthedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const MakersHandleRoute = MakersHandleRouteImport.update({
+  id: '/makers/$handle',
+  path: '/makers/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
@@ -63,24 +73,14 @@ const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
   path: '/projects/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MakersHandleRoute = MakersHandleRouteImport.update({
-  id: '/makers/$handle',
-  path: '/makers/$handle',
+const RankingsWeekRoute = RankingsWeekRouteImport.update({
+  id: '/rankings/$week',
+  path: '/rankings/$week',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthedOnboardingRoute = AuthedOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedDashboardRouteRoute = AuthedDashboardRouteRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedDashboardSubmitRoute = AuthedDashboardSubmitRouteImport.update({
-  id: '/submit',
-  path: '/submit',
+const AuthedDashboardProfileRoute = AuthedDashboardProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => AuthedDashboardRouteRoute,
 } as any)
 const AuthedDashboardReleasesRoute = AuthedDashboardReleasesRouteImport.update({
@@ -88,9 +88,9 @@ const AuthedDashboardReleasesRoute = AuthedDashboardReleasesRouteImport.update({
   path: '/releases',
   getParentRoute: () => AuthedDashboardRouteRoute,
 } as any)
-const AuthedDashboardProfileRoute = AuthedDashboardProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
+const AuthedDashboardSubmitRoute = AuthedDashboardSubmitRouteImport.update({
+  id: '/submit',
+  path: '/submit',
   getParentRoute: () => AuthedDashboardRouteRoute,
 } as any)
 
@@ -204,25 +204,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/sign-up': {
-      id: '/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof SignUpRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/sign-in': {
-      id: '/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof SignInRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+    '/_authed': {
+      id: '/_authed'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -232,25 +225,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authed': {
-      id: '/_authed'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthedRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rankings/$week': {
-      id: '/rankings/$week'
-      path: '/rankings/$week'
-      fullPath: '/rankings/$week'
-      preLoaderRoute: typeof RankingsWeekRouteImport
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authed/dashboard': {
+      id: '/_authed/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthedDashboardRouteRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/onboarding': {
+      id: '/_authed/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthedOnboardingRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/makers/$handle': {
+      id: '/makers/$handle'
+      path: '/makers/$handle'
+      fullPath: '/makers/$handle'
+      preLoaderRoute: typeof MakersHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/projects/$slug': {
@@ -260,32 +274,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProjectsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/makers/$handle': {
-      id: '/makers/$handle'
-      path: '/makers/$handle'
-      fullPath: '/makers/$handle'
-      preLoaderRoute: typeof MakersHandleRouteImport
+    '/rankings/$week': {
+      id: '/rankings/$week'
+      path: '/rankings/$week'
+      fullPath: '/rankings/$week'
+      preLoaderRoute: typeof RankingsWeekRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authed/onboarding': {
-      id: '/_authed/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof AuthedOnboardingRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/dashboard': {
-      id: '/_authed/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthedDashboardRouteRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/dashboard/submit': {
-      id: '/_authed/dashboard/submit'
-      path: '/submit'
-      fullPath: '/dashboard/submit'
-      preLoaderRoute: typeof AuthedDashboardSubmitRouteImport
+    '/_authed/dashboard/profile': {
+      id: '/_authed/dashboard/profile'
+      path: '/profile'
+      fullPath: '/dashboard/profile'
+      preLoaderRoute: typeof AuthedDashboardProfileRouteImport
       parentRoute: typeof AuthedDashboardRouteRoute
     }
     '/_authed/dashboard/releases': {
@@ -295,11 +295,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardReleasesRouteImport
       parentRoute: typeof AuthedDashboardRouteRoute
     }
-    '/_authed/dashboard/profile': {
-      id: '/_authed/dashboard/profile'
-      path: '/profile'
-      fullPath: '/dashboard/profile'
-      preLoaderRoute: typeof AuthedDashboardProfileRouteImport
+    '/_authed/dashboard/submit': {
+      id: '/_authed/dashboard/submit'
+      path: '/submit'
+      fullPath: '/dashboard/submit'
+      preLoaderRoute: typeof AuthedDashboardSubmitRouteImport
       parentRoute: typeof AuthedDashboardRouteRoute
     }
   }
@@ -347,3 +347,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

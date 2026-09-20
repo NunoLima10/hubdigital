@@ -1,22 +1,20 @@
-import { tanstackRouter } from "@tanstack/router-plugin/vite";
-import react from "@vitejs/plugin-react-swc";
-import * as path from "path";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import viteReact from "@vitejs/plugin-react";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+
+const src = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 // https://vite.dev/config/
 export default defineConfig({
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      "@app": path.resolve(__dirname, "./src/app"),
-      "@assets": path.resolve(__dirname, "./src/assets"),
+      "@": src("./src"),
+      "@app": src("./src/app"),
+      "@assets": src("./src/assets"),
     },
   },
-  plugins: [
-    react(),
-    tanstackRouter({
-      target: "react",
-      autoCodeSplitting: true,
-    }),
-  ],
+  // tanstackStart() also generates the route tree, so the standalone router
+  // plugin is gone. It has to come before the React plugin.
+  plugins: [tanstackStart(), viteReact()],
 });
