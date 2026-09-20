@@ -129,7 +129,8 @@ describe("Comments module (e2e)", () => {
         access: "public_beta",
         projectStage: "mvp",
         audienceStage: "general_public",
-        island: "santiago",
+        country: "cv",
+        island: "CV7",
         status: "published",
         launchedAt: new Date().toISOString(),
       })

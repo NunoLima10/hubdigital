@@ -1,6 +1,7 @@
 import { DB } from "@/db";
 import { comments, projects, publishers } from "@/db/schemas";
 import { errorLogger } from "@/utils/error-logger";
+import { withLocation } from "@/utils/location";
 import { toPublicUrl } from "@/utils/public-url";
 import { ProjectStatus } from "@hubdigital/shared";
 import {
@@ -43,7 +44,7 @@ function serializeAdminProject(project: ProjectRow) {
   const { upvotes, comments: projectComments, publisher, ...rest } = project;
 
   return {
-    ...rest,
+    ...withLocation(rest),
     logoUrl: toPublicUrl(project.logoUrl),
     bannerImageUrl: toPublicUrl(project.bannerImageUrl),
     upvoteCount: upvotes.length,

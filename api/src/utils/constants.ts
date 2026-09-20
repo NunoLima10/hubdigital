@@ -2,6 +2,7 @@ export {
   accessValues,
   audienceValues,
   businessModelValues,
+  countryValues,
   islandValues,
   platformValues,
   pricingValues,

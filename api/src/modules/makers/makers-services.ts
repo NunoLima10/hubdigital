@@ -2,6 +2,7 @@ import { DB } from "@/db";
 import { projects, publishers, users } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
+import { withLocation } from "@/utils/location";
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
 import { MakerProfileUpdate } from "@hubdigital/shared";
@@ -56,7 +57,7 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
     const { upvotes, comments, ...rest } = project;
 
     return {
-      ...rest,
+      ...withLocation(rest),
       logoUrl: toPublicUrl(project.logoUrl),
       bannerImageUrl: toPublicUrl(project.bannerImageUrl),
       upvoteCount: upvotes.length,
