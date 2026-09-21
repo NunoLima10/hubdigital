@@ -15,6 +15,7 @@
   "packageManager": "pnpm@10.8.0",
   "dependencies": {
     "@hubdigital/shared": "workspace:*",
+    "@hubdigital/theme": "workspace:*",
     "@mantine/core": "^8.3.5",
     "@mantine/form": "^8.3.5",
     "@mantine/hooks": "^8.3.5",

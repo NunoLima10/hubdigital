@@ -3,3 +3,4 @@ packages:
  - 'admin'
  - 'api'
  - 'packages/shared'
+ - 'packages/theme'
