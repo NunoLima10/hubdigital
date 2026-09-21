@@ -1,4 +1,4 @@
-import { spacing } from "@app/theme";
+import { spacing } from "@hubdigital/theme";
 import { ButtonVariant } from "@mantine/core";
 
 type ExtendedButtonVariant = ButtonVariant | "danger";
