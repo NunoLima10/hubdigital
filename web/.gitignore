@@ -24,3 +24,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Cloudflare Wrangler local state
+.wrangler

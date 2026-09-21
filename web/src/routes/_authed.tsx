@@ -2,6 +2,9 @@ import { authClient } from "@/lib/auth-client";
 import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed")({
+  // Depends on the visitor's session, and is worth nothing to a search engine:
+  // rendered in the browser only.
+  ssr: false,
   component: AuthedLayout,
 });
 
