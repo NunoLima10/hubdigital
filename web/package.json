@@ -8,7 +8,9 @@
     "dev": "vite dev",
     "build": "pnpm --filter @hubdigital/shared build && tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "pnpm build && wrangler deploy",
+    "cf-typegen": "wrangler types"
   },
   "keywords": [],
   "author": "",
@@ -40,6 +42,7 @@
     "zod": "^3.25.56"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.56.0",
     "@eslint/js": "^9.26.0",
     "@types/node": "^22.15.23",
     "@types/react": "^19.1.4",
@@ -54,6 +57,7 @@
     "postcss-simple-vars": "^7.0.1",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.32.1",
-    "vite": "^7.3.6"
+    "vite": "^7.3.6",
+    "wrangler": "^4.135.0"
   }
 }

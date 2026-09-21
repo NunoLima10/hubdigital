@@ -1,3 +1,4 @@
+import { cloudflare } from "@cloudflare/vite-plugin";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { fileURLToPath } from "node:url";
@@ -15,6 +16,10 @@ export default defineConfig({
     },
   },
   // tanstackStart() also generates the route tree, so the standalone router
-  // plugin is gone. It has to come before the React plugin.
-  plugins: [tanstackStart(), viteReact()],
+  // plugin is gone. Order matters: cloudflare, then Start, then React.
+  plugins: [
+    cloudflare({ viteEnvironment: { name: "ssr" } }),
+    tanstackStart(),
+    viteReact(),
+  ],
 });
