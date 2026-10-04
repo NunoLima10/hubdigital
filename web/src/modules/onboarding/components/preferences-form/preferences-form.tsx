@@ -62,10 +62,11 @@ export function PreferencesForm() {
           const key = keys[index];
           return (
             <fieldset key={key} className="rounded-lg border bg-card p-4">
-              <legend className="px-1 text-[15px] font-semibold leading-5">
+              <legend className="sr-only">{question.title}</legend>
+              <h2 className="mb-3 text-[15px] font-semibold leading-5">
                 {question.title}
-              </legend>
-              <div className="mt-3 space-y-2">
+              </h2>
+              <div className="space-y-2">
                 {(key === "locationResponse" && editingDiasporaCountry
                   ? []
                   : question.reponses
