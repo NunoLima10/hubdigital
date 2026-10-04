@@ -1,8 +1,11 @@
-import { ProjectIcon } from "@/components/project-icon/project-icon";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {
+  ProjectSummary,
+  ProjectVoteButton,
+} from "@/components/project-summary/project-summary";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
-import { MessageSquare, ThumbsUp } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import type { Project } from "../../types/project";
 
 type Props = Project & {
@@ -28,55 +31,48 @@ export function ProjectCard({
   onSelect,
 }: Props) {
   return (
-    <article className="group flex items-start gap-3 rounded-lg border-b px-2 py-4 transition-colors hover:bg-muted/40 sm:gap-4">
-      {rank !== undefined && (
-        <span
-          className="w-5 pt-3 text-right text-sm font-semibold tabular-nums text-muted-foreground"
-          aria-label={`Posição ${rank}`}
-        >
-          {rank}
-        </span>
-      )}
-      <ProjectIcon
+    <article className="group relative rounded-lg px-2 py-3 transition-[background-color,box-shadow] duration-200 hover:bg-muted/40 hover:shadow-sm sm:py-4">
+      <ProjectSummary
         iconUrl={iconUrl}
-        className="size-12 shrink-0 rounded-lg sm:size-14"
+        description={description}
+        topics={topis}
+        title={
+          <Link
+            to="/projects/$slug"
+            params={{ slug }}
+            onClick={onSelect}
+            className="font-semibold leading-6 after:absolute after:inset-0 after:rounded-lg hover:text-primary hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-ring focus-visible:after:outline-2 focus-visible:after:outline-ring"
+          >
+            {rank !== undefined && `${rank}. `}
+            {title}
+          </Link>
+        }
+        actions={
+          <>
+            <Link
+              to="/projects/$slug"
+              params={{ slug }}
+              hash="comments-title"
+              onClick={onSelect}
+              aria-label={`Ver ${commentCount} comentários de ${title}`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "hidden size-[52px] flex-col gap-0 p-0 text-xs sm:inline-flex",
+              )}
+            >
+              <MessageSquare />
+              <span>{commentCount}</span>
+            </Link>
+            <ProjectVoteButton
+              title={title}
+              count={upCount}
+              active={hasUpvoted}
+              disabled={isUpvotePending}
+              onClick={() => onUpvote?.()}
+            />
+          </>
+        }
       />
-      <div className="min-w-0 flex-1">
-        <Link
-          to="/projects/$slug"
-          params={{ slug }}
-          onClick={onSelect}
-          className="font-semibold leading-6 hover:text-primary hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-ring"
-        >
-          {title}
-        </Link>
-        <p className="line-clamp-2 text-sm text-muted-foreground">
-          {description}
-        </p>
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {topis.map((topic) => (
-            <Badge key={topic}>{topic}</Badge>
-          ))}
-          {commentCount > 0 && (
-            <span className="ml-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
-              <MessageSquare className="size-3.5" />
-              {commentCount}
-            </span>
-          )}
-        </div>
-      </div>
-      <Button
-        variant="outline"
-        size="sm"
-        className="h-auto min-h-10 flex-col gap-0 px-2.5 text-xs sm:min-w-14"
-        aria-label={`${hasUpvoted ? "Retirar voto de" : "Votar em"} ${title}: ${upCount} votos`}
-        aria-pressed={hasUpvoted}
-        disabled={isUpvotePending}
-        onClick={() => onUpvote?.()}
-      >
-        <ThumbsUp className={hasUpvoted ? "fill-primary text-primary" : ""} />
-        <span>{upCount}</span>
-      </Button>
       <span className="sr-only">Projeto {id}</span>
     </article>
   );

@@ -1,7 +1,8 @@
 import { ProjectBanner } from "@/components/project-banner/project-banner";
-import { ProjectIcon } from "@/components/project-icon/project-icon";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import {
+  ProjectSummary,
+  ProjectVoteButton,
+} from "@/components/project-summary/project-summary";
 import { authClient } from "@/lib/auth-client";
 import { SignInToVote } from "@/modules/project-list/components/sign-in-to-vote/sign-in-to-vote";
 import { useToggleUpvote } from "@/modules/project-list/hooks/use-toggle-upvote";
@@ -19,7 +20,7 @@ import {
 } from "@/modules/submit/options";
 import type { Project } from "@/modules/submit/types/project";
 import { formatLocation } from "@hubdigital/shared";
-import { ExternalLink, Github, Share2, ThumbsUp } from "lucide-react";
+import { ExternalLink, Github, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProjectAuthorRow } from "../project-author/project-author";
 
@@ -54,39 +55,30 @@ export function ProjectDetailView({ project }: { project: Project }) {
   return (
     <div className="space-y-6">
       <ModerationNotice project={project} />
-      <div className="flex items-start gap-4">
-        <ProjectIcon iconUrl={project.logoUrl} className="size-14 sm:size-16" />
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
+      <ProjectSummary
+        iconUrl={project.logoUrl}
+        description={project.shortDescription}
+        topics={[
+          ...(project.category ? [project.category.name] : []),
+          ...project.platform.map((platform) => platformLabels[platform]),
+        ]}
+        title={
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
             {project.name}
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {project.shortDescription}
-          </p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {project.category && <Badge>{project.category.name}</Badge>}
-            {project.platform.map((platform) => (
-              <Badge key={platform}>{platformLabels[platform]}</Badge>
-            ))}
-          </div>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-auto min-h-10 shrink-0 flex-col gap-0 px-2.5 text-xs"
-          aria-label={`${project.hasUpvoted ? "Retirar voto de" : "Votar em"} ${project.name}: ${project.upvoteCount} votos`}
-          aria-pressed={project.hasUpvoted}
-          disabled={pendingProjectId === project.id}
-          onClick={() =>
-            session ? toggleUpvote(project.id) : setVoteAfterSignIn(true)
-          }
-        >
-          <ThumbsUp
-            className={project.hasUpvoted ? "fill-primary text-primary" : ""}
+        }
+        actions={
+          <ProjectVoteButton
+            title={project.name}
+            count={project.upvoteCount}
+            active={project.hasUpvoted}
+            disabled={pendingProjectId === project.id}
+            onClick={() =>
+              session ? toggleUpvote(project.id) : setVoteAfterSignIn(true)
+            }
           />
-          <span>{project.upvoteCount}</span>
-        </Button>
-      </div>
+        }
+      />
       <ProjectBanner bannerUrl={project.bannerImageUrl} />
       <section aria-labelledby="about-project-title">
         <h2 id="about-project-title" className="text-lg font-semibold">
