@@ -6,7 +6,7 @@
  * through Sunday 23:59:59.999, in Cape Verdean local time.
  */
 
-const CV_OFFSET_MS = -60 * 60 * 1000;
+export const CV_OFFSET_MS = -60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * DAY_MS;
 

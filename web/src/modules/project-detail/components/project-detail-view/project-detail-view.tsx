@@ -1,5 +1,7 @@
 import { ModerationNotice } from "@/modules/releases/components/moderation-notice/moderation-notice";
 import { ReportButton } from "@/modules/reports/components/report-button/report-button";
+import { useTrackProjectView } from "@/modules/project-stats/hooks/use-track-project-view";
+import { trackProjectEvent } from "@/modules/project-stats/utils/track-project-event";
 import { ProjectBanner } from "@/components/project-banner/project-banner";
 import {
   accessLabels,
@@ -37,6 +39,8 @@ type ProjectDetailViewProps = {
 export function ProjectDetailView({ project }: ProjectDetailViewProps) {
   const categoryBadges = project.category ? [project.category.name] : [];
 
+  useTrackProjectView(project.id);
+
   return (
     <Stack gap="lg">
       <ModerationNotice project={project} />
@@ -65,6 +69,7 @@ export function ProjectDetailView({ project }: ProjectDetailViewProps) {
             href={project.websiteUrl}
             target="_blank"
             rel="noreferrer"
+            onClick={() => trackProjectEvent(project.id, "visit")}
             rightSection={<IconExternalLink size={16} />}
           >
             Visitar site

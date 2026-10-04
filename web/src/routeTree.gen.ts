@@ -20,6 +20,7 @@ import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboardin
 import { Route as MakersHandleRouteImport } from './routes/makers/$handle'
 import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
 import { Route as RankingsWeekRouteImport } from './routes/rankings/$week'
+import { Route as AuthedDashboardMetricsRouteImport } from './routes/_authed/dashboard/metrics'
 import { Route as AuthedDashboardProfileRouteImport } from './routes/_authed/dashboard/profile'
 import { Route as AuthedDashboardReleasesRouteImport } from './routes/_authed/dashboard/releases'
 import { Route as AuthedDashboardSubmitRouteImport } from './routes/_authed/dashboard/submit'
@@ -78,6 +79,11 @@ const RankingsWeekRoute = RankingsWeekRouteImport.update({
   path: '/rankings/$week',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedDashboardMetricsRoute = AuthedDashboardMetricsRouteImport.update({
+  id: '/metrics',
+  path: '/metrics',
+  getParentRoute: () => AuthedDashboardRouteRoute,
+} as any)
 const AuthedDashboardProfileRoute = AuthedDashboardProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/makers/$handle': typeof MakersHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
+  '/dashboard/metrics': typeof AuthedDashboardMetricsRoute
   '/dashboard/profile': typeof AuthedDashboardProfileRoute
   '/dashboard/releases': typeof AuthedDashboardReleasesRoute
   '/dashboard/submit': typeof AuthedDashboardSubmitRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/makers/$handle': typeof MakersHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
+  '/dashboard/metrics': typeof AuthedDashboardMetricsRoute
   '/dashboard/profile': typeof AuthedDashboardProfileRoute
   '/dashboard/releases': typeof AuthedDashboardReleasesRoute
   '/dashboard/submit': typeof AuthedDashboardSubmitRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/makers/$handle': typeof MakersHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
+  '/_authed/dashboard/metrics': typeof AuthedDashboardMetricsRoute
   '/_authed/dashboard/profile': typeof AuthedDashboardProfileRoute
   '/_authed/dashboard/releases': typeof AuthedDashboardReleasesRoute
   '/_authed/dashboard/submit': typeof AuthedDashboardSubmitRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/makers/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
+    | '/dashboard/metrics'
     | '/dashboard/profile'
     | '/dashboard/releases'
     | '/dashboard/submit'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/makers/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
+    | '/dashboard/metrics'
     | '/dashboard/profile'
     | '/dashboard/releases'
     | '/dashboard/submit'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/makers/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
+    | '/_authed/dashboard/metrics'
     | '/_authed/dashboard/profile'
     | '/_authed/dashboard/releases'
     | '/_authed/dashboard/submit'
@@ -281,6 +293,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RankingsWeekRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/dashboard/metrics': {
+      id: '/_authed/dashboard/metrics'
+      path: '/metrics'
+      fullPath: '/dashboard/metrics'
+      preLoaderRoute: typeof AuthedDashboardMetricsRouteImport
+      parentRoute: typeof AuthedDashboardRouteRoute
+    }
     '/_authed/dashboard/profile': {
       id: '/_authed/dashboard/profile'
       path: '/profile'
@@ -306,12 +325,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthedDashboardRouteRouteChildren {
+  AuthedDashboardMetricsRoute: typeof AuthedDashboardMetricsRoute
   AuthedDashboardProfileRoute: typeof AuthedDashboardProfileRoute
   AuthedDashboardReleasesRoute: typeof AuthedDashboardReleasesRoute
   AuthedDashboardSubmitRoute: typeof AuthedDashboardSubmitRoute
 }
 
 const AuthedDashboardRouteRouteChildren: AuthedDashboardRouteRouteChildren = {
+  AuthedDashboardMetricsRoute: AuthedDashboardMetricsRoute,
   AuthedDashboardProfileRoute: AuthedDashboardProfileRoute,
   AuthedDashboardReleasesRoute: AuthedDashboardReleasesRoute,
   AuthedDashboardSubmitRoute: AuthedDashboardSubmitRoute,

@@ -9,5 +9,6 @@ export * from "./maker-schema";
 export * from "./moderation";
 export * from "./project-options";
 export * from "./project-schema";
+export * from "./project-stats";
 export * from "./project-status";
 export * from "./roles";

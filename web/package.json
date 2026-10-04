@@ -19,6 +19,7 @@
   "dependencies": {
     "@hubdigital/shared": "workspace:*",
     "@hubdigital/theme": "workspace:*",
+    "@mantine/charts": "8.3.5",
     "@mantine/core": "^8.3.5",
     "@mantine/form": "^8.3.5",
     "@mantine/hooks": "^8.3.5",
@@ -40,6 +41,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-rewards": "^2.1.0",
+    "recharts": "^2.15.4",
     "zod": "^3.25.56"
   },
   "devDependencies": {

@@ -6,6 +6,8 @@ export {
   islandValues,
   platformValues,
   pricingValues,
+  projectEventSourceValues,
+  projectEventTypeValues,
   projectStageValues,
   projectStatusValues,
 } from "@hubdigital/shared";
