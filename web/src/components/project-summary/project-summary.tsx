@@ -12,6 +12,7 @@ type ProjectSummaryProps = {
   topics: string[];
   actions?: ReactNode;
   className?: string;
+  actionsClassName?: string;
 };
 
 export function ProjectSummary({
@@ -21,6 +22,7 @@ export function ProjectSummary({
   topics,
   actions,
   className,
+  actionsClassName,
 }: ProjectSummaryProps) {
   return (
     <div className={cn("flex items-center gap-3 sm:gap-4", className)}>
@@ -42,7 +44,12 @@ export function ProjectSummary({
         )}
       </div>
       {actions && (
-        <div className="relative z-10 flex shrink-0 items-center gap-4">
+        <div
+          className={cn(
+            "relative z-10 flex shrink-0 items-center gap-4",
+            actionsClassName,
+          )}
+        >
           {actions}
         </div>
       )}

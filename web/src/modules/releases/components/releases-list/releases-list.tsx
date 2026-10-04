@@ -23,9 +23,9 @@ export function ReleasesList() {
   });
   if (isLoading)
     return showLoading ? (
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="space-y-3">
         {[1, 2].map((n) => (
-          <div key={n} className="h-40 animate-pulse rounded-lg bg-muted" />
+          <div key={n} className="h-32 animate-pulse rounded-lg bg-muted" />
         ))}
       </div>
     ) : null;
@@ -43,7 +43,7 @@ export function ReleasesList() {
     );
   return (
     <>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="space-y-3">
         {data.data.map((project) => (
           <ReleasesItem
             key={project.id}
