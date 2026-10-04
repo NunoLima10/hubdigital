@@ -24,7 +24,7 @@ function RankingPage() {
             to="/"
             className="mt-3 inline-block text-sm text-primary hover:underline"
           >
-            Ver os lançamentos desta semana
+            Ver todos os lançamentos
           </Link>
         </div>
         <ProjectList week={week} />

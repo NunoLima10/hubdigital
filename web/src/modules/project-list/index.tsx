@@ -19,11 +19,13 @@ type Props = {
   period?: ListPeriod;
   week?: string;
   filters?: ProjectFilterValues;
+  onSelect?: () => void;
 };
 export function ProjectList({
   period = "this_week",
   week,
   filters = {},
+  onSelect,
 }: Props) {
   const { data, isLoading, isError, isFetching } = useProjects({
     period,
@@ -96,6 +98,7 @@ export function ProjectList({
           rank={index + 1}
           onUpvote={() => handleUpvote(project.id)}
           isUpvotePending={pendingProjectId === project.id}
+          onSelect={onSelect}
         />
       ))}
       <SignInToVote

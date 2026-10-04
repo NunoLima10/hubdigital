@@ -76,11 +76,23 @@
 }
 
 @layer base {
+  html.hub-dialog-scroll-locked {
+    scrollbar-gutter: auto !important;
+    overflow: hidden !important;
+  }
+  html.hub-dialog-scroll-locked body {
+    position: fixed !important;
+    top: calc(-1 * var(--hub-locked-scroll-y, 0px)) !important;
+    left: 0 !important;
+    width: calc(100vw - var(--hub-scrollbar-width, 0px)) !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+  }
   * {
     @apply border-border outline-ring/50;
   }
   html {
-    @apply font-sans;
+    @apply bg-background font-sans;
   }
   body {
     @apply bg-background text-foreground antialiased;

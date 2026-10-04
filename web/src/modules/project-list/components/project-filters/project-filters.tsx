@@ -1,11 +1,16 @@
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCategories } from "@/modules/submit/hooks/use-categories";
 import { islandOptions, pricingOptions } from "@/modules/submit/options";
 import type { Island } from "@hubdigital/shared";
-import { Search, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Search } from "lucide-react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 export type ProjectFilterValues = {
   q?: string;
@@ -13,15 +18,77 @@ export type ProjectFilterValues = {
   categoryId?: number;
   pricing?: "free" | "freemium" | "paid";
 };
-type Props = {
+
+type FilterOption = { value: string; label: string };
+
+function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+  portalContainer,
+}: {
+  label: string;
+  value: string;
+  options: FilterOption[];
+  onChange: (value: string) => void;
+  portalContainer: RefObject<HTMLElement | null>;
+}) {
+  return (
+    <Select
+      items={options}
+      value={value}
+      onValueChange={(next) => onChange(next ?? "all")}
+    >
+      <SelectTrigger
+        aria-label={label}
+        className="w-full min-w-0 rounded-md bg-background"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent
+        portalContainer={portalContainer}
+        alignItemWithTrigger={false}
+        align="start"
+        className="max-h-64 w-max min-w-56 max-w-[calc(100vw-2rem)] rounded-lg p-1 shadow-lg ring-1 ring-border"
+      >
+        {options.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={option.value}
+            className="rounded-md"
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+export function ProjectFilters({
+  value,
+  onChange,
+  autoFocusSearch = false,
+  portalContainer,
+}: {
   value: ProjectFilterValues;
   onChange: (next: ProjectFilterValues) => void;
-};
-
-export function ProjectFilters({ value, onChange }: Props) {
+  autoFocusSearch?: boolean;
+  portalContainer: RefObject<HTMLElement | null>;
+}) {
   const { data: categories } = useCategories();
   const [query, setQuery] = useState(value.q ?? "");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
+  const latestValue = useRef(value);
+  latestValue.current = value;
+
+  useEffect(() => {
+    if (!autoFocusSearch) return;
+    const frame = requestAnimationFrame(() => searchInput.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [autoFocusSearch]);
   useEffect(() => setQuery(value.q ?? ""), [value.q]);
   useEffect(
     () => () => {
@@ -29,102 +96,85 @@ export function ProjectFilters({ value, onChange }: Props) {
     },
     [],
   );
+
   function changeQuery(next: string) {
     setQuery(next);
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(
-      () => onChange({ ...value, q: next.trim() || undefined }),
+      () => onChange({ ...latestValue.current, q: next.trim() || undefined }),
       350,
     );
   }
-  const hasFilters = Boolean(
-    value.q || value.island || value.categoryId || value.pricing,
-  );
+
+  const islandItems = [
+    { value: "all", label: "Todas as ilhas" },
+    ...islandOptions,
+  ];
+  const categoryItems = [
+    { value: "all", label: "Categorias" },
+    ...(categories ?? []).map((category) => ({
+      value: String(category.id),
+      label: category.name,
+    })),
+  ];
+  const pricingItems = [{ value: "all", label: "Preço" }, ...pricingOptions];
+
   return (
-    <div className="flex flex-wrap gap-2">
-      <label className="relative w-full min-w-40 flex-1 sm:w-auto">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1.4fr_1fr]">
+      <label className="relative col-span-full">
         <span className="sr-only">Procurar projetos</span>
         <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" />
         <Input
+          ref={searchInput}
           className="pl-9"
           placeholder="Procurar projetos..."
           value={query}
           onChange={(event) => changeQuery(event.currentTarget.value)}
         />
       </label>
-      <label className="w-[calc(50%-0.25rem)] sm:w-32">
-        <span className="sr-only">Ilha</span>
-        <Select
-          value={value.island ?? ""}
-          onChange={(event) =>
+      <FilterSelect
+        label="Ilha"
+        value={value.island ?? "all"}
+        options={islandItems}
+        onChange={(next) =>
+          onChange({
+            ...value,
+            island: next === "all" ? undefined : (next as Island),
+          })
+        }
+        portalContainer={portalContainer}
+      />
+      <FilterSelect
+        label="Categoria"
+        value={
+          value.categoryId === undefined ? "all" : String(value.categoryId)
+        }
+        options={categoryItems}
+        onChange={(next) =>
+          onChange({
+            ...value,
+            categoryId: next === "all" ? undefined : Number(next),
+          })
+        }
+        portalContainer={portalContainer}
+      />
+      <div className="col-span-full sm:col-span-1">
+        <FilterSelect
+          label="Preço"
+          value={value.pricing ?? "all"}
+          options={pricingItems}
+          onChange={(next) =>
             onChange({
               ...value,
-              island: (event.target.value || undefined) as Island | undefined,
+              pricing:
+                next === "all"
+                  ? undefined
+                  : (next as ProjectFilterValues["pricing"]),
             })
           }
-        >
-          <option value="">Todas as ilhas</option>
-          {islandOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Select>
-      </label>
-      <label className="w-[calc(50%-0.25rem)] sm:w-36">
-        <span className="sr-only">Categoria</span>
-        <Select
-          value={value.categoryId ?? ""}
-          onChange={(event) =>
-            onChange({
-              ...value,
-              categoryId: event.target.value
-                ? Number(event.target.value)
-                : undefined,
-            })
-          }
-        >
-          <option value="">Categorias</option>
-          {categories?.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </Select>
-      </label>
-      <label className="min-w-28 flex-1 sm:flex-none">
-        <span className="sr-only">Preço</span>
-        <Select
-          value={value.pricing ?? ""}
-          onChange={(event) =>
-            onChange({
-              ...value,
-              pricing: (event.target.value ||
-                undefined) as ProjectFilterValues["pricing"],
-            })
-          }
-        >
-          <option value="">Preço</option>
-          {pricingOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Select>
-      </label>
-      {hasFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            setQuery("");
-            onChange({});
-          }}
-        >
-          <X />
-          Limpar
-        </Button>
-      )}
+          portalContainer={portalContainer}
+        />
+      </div>
     </div>
   );
 }

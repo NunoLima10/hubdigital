@@ -9,6 +9,7 @@ type Props = Project & {
   rank?: number;
   onUpvote?: () => boolean | void;
   isUpvotePending?: boolean;
+  onSelect?: () => void;
 };
 
 export function ProjectCard({
@@ -24,6 +25,7 @@ export function ProjectCard({
   rank,
   onUpvote,
   isUpvotePending,
+  onSelect,
 }: Props) {
   return (
     <article className="group flex items-start gap-3 rounded-lg border-b px-2 py-4 transition-colors hover:bg-muted/40 sm:gap-4">
@@ -43,6 +45,7 @@ export function ProjectCard({
         <Link
           to="/projects/$slug"
           params={{ slug }}
+          onClick={onSelect}
           className="font-semibold leading-6 hover:text-primary hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-ring"
         >
           {title}

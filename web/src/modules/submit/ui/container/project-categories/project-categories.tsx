@@ -1,4 +1,4 @@
-import { Select } from "@/components/ui/select";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { UseFormReturn } from "react-hook-form";
 import { useCategories } from "../../../hooks/use-categories";
 import {
@@ -42,7 +42,7 @@ export function ProjectCategories({
         {fields.map(({ name, label, options }) => (
           <label key={name} className="block space-y-1.5 text-sm font-medium">
             {label}
-            <Select
+            <NativeSelect
               required
               value={values[name]}
               onChange={(event) =>
@@ -57,7 +57,7 @@ export function ProjectCategories({
                   {option.label}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
             {form.formState.errors[name]?.message && (
               <span className="text-xs text-destructive">
                 {form.formState.errors[name]?.message}
@@ -105,7 +105,7 @@ export function ProjectCategories({
       </fieldset>
       <label className="block space-y-1.5 text-sm font-medium">
         Qual categoria melhor descreve o teu projeto?
-        <Select
+        <NativeSelect
           required
           disabled={isLoading}
           value={values.categoryId}
@@ -123,7 +123,7 @@ export function ProjectCategories({
               {category.name}
             </option>
           ))}
-        </Select>
+        </NativeSelect>
         {form.formState.errors.categoryId && (
           <span className="text-xs text-destructive">
             {form.formState.errors.categoryId.message}

@@ -1,8 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { Link } from "@tanstack/react-router";
-import { Menu, Moon, Plus, Sun, UserRound } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Menu, Moon, Plus, Search, Sun, UserRound } from "lucide-react";
+import { lazy, Suspense, useEffect, useState } from "react";
+
+const ProjectSearch = lazy(() =>
+  import("@/modules/project-list/components/project-search/project-search").then(
+    (module) => ({ default: module.ProjectSearch }),
+  ),
+);
 
 function ThemeToggle() {
   const [dark, setDark] = useState(false);
@@ -31,6 +37,17 @@ function ThemeToggle() {
 export function Header() {
   const { data: session } = authClient.useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  useEffect(() => {
+    function handleSearchShortcut(event: KeyboardEvent) {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+    }
+    document.addEventListener("keydown", handleSearchShortcut);
+    return () => document.removeEventListener("keydown", handleSearchShortcut);
+  }, []);
   function signOut() {
     void authClient.signOut().then(() => {
       window.location.href = "/";
@@ -62,7 +79,19 @@ export function Header() {
             Submeter projeto
           </Link>
         </nav>
-        <ThemeToggle />
+        <button
+          type="button"
+          onClick={() => setSearchOpen(true)}
+          aria-label="Procurar projetos"
+          aria-keyshortcuts="Control+K Meta+K"
+          className="inline-flex size-9 shrink-0 items-center justify-center gap-2 rounded-md border border-transparent text-sm text-muted-foreground hover:bg-muted hover:text-foreground lg:w-44 lg:justify-start lg:border-input lg:px-3 xl:w-52"
+        >
+          <Search className="size-4" />
+          <span className="hidden lg:inline">Procurar projetos</span>
+        </button>
+        <div className="hidden sm:block">
+          <ThemeToggle />
+        </div>
         {session ? (
           <details className="relative hidden sm:block">
             <summary
@@ -172,7 +201,16 @@ export function Header() {
               Terminar sessão
             </button>
           )}
+          <div className="flex items-center justify-between px-2 py-1 sm:hidden">
+            <span>Tema</span>
+            <ThemeToggle />
+          </div>
         </nav>
+      )}
+      {searchOpen && (
+        <Suspense fallback={null}>
+          <ProjectSearch onClose={() => setSearchOpen(false)} />
+        </Suspense>
       )}
     </header>
   );

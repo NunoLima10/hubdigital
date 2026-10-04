@@ -1,4 +1,4 @@
-import { Select } from "@/components/ui/select";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { UseFormReturn } from "react-hook-form";
 import {
   countryOptions,
@@ -22,7 +22,7 @@ export function LocationFields({
         className={`block space-y-1.5 text-sm font-medium ${inCapeVerde ? "" : "sm:col-span-3"}`}
       >
         País de origem
-        <Select
+        <NativeSelect
           value={location.country}
           onChange={(event) =>
             form.setValue(
@@ -42,7 +42,7 @@ export function LocationFields({
               {option.label}
             </option>
           ))}
-        </Select>
+        </NativeSelect>
         <span className="block text-xs font-normal text-muted-foreground">
           De onde é construído o projeto
         </span>
@@ -51,7 +51,7 @@ export function LocationFields({
         <>
           <label className="block space-y-1.5 text-sm font-medium">
             Ilha
-            <Select
+            <NativeSelect
               value={location.island}
               onChange={(event) =>
                 form.setValue(
@@ -72,11 +72,11 @@ export function LocationFields({
                   {option.label}
                 </option>
               ))}
-            </Select>
+            </NativeSelect>
           </label>
           <label className="block space-y-1.5 text-sm font-medium">
             Concelho
-            <Select
+            <NativeSelect
               value={location.municipality}
               disabled={!location.island}
               onChange={(event) =>
@@ -99,7 +99,7 @@ export function LocationFields({
                     {option.label}
                   </option>
                 ))}
-            </Select>
+            </NativeSelect>
           </label>
         </>
       )}
