@@ -8,8 +8,10 @@ const labels = ["Descrição", "Categoria", "Revisão"];
 export function FormStepper() {
   const { active, form } = useSubmitForm();
   return (
-    <div className="space-y-7 p-4">
-      <h1 className="text-xl font-semibold">Submeter projeto</h1>
+    <div className="space-y-7">
+      <h1 className="hidden text-xl font-semibold lg:block">
+        Submeter projeto
+      </h1>
       <ol className="flex gap-2" aria-label={`Passo ${active + 1} de 3`}>
         {labels.map((label, index) => (
           <li

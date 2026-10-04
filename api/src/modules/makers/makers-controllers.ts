@@ -3,6 +3,9 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import {
   GetMakerReply,
   GetMakerRequest,
+  GetMakerPreferencesReply,
+  UpdateMakerPreferencesReply,
+  UpdateMakerPreferencesRequest,
   UpdateMakerReply,
   UpdateMakerRequest,
 } from "./makers-schemas";
@@ -49,8 +52,32 @@ async function updateMakerHandler(
   return reply.status(200).send({ data: result });
 }
 
+async function getPreferencesHandler(
+  req: FastifyRequest,
+  reply: GetMakerPreferencesReply,
+) {
+  const preferences = await MakersService.getPreferences(req.db, req.user!.id);
+  if (!preferences) throw new NotFoundError();
+  return reply.status(200).send({ data: preferences });
+}
+
+async function updatePreferencesHandler(
+  req: UpdateMakerPreferencesRequest,
+  reply: UpdateMakerPreferencesReply,
+) {
+  const preferences = await MakersService.updatePreferences(
+    req.db,
+    req.user!.id,
+    req.body,
+  );
+  if (!preferences) throw new NotFoundError();
+  return reply.status(200).send({ data: preferences });
+}
+
 export const makersController = {
   getMakerHandler,
   getMyHandleHandler,
   updateMakerHandler,
+  getPreferencesHandler,
+  updatePreferencesHandler,
 };

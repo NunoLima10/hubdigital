@@ -20,7 +20,9 @@ import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboardin
 import { Route as MakersHandleRouteImport } from './routes/makers/$handle'
 import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
 import { Route as RankingsWeekRouteImport } from './routes/rankings/$week'
+import { Route as AuthedDashboardFavoritesRouteImport } from './routes/_authed/dashboard/favorites'
 import { Route as AuthedDashboardMetricsRouteImport } from './routes/_authed/dashboard/metrics'
+import { Route as AuthedDashboardPreferencesRouteImport } from './routes/_authed/dashboard/preferences'
 import { Route as AuthedDashboardProfileRouteImport } from './routes/_authed/dashboard/profile'
 import { Route as AuthedDashboardReleasesRouteImport } from './routes/_authed/dashboard/releases'
 import { Route as AuthedDashboardSubmitRouteImport } from './routes/_authed/dashboard/submit'
@@ -79,11 +81,23 @@ const RankingsWeekRoute = RankingsWeekRouteImport.update({
   path: '/rankings/$week',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedDashboardFavoritesRoute =
+  AuthedDashboardFavoritesRouteImport.update({
+    id: '/favorites',
+    path: '/favorites',
+    getParentRoute: () => AuthedDashboardRouteRoute,
+  } as any)
 const AuthedDashboardMetricsRoute = AuthedDashboardMetricsRouteImport.update({
   id: '/metrics',
   path: '/metrics',
   getParentRoute: () => AuthedDashboardRouteRoute,
 } as any)
+const AuthedDashboardPreferencesRoute =
+  AuthedDashboardPreferencesRouteImport.update({
+    id: '/preferences',
+    path: '/preferences',
+    getParentRoute: () => AuthedDashboardRouteRoute,
+  } as any)
 const AuthedDashboardProfileRoute = AuthedDashboardProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -111,7 +125,9 @@ export interface FileRoutesByFullPath {
   '/makers/$handle': typeof MakersHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
+  '/dashboard/favorites': typeof AuthedDashboardFavoritesRoute
   '/dashboard/metrics': typeof AuthedDashboardMetricsRoute
+  '/dashboard/preferences': typeof AuthedDashboardPreferencesRoute
   '/dashboard/profile': typeof AuthedDashboardProfileRoute
   '/dashboard/releases': typeof AuthedDashboardReleasesRoute
   '/dashboard/submit': typeof AuthedDashboardSubmitRoute
@@ -127,7 +143,9 @@ export interface FileRoutesByTo {
   '/makers/$handle': typeof MakersHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
+  '/dashboard/favorites': typeof AuthedDashboardFavoritesRoute
   '/dashboard/metrics': typeof AuthedDashboardMetricsRoute
+  '/dashboard/preferences': typeof AuthedDashboardPreferencesRoute
   '/dashboard/profile': typeof AuthedDashboardProfileRoute
   '/dashboard/releases': typeof AuthedDashboardReleasesRoute
   '/dashboard/submit': typeof AuthedDashboardSubmitRoute
@@ -145,7 +163,9 @@ export interface FileRoutesById {
   '/makers/$handle': typeof MakersHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
+  '/_authed/dashboard/favorites': typeof AuthedDashboardFavoritesRoute
   '/_authed/dashboard/metrics': typeof AuthedDashboardMetricsRoute
+  '/_authed/dashboard/preferences': typeof AuthedDashboardPreferencesRoute
   '/_authed/dashboard/profile': typeof AuthedDashboardProfileRoute
   '/_authed/dashboard/releases': typeof AuthedDashboardReleasesRoute
   '/_authed/dashboard/submit': typeof AuthedDashboardSubmitRoute
@@ -163,7 +183,9 @@ export interface FileRouteTypes {
     | '/makers/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
+    | '/dashboard/favorites'
     | '/dashboard/metrics'
+    | '/dashboard/preferences'
     | '/dashboard/profile'
     | '/dashboard/releases'
     | '/dashboard/submit'
@@ -179,7 +201,9 @@ export interface FileRouteTypes {
     | '/makers/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
+    | '/dashboard/favorites'
     | '/dashboard/metrics'
+    | '/dashboard/preferences'
     | '/dashboard/profile'
     | '/dashboard/releases'
     | '/dashboard/submit'
@@ -196,7 +220,9 @@ export interface FileRouteTypes {
     | '/makers/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
+    | '/_authed/dashboard/favorites'
     | '/_authed/dashboard/metrics'
+    | '/_authed/dashboard/preferences'
     | '/_authed/dashboard/profile'
     | '/_authed/dashboard/releases'
     | '/_authed/dashboard/submit'
@@ -293,11 +319,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RankingsWeekRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/dashboard/favorites': {
+      id: '/_authed/dashboard/favorites'
+      path: '/favorites'
+      fullPath: '/dashboard/favorites'
+      preLoaderRoute: typeof AuthedDashboardFavoritesRouteImport
+      parentRoute: typeof AuthedDashboardRouteRoute
+    }
     '/_authed/dashboard/metrics': {
       id: '/_authed/dashboard/metrics'
       path: '/metrics'
       fullPath: '/dashboard/metrics'
       preLoaderRoute: typeof AuthedDashboardMetricsRouteImport
+      parentRoute: typeof AuthedDashboardRouteRoute
+    }
+    '/_authed/dashboard/preferences': {
+      id: '/_authed/dashboard/preferences'
+      path: '/preferences'
+      fullPath: '/dashboard/preferences'
+      preLoaderRoute: typeof AuthedDashboardPreferencesRouteImport
       parentRoute: typeof AuthedDashboardRouteRoute
     }
     '/_authed/dashboard/profile': {
@@ -325,14 +365,18 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthedDashboardRouteRouteChildren {
+  AuthedDashboardFavoritesRoute: typeof AuthedDashboardFavoritesRoute
   AuthedDashboardMetricsRoute: typeof AuthedDashboardMetricsRoute
+  AuthedDashboardPreferencesRoute: typeof AuthedDashboardPreferencesRoute
   AuthedDashboardProfileRoute: typeof AuthedDashboardProfileRoute
   AuthedDashboardReleasesRoute: typeof AuthedDashboardReleasesRoute
   AuthedDashboardSubmitRoute: typeof AuthedDashboardSubmitRoute
 }
 
 const AuthedDashboardRouteRouteChildren: AuthedDashboardRouteRouteChildren = {
+  AuthedDashboardFavoritesRoute: AuthedDashboardFavoritesRoute,
   AuthedDashboardMetricsRoute: AuthedDashboardMetricsRoute,
+  AuthedDashboardPreferencesRoute: AuthedDashboardPreferencesRoute,
   AuthedDashboardProfileRoute: AuthedDashboardProfileRoute,
   AuthedDashboardReleasesRoute: AuthedDashboardReleasesRoute,
   AuthedDashboardSubmitRoute: AuthedDashboardSubmitRoute,

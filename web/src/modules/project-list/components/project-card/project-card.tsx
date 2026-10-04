@@ -6,6 +6,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import { MessageSquare } from "lucide-react";
+import { Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import type { Project } from "../../types/project";
 
 type Props = Project & {
@@ -13,6 +15,9 @@ type Props = Project & {
   onUpvote?: () => boolean | void;
   isUpvotePending?: boolean;
   onSelect?: () => void;
+  favorited?: boolean;
+  onFavorite?: () => void;
+  isFavoritePending?: boolean;
 };
 
 export function ProjectCard({
@@ -29,6 +34,9 @@ export function ProjectCard({
   onUpvote,
   isUpvotePending,
   onSelect,
+  favorited,
+  onFavorite,
+  isFavoritePending,
 }: Props) {
   return (
     <article className="group relative rounded-lg px-2 py-3 transition-[background-color,box-shadow] duration-200 hover:bg-muted/40 hover:shadow-sm sm:py-4">
@@ -49,6 +57,18 @@ export function ProjectCard({
         }
         actions={
           <>
+            {onFavorite && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="size-[52px] flex-col gap-0 p-0 text-xs"
+                disabled={isFavoritePending}
+                aria-label={favorited ? `Remover ${title} dos favoritos` : `Guardar ${title} nos favoritos`}
+                onClick={onFavorite}
+              >
+                <Heart className={favorited ? "fill-current" : undefined} />
+              </Button>
+            )}
             <Link
               to="/projects/$slug"
               params={{ slug }}

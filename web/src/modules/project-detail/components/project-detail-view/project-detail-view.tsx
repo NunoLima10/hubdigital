@@ -1,4 +1,5 @@
 import { ProjectBanner } from "@/components/project-banner/project-banner";
+import { Button } from "@/components/ui/button";
 import {
   ProjectSummary,
   ProjectVoteButton,
@@ -8,6 +9,10 @@ import { SignInToVote } from "@/modules/project-list/components/sign-in-to-vote/
 import { useToggleUpvote } from "@/modules/project-list/hooks/use-toggle-upvote";
 import { ModerationNotice } from "@/modules/releases/components/moderation-notice/moderation-notice";
 import { ReportButton } from "@/modules/reports/components/report-button/report-button";
+import {
+  useFavorites,
+  useToggleFavorite,
+} from "@/modules/favorites/hooks/use-favorites";
 import { useTrackProjectView } from "@/modules/project-stats/hooks/use-track-project-view";
 import { trackProjectEvent } from "@/modules/project-stats/utils/track-project-event";
 import {
@@ -20,7 +25,7 @@ import {
 } from "@/modules/submit/options";
 import type { Project } from "@/modules/submit/types/project";
 import { formatLocation } from "@hubdigital/shared";
-import { ExternalLink, Github, Share2 } from "lucide-react";
+import { ExternalLink, Github, Heart, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ProjectAuthorRow } from "../project-author/project-author";
 
@@ -104,6 +109,11 @@ export function ProjectDetailView({ project }: { project: Project }) {
 }
 
 export function ProjectDetailSidebar({ project }: { project: Project }) {
+  const { data: session } = authClient.useSession();
+  const { data: favorites } = useFavorites(Boolean(session));
+  const { toggleFavorite, pendingProjectId } = useToggleFavorite();
+  const favorited = favorites?.data.some((item) => item.id === project.id) ?? false;
+
   function share() {
     if (navigator.share)
       void navigator.share({ title: project.name, url: location.href });
@@ -168,6 +178,17 @@ export function ProjectDetailSidebar({ project }: { project: Project }) {
           <Github className="size-4" />
           Ver código no GitHub
         </a>
+      )}
+      {session && (
+        <Button
+          variant="outline"
+          className="w-full"
+          disabled={pendingProjectId === project.id}
+          onClick={() => toggleFavorite(project.id)}
+        >
+          <Heart className={favorited ? "fill-current" : undefined} />
+          {favorited ? "Remover dos favoritos" : "Guardar nos favoritos"}
+        </Button>
       )}
       <div className="flex gap-2">
         <button

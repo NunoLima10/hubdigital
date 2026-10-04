@@ -47,7 +47,7 @@ export function MetricsView() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-xl font-semibold">Desempenho</h1>
+        <h1 className="hidden text-xl font-semibold lg:block">Desempenho</h1>
         <div
           role="group"
           aria-label="Período"

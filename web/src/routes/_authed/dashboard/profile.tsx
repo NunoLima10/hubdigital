@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { authClient } from "@/lib/auth-client";
+import { DashboardPage } from "@/modules/dashboard/components/dashboard-page/dashboard-page";
 import { Profile } from "@/modules/dashboard/components/profile/profile";
 import { ProfileForm } from "@/modules/makers/components/profile-form/profile-form";
 import { createFileRoute } from "@tanstack/react-router";
@@ -23,12 +24,12 @@ function RouteComponent() {
   }
 
   return (
-    <div className="space-y-8 p-4">
-      <section aria-label="Conta" className="max-w-xl border-b pb-6">
+    <DashboardPage>
+      <section aria-label="Conta" className="border-b pb-6">
         <Profile />
       </section>
       <ProfileForm />
-      <section className="max-w-xl border-t pt-6">
+      <section className="border-t pt-6">
         <h2 className="font-semibold">Sessão</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Termina a sessão da tua conta neste dispositivo.
@@ -73,6 +74,6 @@ function RouteComponent() {
           </Button>
         </div>
       </Dialog>
-    </div>
+    </DashboardPage>
   );
 }

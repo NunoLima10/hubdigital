@@ -117,6 +117,23 @@ export const listMyProjectsRouteSchema = {
   },
 };
 
+export const listFavoriteProjectsRouteSchema = {
+  tags: ["projects"],
+  querystring: paginationQuerySchema,
+  response: {
+    200: paginatedProjectsMinimalResponseSchema,
+    ...routeErrorResponses,
+  },
+};
+
+type ListFavoriteProjectsGeneric = {
+  Querystring: z.infer<typeof paginationQuerySchema>;
+};
+
+export type ListFavoriteProjectsRequest =
+  FastifyRequest<ListFavoriteProjectsGeneric>;
+export type ListFavoriteProjectsReply = FastifyReply<ListFavoriteProjectsGeneric>;
+
 type ListMyProjectsGeneric = {
   Querystring: z.infer<typeof listMyProjectsRouteSchema.querystring>;
 };
@@ -248,6 +265,26 @@ export const toggleUpvoteRouteSchema = {
     ...routeErrorResponses,
   },
 };
+
+export const toggleFavoriteRouteSchema = {
+  tags: ["projects"],
+  params: z.object({
+    id: z.coerce.number().int().positive(),
+  }),
+  response: {
+    200: z.object({
+      data: z.object({ favorited: z.boolean() }),
+    }),
+    ...routeErrorResponses,
+  },
+};
+
+type ToggleFavoriteGeneric = {
+  Params: z.infer<typeof toggleFavoriteRouteSchema.params>;
+};
+
+export type ToggleFavoriteRequest = FastifyRequest<ToggleFavoriteGeneric>;
+export type ToggleFavoriteReply = FastifyReply<ToggleFavoriteGeneric>;
 
 type ToggleUpvoteGeneric = {
   Params: z.infer<typeof toggleUpvoteRouteSchema.params>;

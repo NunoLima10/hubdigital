@@ -1,6 +1,7 @@
 import { DB } from "@/db";
 import {
   comments,
+  projectFavorites,
   projects,
   projectUpvotes,
   publishers,
@@ -26,6 +27,7 @@ import {
   eq,
   gte,
   ilike,
+  inArray,
   isNull,
   lt,
   or,
@@ -357,6 +359,37 @@ async function listProjects(
   return { data: data.map((project) => serializeProject(project, userId)), total };
 }
 
+async function listFavoriteProjects(
+  db: DB,
+  userId: string,
+  { limit, offset }: { limit: number; offset: number },
+) {
+  const saved = await db.query.projectFavorites.findMany({
+    where: eq(projectFavorites.userId, userId),
+    columns: { projectId: true },
+    orderBy: desc(projectFavorites.createdAt),
+  });
+  const projectIds = saved.map((favorite) => favorite.projectId);
+
+  if (projectIds.length === 0) return { data: [], total: 0 };
+
+  const visible = await db.query.projects.findMany({
+    where: and(inArray(projects.id, projectIds), publicProjectFilter(null, {})),
+    with: { category: true, upvotes: true, comments: liveCommentIds },
+  });
+  const byId = new Map(visible.map((project) => [project.id, project]));
+  const ordered = projectIds
+    .map((id) => byId.get(id))
+    .filter((project): project is NonNullable<typeof project> => Boolean(project));
+
+  return {
+    data: ordered
+      .slice(offset, offset + limit)
+      .map((project) => serializeProject(project, userId)),
+    total: ordered.length,
+  };
+}
+
 async function getProjectBySlug(db: DB, slug: string, userId?: string) {
   const result = await db.query.projects.findFirst({
     where: eq(projects.slug, slug),
@@ -538,6 +571,31 @@ async function toggleUpvote(
   return { upvoted: !existing, upvoteCount };
 }
 
+async function toggleFavorite(db: DB, projectId: number, userId: string) {
+  const project = await db.query.projects.findFirst({
+    where: and(eq(projects.id, projectId), publicProjectFilter(null, {})),
+    columns: { id: true },
+  });
+
+  if (!project) return null;
+
+  const existing = await db.query.projectFavorites.findFirst({
+    where: and(
+      eq(projectFavorites.projectId, projectId),
+      eq(projectFavorites.userId, userId),
+    ),
+    columns: { id: true },
+  });
+
+  if (existing) {
+    await db.delete(projectFavorites).where(eq(projectFavorites.id, existing.id));
+    return { favorited: false };
+  }
+
+  await db.insert(projectFavorites).values({ projectId, userId });
+  return { favorited: true };
+}
+
 export const ProjectsService = {
   findPublisherByUserId: errorLogger(
     findPublisherByUserId,
@@ -552,9 +610,14 @@ export const ProjectsService = {
     "projectsService.listMyProjects"
   ),
   listProjects: errorLogger(listProjects, "projectsService.listProjects"),
+  listFavoriteProjects: errorLogger(
+    listFavoriteProjects,
+    "projectsService.listFavoriteProjects",
+  ),
   getProjectBySlug: errorLogger(
     getProjectBySlug,
     "projectsService.getProjectBySlug"
   ),
   toggleUpvote: errorLogger(toggleUpvote, "projectsService.toggleUpvote"),
+  toggleFavorite: errorLogger(toggleFavorite, "projectsService.toggleFavorite"),
 };

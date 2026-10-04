@@ -3,6 +3,12 @@ import {
   makerProfileSchema,
   makerProfileUpdateSchema,
 } from "@hubdigital/shared";
+import {
+  foundUsByQuestionValues,
+  locationQuestionValues,
+  objectiveQuestionValues,
+  profileQuestionValues,
+} from "@/utils/constants";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 
@@ -44,3 +50,34 @@ export const getMyHandleRouteSchema = {
     ...routeErrorResponses,
   },
 };
+
+export const makerPreferencesSchema = z.object({
+  profileResponse: z.enum(profileQuestionValues),
+  objectiveResponse: z.enum(objectiveQuestionValues),
+  locationResponse: z.enum(locationQuestionValues),
+  foundUsByResponse: z.enum(foundUsByQuestionValues),
+});
+
+export const getMakerPreferencesRouteSchema = {
+  tags: ["makers"],
+  response: {
+    200: z.object({ data: makerPreferencesSchema }),
+    ...routeErrorResponses,
+  },
+};
+
+export const updateMakerPreferencesRouteSchema = {
+  tags: ["makers"],
+  body: makerPreferencesSchema,
+  response: {
+    200: z.object({ data: makerPreferencesSchema }),
+    ...routeErrorResponses,
+  },
+};
+
+export type MakerPreferences = z.infer<typeof makerPreferencesSchema>;
+export type GetMakerPreferencesReply = FastifyReply;
+export type UpdateMakerPreferencesRequest = FastifyRequest<{
+  Body: MakerPreferences;
+}>;
+export type UpdateMakerPreferencesReply = FastifyReply;

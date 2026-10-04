@@ -26,16 +26,14 @@ export function DashboardNav() {
         icon={<UserRound className="size-4" />}
       />
       <NavLink
-        to="/onboarding"
+        to="/dashboard/favorites"
         title="Favoritos"
         icon={<Heart className="size-4" />}
-        disabled
       />
       <NavLink
-        to="/onboarding"
-        title="Configurações"
+        to="/dashboard/preferences"
+        title="Preferências"
         icon={<Settings className="size-4" />}
-        disabled
       />
     </nav>
   );

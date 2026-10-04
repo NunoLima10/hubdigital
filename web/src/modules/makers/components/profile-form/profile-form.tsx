@@ -61,8 +61,8 @@ export function ProfileForm() {
     ["linkedinUrl", "LinkedIn", "https://linkedin.com/in/utilizador"],
   ] as const;
   return (
-    <div className="max-w-xl space-y-5">
-      <h1 className="text-xl font-semibold">Perfil público</h1>
+    <div className="space-y-5">
+      <h1 className="hidden text-xl font-semibold lg:block">Perfil público</h1>
       <form
         onSubmit={form.handleSubmit((values) => updateMaker(values))}
         className="space-y-4"

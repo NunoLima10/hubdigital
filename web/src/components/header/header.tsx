@@ -6,7 +6,6 @@ import {
   LayoutDashboard,
   Menu,
   Moon,
-  Plus,
   Search,
   Sun,
   UserRound,
@@ -74,7 +73,7 @@ export function Header({
   }, []);
   return (
     <header className="border-b bg-background/95">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-4 md:px-6">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-2 px-4 md:gap-4 md:px-6">
         <Link
           to="/"
           className="mr-auto flex items-center gap-2 font-semibold tracking-tight"
@@ -87,10 +86,12 @@ export function Header({
         {showContextLink && (
           <Link
             to={contextLink.to}
-            className="hidden h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground md:inline-flex"
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground md:w-auto md:gap-2 md:px-3"
+            aria-label={contextLink.label}
+            title={contextLink.label}
           >
             <ContextIcon className="size-4" />
-            {contextLink.label}
+            <span className="hidden md:inline">{contextLink.label}</span>
           </Link>
         )}
         <button
@@ -103,14 +104,15 @@ export function Header({
           <Search className="size-4" />
           <span className="hidden lg:inline">Procurar projetos</span>
         </button>
-        <div className="hidden sm:block">
+        <div className={hasAuthenticatedActions ? "block" : "hidden sm:block"}>
           <ThemeToggle />
         </div>
         {hasAuthenticatedActions ? (
           <Link
             to="/dashboard/profile"
-            className="hidden size-9 items-center justify-center overflow-hidden rounded-full border bg-muted text-sm font-semibold hover:bg-muted/70 sm:flex"
+            className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted text-sm font-semibold hover:bg-muted/70"
             aria-label="Abrir perfil"
+            title="Perfil"
           >
             {session?.user.image ? (
               <img
@@ -132,29 +134,29 @@ export function Header({
             Entrar
           </Link>
         )}
-        <Link
-          to={hasAuthenticatedActions ? "/dashboard/submit" : "/sign-up"}
-          className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/85"
-        >
-          {hasAuthenticatedActions ? (
-            <Plus className="size-4" />
-          ) : (
+        {!hasAuthenticatedActions && (
+          <Link
+            to="/sign-up"
+            className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/85"
+          >
             <UserRound className="size-4" />
-          )}
-          {hasAuthenticatedActions ? "Submeter" : "Criar conta"}
-        </Link>
-        <Button
-          className="md:hidden"
-          variant="ghost"
-          size="icon"
-          aria-label="Abrir menu"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          <Menu />
-        </Button>
+            Criar conta
+          </Link>
+        )}
+        {!hasAuthenticatedActions && (
+          <Button
+            className="md:hidden"
+            variant="ghost"
+            size="icon"
+            aria-label="Abrir menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <Menu />
+          </Button>
+        )}
       </div>
-      {menuOpen && (
+      {menuOpen && !hasAuthenticatedActions && (
         <nav
           className="flex flex-col gap-1 border-t px-4 py-3 text-sm md:hidden"
           aria-label="Navegação móvel"

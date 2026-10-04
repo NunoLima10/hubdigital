@@ -4,6 +4,7 @@ import { categories } from "./categories";
 import { comments } from "./comments";
 import { moderationActions } from "./moderation-actions";
 import { projectEvents } from "./project-events";
+import { projectFavorites } from "./project-favorites";
 import { projectUpvotes } from "./project-upvotes";
 import { projects } from "./projects";
 import { publishers } from "./publishers";
@@ -15,6 +16,7 @@ export const userRelations = relations(users, ({ one, many }) => ({
     references: [publishers.userId],
   }),
   upvotes: many(projectUpvotes),
+  favorites: many(projectFavorites),
   comments: many(comments),
 }));
 
@@ -38,6 +40,7 @@ export const projectRelations = relations(projects, ({ one, many }) => ({
   upvotes: many(projectUpvotes),
   comments: many(comments),
   events: many(projectEvents),
+  favorites: many(projectFavorites),
 }));
 
 export const projectEventRelations = relations(projectEvents, ({ one }) => ({
@@ -61,6 +64,20 @@ export const projectUpvoteRelations = relations(projectUpvotes, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const projectFavoriteRelations = relations(
+  projectFavorites,
+  ({ one }) => ({
+    project: one(projects, {
+      fields: [projectFavorites.projectId],
+      references: [projects.id],
+    }),
+    user: one(users, {
+      fields: [projectFavorites.userId],
+      references: [users.id],
+    }),
+  }),
+);
 
 export const moderationActionRelations = relations(
   moderationActions,
