@@ -1,10 +1,10 @@
+import { Page } from "@/layouts/page";
 import { authClient } from "@/lib/auth-client";
+import { DashboardHeader } from "@/modules/dashboard/components/hearder/header";
+import { SideBar } from "@/modules/dashboard/components/side-bar/side-bar";
 import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed")({
-  // Depends on the visitor's session, and is worth nothing to a search engine:
-  // rendered in the browser only.
-  ssr: false,
   component: AuthedLayout,
 });
 
@@ -16,14 +16,21 @@ function AuthedLayout() {
   //   const role = data?.user.role
   //   if (data && role != UserRole) signOut();
 
-  if (isPending)
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-16 text-sm text-muted-foreground">
-        A verificar sessÃ£o...
-      </div>
-    );
+  if (isPending) return <AuthenticatedRoutePending />;
 
   if (error || !data) return <Navigate to={"/"} replace />;
 
   return <Outlet />;
+}
+
+function AuthenticatedRoutePending() {
+  return (
+    <Page header={<DashboardHeader />} leftSection={<SideBar />}>
+      <div
+        className="min-h-96"
+        aria-label="A verificar sessÃ£o"
+        aria-busy="true"
+      />
+    </Page>
+  );
 }

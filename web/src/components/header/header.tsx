@@ -52,6 +52,7 @@ export function Header({
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const isDashboard = context === "dashboard";
+  const hasAuthenticatedActions = isDashboard || Boolean(session);
   const showContextLink = isDashboard || Boolean(session);
   const contextLink = isDashboard
     ? { to: "/" as const, label: "Explorar", icon: Compass }
@@ -105,20 +106,20 @@ export function Header({
         <div className="hidden sm:block">
           <ThemeToggle />
         </div>
-        {session ? (
+        {hasAuthenticatedActions ? (
           <Link
             to="/dashboard/profile"
             className="hidden size-9 items-center justify-center overflow-hidden rounded-full border bg-muted text-sm font-semibold hover:bg-muted/70 sm:flex"
             aria-label="Abrir perfil"
           >
-            {session.user.image ? (
+            {session?.user.image ? (
               <img
                 src={session.user.image}
                 alt=""
                 className="size-full object-cover"
               />
             ) : (
-              (session.user.name?.[0]?.toUpperCase() ?? (
+              (session?.user.name?.[0]?.toUpperCase() ?? (
                 <UserRound className="size-4" />
               ))
             )}
@@ -132,15 +133,15 @@ export function Header({
           </Link>
         )}
         <Link
-          to={session ? "/dashboard/submit" : "/sign-up"}
+          to={hasAuthenticatedActions ? "/dashboard/submit" : "/sign-up"}
           className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/85"
         >
-          {session ? (
+          {hasAuthenticatedActions ? (
             <Plus className="size-4" />
           ) : (
             <UserRound className="size-4" />
           )}
-          {session ? "Submeter" : "Criar conta"}
+          {hasAuthenticatedActions ? "Submeter" : "Criar conta"}
         </Link>
         <Button
           className="md:hidden"
@@ -168,7 +169,7 @@ export function Header({
               {contextLink.label}
             </Link>
           )}
-          {!session && (
+          {!hasAuthenticatedActions && (
             <Link
               to="/sign-in"
               onClick={() => setMenuOpen(false)}
@@ -177,7 +178,7 @@ export function Header({
               Entrar
             </Link>
           )}
-          {session && (
+          {hasAuthenticatedActions && (
             <Link
               to="/dashboard/profile"
               onClick={() => setMenuOpen(false)}

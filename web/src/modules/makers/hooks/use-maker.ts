@@ -1,7 +1,12 @@
 import { API } from "@/api/api";
 import { CreateOptions, ItemResponse } from "@/types";
 import type { MakerProfile, MakerProfileUpdate } from "@hubdigital/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
 type ApiError = AxiosError<{ error: { message: string } }>;
@@ -13,12 +18,17 @@ async function fetchMaker(handle: string) {
   return response.data.data;
 }
 
-export function useMaker(handle: string | undefined) {
-  return useQuery({
+export function makerQueryOptions(handle: string | undefined) {
+  return queryOptions({
     queryKey: ["maker", handle],
     queryFn: () => fetchMaker(handle as string),
     enabled: Boolean(handle),
+    staleTime: 30 * 1000,
   });
+}
+
+export function useMaker(handle: string | undefined) {
+  return useQuery(makerQueryOptions(handle));
 }
 
 /** The signed-in maker's own handle, used to link to their public profile. */

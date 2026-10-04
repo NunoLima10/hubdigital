@@ -2,7 +2,9 @@ import { Header } from "@/components/header/header";
 import { Page } from "@/layouts/page";
 import { ProjectList } from "@/modules/project-list";
 import { HomeSidebar } from "@/modules/project-list/components/home-sidebar/home-sidebar";
+import { projectsQueryOptions } from "@/modules/project-list/hooks/use-projects";
 import { AnnouncementBanner } from "@/modules/settings/components/announcement-banner/announcement-banner";
+import { categoriesQueryOptions } from "@/modules/submit/hooks/use-categories";
 import { createFileRoute } from "@tanstack/react-router";
 
 const launchSections = [
@@ -12,6 +14,20 @@ const launchSections = [
 ] as const;
 
 export const Route = createFileRoute("/")({
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient.prefetchQuery(
+        projectsQueryOptions({ period: "this_week" }),
+      ),
+      context.queryClient.prefetchQuery(
+        projectsQueryOptions({ period: "last_week" }),
+      ),
+      context.queryClient.prefetchQuery(
+        projectsQueryOptions({ period: "all" }),
+      ),
+      context.queryClient.prefetchQuery(categoriesQueryOptions),
+    ]);
+  },
   component: Home,
 });
 

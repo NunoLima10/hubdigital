@@ -1,4 +1,5 @@
 import { authClient } from "@/lib/auth-client";
+import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { pricingLabels } from "@/modules/submit/options";
 import type { ProjectMinimal } from "@/modules/submit/types/project";
 import type { ListPeriod } from "@hubdigital/shared";
@@ -32,6 +33,7 @@ export function ProjectList({
     week,
     ...filters,
   });
+  const showLoading = useDelayedLoading(isLoading);
   const { toggleUpvote, pendingProjectId } = useToggleUpvote();
   const { data: session } = authClient.useSession();
   const [voteAfterSignIn, setVoteAfterSignIn] = useState<number | null>(null);
@@ -54,11 +56,13 @@ export function ProjectList({
   const hasFilters = Object.values(filters).some(Boolean);
   if (isLoading)
     return (
-      <div className="space-y-3" aria-label="A carregar projetos">
-        {[1, 2, 3].map((n) => (
-          <div key={n} className="h-24 animate-pulse rounded-lg bg-muted" />
-        ))}
-      </div>
+      showLoading ? (
+        <div className="space-y-3" aria-label="A carregar projetos">
+          {[1, 2, 3].map((n) => (
+            <div key={n} className="h-24 animate-pulse rounded-lg bg-muted" />
+          ))}
+        </div>
+      ) : null
     );
   if (isError)
     return (

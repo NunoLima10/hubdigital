@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
+import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import type { Project } from "@/modules/submit/types/project";
 import { useState } from "react";
 import { useMyProjects } from "../../hooks/use-my-projects";
@@ -12,6 +13,7 @@ import { ReleasesItem } from "../releases-item/releases-item";
 
 export function ReleasesList() {
   const { data, isLoading, isError } = useMyProjects();
+  const showLoading = useDelayedLoading(isLoading);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
   const { publishProject, pendingProjectId: publishingId } =
@@ -20,13 +22,13 @@ export function ReleasesList() {
     onSuccess: () => setDeletingProject(null),
   });
   if (isLoading)
-    return (
+    return showLoading ? (
       <div className="grid gap-3 md:grid-cols-2">
         {[1, 2].map((n) => (
           <div key={n} className="h-40 animate-pulse rounded-lg bg-muted" />
         ))}
       </div>
-    );
+    ) : null;
   if (isError)
     return (
       <p className="py-10 text-center text-sm text-muted-foreground">

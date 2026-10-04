@@ -1,21 +1,33 @@
 import { Header } from "@/components/header/header";
+import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { Page } from "@/layouts/page";
 import { Comments } from "@/modules/comments";
+import { commentsQueryOptions } from "@/modules/comments/hooks/use-comments";
 import {
   ProjectDetailSidebar,
   ProjectDetailView,
 } from "@/modules/project-detail/components/project-detail-view/project-detail-view";
-import { useProject } from "@/modules/project-detail/hooks/use-project";
+import {
+  projectQueryOptions,
+  useProject,
+} from "@/modules/project-detail/hooks/use-project";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/projects/$slug")({
+  loader: async ({ context, params }) => {
+    await Promise.all([
+      context.queryClient.prefetchQuery(projectQueryOptions(params.slug)),
+      context.queryClient.prefetchQuery(commentsQueryOptions(params.slug)),
+    ]);
+  },
   component: ProjectPage,
 });
 
 function ProjectPage() {
   const { slug } = Route.useParams();
   const { data, isLoading, isError } = useProject(slug);
+  const showLoading = useDelayedLoading(isLoading);
   return (
     <Page
       header={<Header />}
@@ -35,7 +47,7 @@ function ProjectPage() {
           <ArrowLeft className="size-4" />
           Voltar aos projetos
         </Link>
-        {isLoading && (
+        {showLoading && (
           <div className="space-y-4" aria-label="A carregar projeto">
             <div className="h-16 w-72 animate-pulse rounded bg-muted" />
             <div className="aspect-video animate-pulse rounded-lg bg-muted" />

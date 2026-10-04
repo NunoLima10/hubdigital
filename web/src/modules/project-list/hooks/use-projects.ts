@@ -2,7 +2,7 @@ import { API } from "@/api/api";
 import { authClient } from "@/lib/auth-client";
 import { ProjectMinimal } from "@/modules/submit/types/project";
 import type { Island, ListPeriod, ListSort } from "@hubdigital/shared";
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 
 export type ProjectsMeta = {
   limit: number;
@@ -94,12 +94,20 @@ async function fetchProjects(query: ProjectsQuery) {
   return response.data;
 }
 
+export function projectsQueryOptions(
+  query: ProjectsQuery = {},
+  userId: string | null = null,
+) {
+  return queryOptions({
+    queryKey: projectsQueryKey({ ...query, userId }),
+    queryFn: () => fetchProjects(query),
+    staleTime: 30 * 1000,
+  });
+}
+
 export function useProjects(query: ProjectsQuery = {}) {
   const { data: session } = authClient.useSession();
   const userId = session?.user.id ?? null;
 
-  return useQuery({
-    queryKey: projectsQueryKey({ ...query, userId }),
-    queryFn: () => fetchProjects(query),
-  });
+  return useQuery(projectsQueryOptions(query, userId));
 }

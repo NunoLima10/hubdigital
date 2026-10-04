@@ -1,3 +1,4 @@
+import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import type { StatsRange } from "@hubdigital/shared";
 import { Eye, ExternalLink, Heart, MessageCircle } from "lucide-react";
 import { useState } from "react";
@@ -15,6 +16,7 @@ const ranges: { value: StatsRange; label: string }[] = [
 export function MetricsView() {
   const [range, setRange] = useState<StatsRange>("30d");
   const { data, isLoading, isError } = useMyProjectStats(range);
+  const showLoading = useDelayedLoading(isLoading);
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -36,7 +38,7 @@ export function MetricsView() {
           ))}
         </div>
       </div>
-      {isLoading && (
+      {showLoading && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {[1, 2, 3, 4].map((n) => (

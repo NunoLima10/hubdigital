@@ -1,21 +1,29 @@
 import { Header } from "@/components/header/header";
+import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { Page } from "@/layouts/page";
 import { ProjectCard } from "@/modules/project-list/components/project-card/project-card";
-import { useMaker } from "@/modules/makers/hooks/use-maker";
+import {
+  makerQueryOptions,
+  useMaker,
+} from "@/modules/makers/hooks/use-maker";
 import { pricingLabels } from "@/modules/submit/options";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Github, Globe, Linkedin, UserRound } from "lucide-react";
 
 export const Route = createFileRoute("/makers/$handle")({
+  loader: async ({ context, params }) => {
+    await context.queryClient.prefetchQuery(makerQueryOptions(params.handle));
+  },
   component: MakerPage,
 });
 
 function MakerPage() {
   const { handle } = Route.useParams();
   const { data, isLoading, isError } = useMaker(handle);
+  const showLoading = useDelayedLoading(isLoading);
   return (
     <Page header={<Header />}>
-      {isLoading && (
+      {showLoading && (
         <div className="space-y-4" aria-label="A carregar perfil">
           <div className="size-20 animate-pulse rounded-full bg-muted" />
           <div className="h-8 w-60 animate-pulse rounded bg-muted" />

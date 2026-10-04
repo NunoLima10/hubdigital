@@ -1,4 +1,5 @@
 import { LoginButton } from "@/components/login-button/login-button";
+import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { authClient } from "@/lib/auth-client";
 import { CommentComposer } from "./components/comment-composer/comment-composer";
 import { CommentItem } from "./components/comment-item/comment-item";
@@ -11,6 +12,7 @@ import {
 
 export function Comments({ slug }: { slug: string }) {
   const { data, isLoading, isError } = useComments(slug);
+  const showLoading = useDelayedLoading(isLoading);
   const { data: session } = authClient.useSession();
   const { createComment, isPending: isCreating } = useCreateComment(slug);
   const { updateComment, isPending: isUpdating } = useUpdateComment(slug);
@@ -41,7 +43,7 @@ export function Comments({ slug }: { slug: string }) {
           <LoginButton />
         </div>
       )}
-      {isLoading && (
+      {showLoading && (
         <div className="space-y-3" aria-label="A carregar comentários">
           <div className="h-14 animate-pulse rounded bg-muted" />
           <div className="h-14 animate-pulse rounded bg-muted" />

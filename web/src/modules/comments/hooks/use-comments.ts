@@ -1,7 +1,12 @@
 import { API } from "@/api/api";
 import { ItemResponse, ListResponse } from "@/types";
 import type { Comment, CommentBody } from "@hubdigital/shared";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { AxiosError } from "axios";
 
 type ApiError = AxiosError<{ error: { message: string } }>;
@@ -17,12 +22,17 @@ async function fetchComments(slug: string) {
   return response.data.data;
 }
 
-export function useComments(slug: string | undefined) {
-  return useQuery({
+export function commentsQueryOptions(slug: string | undefined) {
+  return queryOptions({
     queryKey: commentsQueryKey(slug ?? ""),
     queryFn: () => fetchComments(slug as string),
     enabled: Boolean(slug),
+    staleTime: 30 * 1000,
   });
+}
+
+export function useComments(slug: string | undefined) {
+  return useQuery(commentsQueryOptions(slug));
 }
 
 /**

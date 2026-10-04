@@ -67,6 +67,12 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="pt" suppressHydrationWarning>
       <head>
+        <style
+          dangerouslySetInnerHTML={{
+            __html:
+              ":root{background:#fff;color-scheme:light}.dark{background:#171717;color-scheme:dark}",
+          }}
+        />
         <script
           dangerouslySetInnerHTML={{
             __html: `try{const t=localStorage.getItem('hubdigital-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch{}`,

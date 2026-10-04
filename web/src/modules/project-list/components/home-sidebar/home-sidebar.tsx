@@ -4,8 +4,8 @@ import { useCategories } from "@/modules/submit/hooks/use-categories";
 import { useProjects } from "../../hooks/use-projects";
 
 export function HomeSidebar() {
-  const all = useProjects({ period: "all", limit: 1 });
-  const weekly = useProjects({ period: "this_week", limit: 1 });
+  const all = useProjects({ period: "all" });
+  const weekly = useProjects({ period: "this_week" });
   const { data: categories } = useCategories();
   const stats = [
     {
