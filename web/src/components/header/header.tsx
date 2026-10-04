@@ -1,7 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { Link } from "@tanstack/react-router";
-import { Menu, Moon, Plus, Search, Sun, UserRound } from "lucide-react";
+import {
+  Compass,
+  LayoutDashboard,
+  Menu,
+  Moon,
+  Plus,
+  Search,
+  Sun,
+  UserRound,
+} from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 
 const ProjectSearch = lazy(() =>
@@ -34,10 +43,24 @@ function ThemeToggle() {
   );
 }
 
-export function Header() {
+export function Header({
+  context = "explorer",
+}: {
+  context?: "explorer" | "dashboard";
+}) {
   const { data: session } = authClient.useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const isDashboard = context === "dashboard";
+  const showContextLink = isDashboard || Boolean(session);
+  const contextLink = isDashboard
+    ? { to: "/" as const, label: "Explorar", icon: Compass }
+    : {
+        to: "/dashboard/releases" as const,
+        label: "Dashboard",
+        icon: LayoutDashboard,
+      };
+  const ContextIcon = contextLink.icon;
   useEffect(() => {
     function handleSearchShortcut(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
@@ -48,11 +71,6 @@ export function Header() {
     document.addEventListener("keydown", handleSearchShortcut);
     return () => document.removeEventListener("keydown", handleSearchShortcut);
   }, []);
-  function signOut() {
-    void authClient.signOut().then(() => {
-      window.location.href = "/";
-    });
-  }
   return (
     <header className="border-b bg-background/95">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-4 px-4 md:px-6">
@@ -65,20 +83,15 @@ export function Header() {
           </span>
           HubDigital
         </Link>
-        <nav
-          className="hidden items-center gap-6 text-sm md:flex"
-          aria-label="Navegação principal"
-        >
-          <Link to="/" className="text-muted-foreground hover:text-foreground">
-            Explorar
-          </Link>
+        {showContextLink && (
           <Link
-            to="/dashboard/submit"
-            className="text-muted-foreground hover:text-foreground"
+            to={contextLink.to}
+            className="hidden h-9 items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground md:inline-flex"
           >
-            Submeter projeto
+            <ContextIcon className="size-4" />
+            {contextLink.label}
           </Link>
-        </nav>
+        )}
         <button
           type="button"
           onClick={() => setSearchOpen(true)}
@@ -93,50 +106,23 @@ export function Header() {
           <ThemeToggle />
         </div>
         {session ? (
-          <details className="relative hidden sm:block">
-            <summary
-              className="flex size-9 list-none items-center justify-center overflow-hidden rounded-full border bg-muted text-sm font-semibold hover:bg-muted/70"
-              aria-label="Menu da conta"
-            >
-              {session.user.image ? (
-                <img
-                  src={session.user.image}
-                  alt=""
-                  className="size-full object-cover"
-                />
-              ) : (
-                (session.user.name?.[0]?.toUpperCase() ?? (
-                  <UserRound className="size-4" />
-                ))
-              )}
-            </summary>
-            <div className="absolute right-0 z-20 mt-2 w-56 rounded-lg border bg-popover p-2 text-sm shadow-lg">
-              <p className="truncate px-2 py-1 font-semibold">
-                {session.user.name}
-              </p>
-              <p className="truncate px-2 pb-2 text-xs text-muted-foreground">
-                {session.user.email}
-              </p>
-              <Link
-                to="/dashboard/releases"
-                className="block rounded px-2 py-2 hover:bg-muted"
-              >
-                Dashboard
-              </Link>
-              <Link
-                to="/dashboard/profile"
-                className="block rounded px-2 py-2 hover:bg-muted"
-              >
-                Perfil
-              </Link>
-              <button
-                onClick={signOut}
-                className="w-full rounded px-2 py-2 text-left hover:bg-muted"
-              >
-                Terminar sessão
-              </button>
-            </div>
-          </details>
+          <Link
+            to="/dashboard/profile"
+            className="hidden size-9 items-center justify-center overflow-hidden rounded-full border bg-muted text-sm font-semibold hover:bg-muted/70 sm:flex"
+            aria-label="Abrir perfil"
+          >
+            {session.user.image ? (
+              <img
+                src={session.user.image}
+                alt=""
+                className="size-full object-cover"
+              />
+            ) : (
+              (session.user.name?.[0]?.toUpperCase() ?? (
+                <UserRound className="size-4" />
+              ))
+            )}
+          </Link>
         ) : (
           <Link
             to="/sign-in"
@@ -172,34 +158,33 @@ export function Header() {
           className="flex flex-col gap-1 border-t px-4 py-3 text-sm md:hidden"
           aria-label="Navegação móvel"
         >
-          <Link
-            to="/"
-            onClick={() => setMenuOpen(false)}
-            className="rounded px-2 py-2 hover:bg-muted"
-          >
-            Explorar
-          </Link>
-          <Link
-            to="/dashboard/submit"
-            onClick={() => setMenuOpen(false)}
-            className="rounded px-2 py-2 hover:bg-muted"
-          >
-            Submeter projeto
-          </Link>
-          <Link
-            to={session ? "/dashboard/releases" : "/sign-in"}
-            onClick={() => setMenuOpen(false)}
-            className="rounded px-2 py-2 hover:bg-muted"
-          >
-            {session ? "Dashboard" : "Entrar"}
-          </Link>
-          {session && (
-            <button
-              onClick={signOut}
-              className="rounded px-2 py-2 text-left hover:bg-muted"
+          {showContextLink && (
+            <Link
+              to={contextLink.to}
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-2 rounded px-2 py-2 hover:bg-muted"
             >
-              Terminar sessão
-            </button>
+              <ContextIcon className="size-4" />
+              {contextLink.label}
+            </Link>
+          )}
+          {!session && (
+            <Link
+              to="/sign-in"
+              onClick={() => setMenuOpen(false)}
+              className="rounded px-2 py-2 hover:bg-muted"
+            >
+              Entrar
+            </Link>
+          )}
+          {session && (
+            <Link
+              to="/dashboard/profile"
+              onClick={() => setMenuOpen(false)}
+              className="rounded px-2 py-2 hover:bg-muted"
+            >
+              Perfil
+            </Link>
           )}
           <div className="flex items-center justify-between px-2 py-1 sm:hidden">
             <span>Tema</span>
