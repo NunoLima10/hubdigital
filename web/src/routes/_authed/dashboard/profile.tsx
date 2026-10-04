@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { authClient } from "@/lib/auth-client";
+import { Profile } from "@/modules/dashboard/components/profile/profile";
 import { ProfileForm } from "@/modules/makers/components/profile-form/profile-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
@@ -23,6 +24,9 @@ function RouteComponent() {
 
   return (
     <div className="space-y-8 p-4">
+      <section aria-label="Conta" className="max-w-xl border-b pb-6">
+        <Profile />
+      </section>
       <ProfileForm />
       <section className="max-w-xl border-t pt-6">
         <h2 className="font-semibold">Sessão</h2>

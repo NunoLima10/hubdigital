@@ -4,20 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { makerProfileUpdateSchema } from "@hubdigital/shared";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Link } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { useMaker, useMyHandle, useUpdateMaker } from "../../hooks/use-maker";
 
 type Values = {
-  handle: string;
   bio: string;
   websiteUrl: string;
   githubUrl: string;
   linkedinUrl: string;
 };
 const empty: Values = {
-  handle: "",
   bio: "",
   websiteUrl: "",
   githubUrl: "",
@@ -38,7 +35,6 @@ export function ProfileForm() {
   useEffect(() => {
     if (profile)
       reset({
-        handle: profile.handle ?? "",
         bio: profile.bio,
         websiteUrl: profile.websiteUrl ?? "",
         githubUrl: profile.githubUrl ?? "",
@@ -60,43 +56,17 @@ export function ProfileForm() {
       </p>
     );
   const fields = [
-    ["handle", "Nome de utilizador", "o-teu-nome"],
     ["websiteUrl", "Website", "https://exemplo.cv"],
     ["githubUrl", "GitHub", "https://github.com/utilizador"],
     ["linkedinUrl", "LinkedIn", "https://linkedin.com/in/utilizador"],
   ] as const;
   return (
     <div className="max-w-xl space-y-5">
-      <div className="flex items-baseline gap-3">
-        <h1 className="text-xl font-semibold">Perfil público</h1>
-        {profile?.handle && (
-          <Link
-            to="/makers/$handle"
-            params={{ handle: profile.handle }}
-            className="text-sm text-primary hover:underline"
-          >
-            ver perfil
-          </Link>
-        )}
-      </div>
+      <h1 className="text-xl font-semibold">Perfil público</h1>
       <form
         onSubmit={form.handleSubmit((values) => updateMaker(values))}
         className="space-y-4"
       >
-        {fields.slice(0, 1).map(([name, label, placeholder]) => (
-          <label key={name} className="block space-y-1.5 text-sm font-medium">
-            {label}
-            <Input placeholder={placeholder} {...form.register(name)} />
-            {form.formState.errors[name]?.message && (
-              <span className="text-xs text-destructive">
-                {form.formState.errors[name]?.message}
-              </span>
-            )}
-            <span className="block text-xs font-normal text-muted-foreground">
-              Endereço do perfil: /makers/o-teu-nome
-            </span>
-          </label>
-        ))}
         <label className="block space-y-1.5 text-sm font-medium">
           Bio
           <Textarea rows={3} {...form.register("bio")} />
@@ -106,7 +76,7 @@ export function ProfileForm() {
             </span>
           )}
         </label>
-        {fields.slice(1).map(([name, label, placeholder]) => (
+        {fields.map(([name, label, placeholder]) => (
           <label key={name} className="block space-y-1.5 text-sm font-medium">
             {label}
             <Input

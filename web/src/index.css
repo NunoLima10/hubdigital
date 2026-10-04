@@ -93,6 +93,7 @@
   }
   html {
     @apply bg-background font-sans;
+    scrollbar-gutter: stable;
   }
   body {
     @apply bg-background text-foreground antialiased;
