@@ -4,6 +4,7 @@ import { Link } from "@tanstack/react-router";
 import {
   Compass,
   LayoutDashboard,
+  Map,
   Menu,
   Moon,
   Search,
@@ -94,6 +95,15 @@ export function Header({
             <span className="hidden md:inline">{contextLink.label}</span>
           </Link>
         )}
+        <Link
+          to="/map"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-md text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground md:w-auto md:gap-2 md:px-3"
+          aria-label="Mapa de projetos"
+          title="Mapa de projetos"
+        >
+          <Map className="size-4" />
+          <span className="hidden md:inline">Mapa</span>
+        </Link>
         <button
           type="button"
           onClick={() => setSearchOpen(true)}

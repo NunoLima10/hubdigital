@@ -37,6 +37,11 @@ export const locationQuestionValues = [
   "diaspora",
 ] as const;
 
+export {
+  abroadCountryValues as diasporaCountryValues,
+  countryLabels as diasporaCountryLabels,
+} from "@hubdigital/shared";
+
 export const foundUsByQuestionValues = [
   "social-media",
   "friends",

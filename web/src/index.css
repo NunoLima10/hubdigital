@@ -2,6 +2,65 @@
 @import "tw-animate-css";
 @import "@fontsource-variable/inter";
 
+.leaflet-container {
+  font-family: var(--font-sans);
+}
+
+.project-map-marker-shell {
+  background: transparent;
+  border: 0;
+}
+
+.project-map-marker {
+  position: relative;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  overflow: visible;
+  border: 2px solid var(--background);
+  border-radius: 11px;
+  background: var(--card);
+  color: var(--muted-foreground);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.24);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.project-map-marker:hover,
+.project-map-marker.is-selected {
+  z-index: 10;
+  transform: scale(1.08);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.3), 0 0 0 3px color-mix(in oklch, var(--primary) 55%, transparent);
+}
+
+.project-map-marker img {
+  width: 100%;
+  height: 100%;
+  border-radius: 9px;
+  object-fit: cover;
+}
+
+.project-map-marker svg {
+  width: 21px;
+  height: 21px;
+}
+
+.project-map-marker b {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border: 2px solid white;
+  border-radius: 999px;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -87,6 +146,15 @@
     width: calc(100vw - var(--hub-scrollbar-width, 0px)) !important;
     height: 100dvh !important;
     overflow: hidden !important;
+  }
+
+  html.hub-map-fullscreen {
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
+
+  html.hub-map-fullscreen body {
+    overflow: hidden;
   }
   * {
     @apply border-border outline-ring/50;

@@ -3,7 +3,11 @@ import { authClient } from "@/lib/auth-client";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { onBoardingQuestions } from "../../questions";
+import {
+  diasporaCountryLabels,
+  diasporaCountryValues,
+  onBoardingQuestions,
+} from "../../questions";
 import {
   useCreateOnboarding,
   type OnboardingResponse,
@@ -29,6 +33,7 @@ export function QuestionStepper() {
     locationResponse: "",
     foundUsByResponse: "",
   });
+  const [diasporaCountry, setDiasporaCountry] = useState<string>("");
   const navigate = useNavigate();
   const { refetch } = authClient.useSession();
   const { createOnboarding, schema, isPending } = useCreateOnboarding({
@@ -40,7 +45,11 @@ export function QuestionStepper() {
   });
   const question = onBoardingQuestions[step];
   function submit() {
-    const parsed = schema.safeParse({ bio: "", ...answers });
+    const parsed = schema.safeParse({
+      bio: "",
+      ...answers,
+      diasporaCountry: diasporaCountry || undefined,
+    });
     if (!parsed.success) {
       toast.error("Escolhe uma opção em cada passo.");
       return;
@@ -76,7 +85,10 @@ export function QuestionStepper() {
       {step < 4 ? (
         <fieldset className="space-y-2">
           <legend className="sr-only">{question.title}</legend>
-          {question.reponses.map((response) => (
+          {(step === 2 && answers.locationResponse === "diaspora"
+            ? []
+            : question.reponses
+          ).map((response) => (
             <label
               key={response.value}
               className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm hover:bg-muted/50 ${answers[keys[step]] === response.value ? "border-primary bg-primary/5" : ""}`}
@@ -86,17 +98,53 @@ export function QuestionStepper() {
                 name={keys[step]}
                 value={response.value}
                 checked={answers[keys[step]] === response.value}
-                onChange={() =>
+                onChange={() => {
                   setAnswers((current) => ({
                     ...current,
                     [keys[step]]: response.value,
-                  }))
-                }
+                  }));
+                  if (step === 2 && response.value !== "diaspora") {
+                    setDiasporaCountry("");
+                  }
+                }}
                 className="accent-primary"
               />
               {response.display}
             </label>
           ))}
+          {step === 2 && answers.locationResponse === "diaspora" && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-medium">Em que país? <span className="font-normal text-muted-foreground">(opcional)</span></p>
+                <button
+                  type="button"
+                  className="text-sm font-medium text-primary hover:underline"
+                  onClick={() => {
+                    setAnswers((current) => ({ ...current, locationResponse: "" }));
+                    setDiasporaCountry("");
+                  }}
+                >
+                  Voltar às ilhas
+                </button>
+              </div>
+              {diasporaCountryValues.map((country) => (
+                <label
+                  key={country}
+                  className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm hover:bg-muted/50 ${diasporaCountry === country ? "border-primary bg-primary/5" : ""}`}
+                >
+                  <input
+                    type="radio"
+                    name="diasporaCountry"
+                    value={country}
+                    checked={diasporaCountry === country}
+                    onChange={() => setDiasporaCountry(country)}
+                    className="accent-primary"
+                  />
+                  {diasporaCountryLabels[country]}
+                </label>
+              ))}
+            </div>
+          )}
         </fieldset>
       ) : (
         <p className="text-sm leading-7">

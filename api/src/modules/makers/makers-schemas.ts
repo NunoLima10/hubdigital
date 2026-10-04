@@ -11,6 +11,7 @@ import {
 } from "@/utils/constants";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
+import { abroadCountryValues } from "@hubdigital/shared";
 
 const handleParamsSchema = z.object({ handle: z.string() });
 
@@ -55,6 +56,7 @@ export const makerPreferencesSchema = z.object({
   profileResponse: z.enum(profileQuestionValues),
   objectiveResponse: z.enum(objectiveQuestionValues),
   locationResponse: z.enum(locationQuestionValues),
+  diasporaCountry: z.enum(abroadCountryValues).nullable().optional(),
   foundUsByResponse: z.enum(foundUsByQuestionValues),
 });
 

@@ -7,6 +7,7 @@ import {
   profileQuestionValues,
 } from "@/utils/constants";
 import { z } from "zod";
+import { abroadCountryValues } from "@hubdigital/shared";
 
 export const onboardingRouteSchema = {
   tags: ["users"],
@@ -15,6 +16,7 @@ export const onboardingRouteSchema = {
     profileResponse: z.enum(profileQuestionValues),
     objectiveResponse: z.enum(objectiveQuestionValues),
     locationResponse: z.enum(locationQuestionValues),
+    diasporaCountry: z.enum(abroadCountryValues).optional(),
     foundUsByResponse: z.enum(foundUsByQuestionValues),
   }),
   response: {

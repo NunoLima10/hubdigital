@@ -145,6 +145,7 @@ const preferenceColumns = {
   profileResponse: true,
   objectiveResponse: true,
   locationResponse: true,
+  diasporaCountry: true,
   foundUsByResponse: true,
 } as const;
 
@@ -160,14 +161,20 @@ async function updatePreferences(
   userId: string,
   input: MakerPreferences,
 ) {
+  const preferences = {
+    ...input,
+    diasporaCountry:
+      input.locationResponse === "diaspora" ? input.diasporaCountry : null,
+  };
   const [updated] = await db
     .update(publishers)
-    .set({ ...input, updatedAt: new Date().toISOString() })
+    .set({ ...preferences, updatedAt: new Date().toISOString() })
     .where(eq(publishers.userId, userId))
     .returning({
       profileResponse: publishers.profileResponse,
       objectiveResponse: publishers.objectiveResponse,
       locationResponse: publishers.locationResponse,
+      diasporaCountry: publishers.diasporaCountry,
       foundUsByResponse: publishers.foundUsByResponse,
     });
 

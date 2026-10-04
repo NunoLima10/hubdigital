@@ -17,6 +17,7 @@ async function onboardingHandler(
     bio,
     foundUsByResponse,
     locationResponse,
+    diasporaCountry,
     objectiveResponse,
     profileResponse,
   } = req.body;
@@ -30,6 +31,7 @@ async function onboardingHandler(
     bio,
     foundUsByResponse,
     locationResponse,
+    diasporaCountry: locationResponse === "diaspora" ? diasporaCountry : undefined,
     objectiveResponse,
     profileResponse,
     handle,
