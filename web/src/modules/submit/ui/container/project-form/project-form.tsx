@@ -1,70 +1,85 @@
 import { ImageSelector } from "@/components/image-selector/image-selector";
-import { UseFormReturnType } from "@mantine/form";
-import { Stack, TextInput } from "@mantine/core";
-import { CreateProjectInput } from "../../../types/project";
+import { Input } from "@/components/ui/input";
+import type { UseFormReturn } from "react-hook-form";
+import type { CreateProjectInput } from "../../../types/project";
 import { DescriptionEditor } from "../../components/description-editor/description-editor";
 
-type ProjectFormProps = {
-  form: UseFormReturnType<CreateProjectInput>;
-  /** Public URLs of images already saved on the project, when editing. */
+type Props = {
+  form: UseFormReturn<CreateProjectInput>;
   logoPreviewUrl?: string;
   bannerPreviewUrl?: string;
 };
-
-export function ProjectForm({
-  form,
-  logoPreviewUrl,
-  bannerPreviewUrl,
-}: ProjectFormProps) {
+export function ProjectForm({ form, logoPreviewUrl, bannerPreviewUrl }: Props) {
+  const values = form.watch();
+  const fields = [
+    ["name", "Nome do projeto", "Meu Projeto", "text", true],
+    [
+      "shortDescription",
+      "Pequena descrição",
+      "O que resolve o teu projeto?",
+      "text",
+      true,
+    ],
+    ["websiteUrl", "Website", "https://hubdigital.cv/", "url", true],
+    [
+      "githubUrl",
+      "GitHub",
+      "https://github.com/organizacao/projeto",
+      "url",
+      false,
+    ],
+  ] as const;
   return (
-    <Stack>
-      <TextInput
-        label="Nome do projeto"
-        placeholder="Meu Projeto"
-        required
-        {...form.getInputProps("name")}
-      />
-      <TextInput
-        label="Pequena descrição"
-        placeholder="Meu Projeto resolve esse problema com isso.."
-        required
-        {...form.getInputProps("shortDescription")}
-      />
-      <TextInput
-        label="Website"
-        placeholder="https://hubdigital.cv/"
-        required
-        {...form.getInputProps("websiteUrl")}
-      />
-      <TextInput
-        label="GitHub"
-        placeholder="https://github.com/organizacao/projeto"
-        {...form.getInputProps("githubUrl")}
-      />
-      <DescriptionEditor
-        value={form.values.description}
-        onChange={(html) => form.setFieldValue("description", html)}
-      />
+    <div className="space-y-5">
+      {fields.map(([name, label, placeholder, type, required]) => (
+        <label key={name} className="block space-y-1.5 text-sm font-medium">
+          {label}
+          <Input
+            type={type}
+            placeholder={placeholder}
+            required={required}
+            {...form.register(name)}
+          />
+          {form.formState.errors[name]?.message && (
+            <span className="text-xs text-destructive">
+              {form.formState.errors[name]?.message}
+            </span>
+          )}
+        </label>
+      ))}
+      <div>
+        <p className="mb-1.5 text-sm font-medium">Descrição detalhada</p>
+        <DescriptionEditor
+          value={values.description}
+          onChange={(html) =>
+            form.setValue("description", html, { shouldValidate: true })
+          }
+        />
+      </div>
       <ImageSelector
         label="Logo"
         type="project_logo"
         recomandations="PNG, JPG ou WebP até 5 MB"
-        actionLabel="Carregar Logo"
-        value={form.values.logoUrl}
+        actionLabel="Carregar logo"
+        value={values.logoUrl}
         previewUrl={logoPreviewUrl}
-        onChange={(fileKey) => form.setFieldValue("logoUrl", fileKey)}
-        error={form.errors.logoUrl as string | undefined}
+        onChange={(key) =>
+          form.setValue("logoUrl", key, { shouldValidate: true })
+        }
+        error={form.formState.errors.logoUrl?.message}
       />
       <ImageSelector
         label="Banner"
         type="project_banner"
         recomandations="PNG, JPG ou WebP até 5 MB"
-        actionLabel="Carregar Banner"
-        value={form.values.bannerImageUrl}
+        actionLabel="Carregar banner"
+        value={values.bannerImageUrl}
         previewUrl={bannerPreviewUrl}
-        onChange={(fileKey) => form.setFieldValue("bannerImageUrl", fileKey)}
-        error={form.errors.bannerImageUrl as string | undefined}
+        onChange={(key) =>
+          form.setValue("bannerImageUrl", key, { shouldValidate: true })
+        }
+        error={form.formState.errors.bannerImageUrl?.message}
       />
-    </Stack>
+    </div>
   );
 }

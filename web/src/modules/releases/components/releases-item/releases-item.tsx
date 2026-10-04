@@ -1,25 +1,11 @@
+import { ProjectIcon } from "@/components/project-icon/project-icon";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ModerationNotice } from "@/modules/releases/components/moderation-notice/moderation-notice";
-import { Project } from "@/modules/submit/types/project";
-import {
-  ActionIcon,
-  Avatar,
-  Badge,
-  Button,
-  Flex,
-  Paper,
-  Stack,
-  Text,
-  Title,
-  Tooltip,
-} from "@mantine/core";
-import {
-  IconLink,
-  IconPencil,
-  IconRocket,
-  IconTrash,
-} from "@tabler/icons-react";
+import type { Project } from "@/modules/submit/types/project";
+import { ExternalLink, Pencil, Rocket, Trash2 } from "lucide-react";
 
-type ReleasesItemProps = {
+type Props = {
   project: Project;
   onEdit: (project: Project) => void;
   onPublish: (project: Project) => void;
@@ -27,7 +13,12 @@ type ReleasesItemProps = {
   isPublishing?: boolean;
   isDeleting?: boolean;
 };
-
+const statusLabels: Record<Project["status"], string> = {
+  draft: "Rascunho",
+  pending: "Em revisão",
+  published: "No ar",
+  rejected: "Rejeitado",
+};
 export function ReleasesItem({
   project,
   onEdit,
@@ -35,110 +26,63 @@ export function ReleasesItem({
   onDelete,
   isPublishing,
   isDeleting,
-}: ReleasesItemProps) {
-  // Only a draft or a rejected project has anything left for its owner to do.
-  // A pending one is out of their hands until a moderator looks at it.
+}: Props) {
   const canPublish =
     project.status === "draft" || project.status === "rejected";
-
   return (
-    <Paper withBorder p="lg" radius="md">
-      <Stack justify="space-between" h={"100%"}>
-        <Stack gap={"xxs"}>
-          <Flex>
-            <Avatar src={project.logoUrl ?? undefined}>
-              <IconRocket size={18} />
-            </Avatar>
-            <Flex w={"100%"} justify={"end"} gap={"xxs"}>
-              <ActionIcon
-                component="a"
-                href={project.websiteUrl}
-                target="_blank"
-                variant="default"
-                size={"lg"}
-              >
-                <IconLink size={18} />
-              </ActionIcon>
-              <ActionIcon
-                variant="default"
-                size={"lg"}
-                onClick={() => onEdit(project)}
-              >
-                <IconPencil size={18} />
-              </ActionIcon>
-              <Tooltip label="Remover projeto">
-                <ActionIcon
-                  variant="default"
-                  color="red"
-                  size={"lg"}
-                  loading={isDeleting}
-                  onClick={() => onDelete(project)}
-                >
-                  <IconTrash size={18} />
-                </ActionIcon>
-              </Tooltip>
-            </Flex>
-          </Flex>
-          <Flex gap="xs" align="center">
-            <Title order={4} lineClamp={1}>
-              {project.name}
-            </Title>
-            <StatusBadge project={project} />
-          </Flex>
-          <Text size="sm" lineClamp={2} c={"dimmed"}>
-            {project.shortDescription}
-          </Text>
-          {project.category && (
-            <Badge variant="light" size="sm" w={"fit-content"}>
-              {project.category.name}
-            </Badge>
-          )}
-        </Stack>
-
-        <Stack gap="xs" mt="sm">
-          <ModerationNotice project={project} />
-
-          {canPublish && (
-            <Button
-              leftSection={<IconRocket size={18} />}
-              loading={isPublishing}
-              onClick={() => onPublish(project)}
-            >
-              {project.status === "rejected" ? "Voltar a publicar" : "Publicar"}
-            </Button>
-          )}
-        </Stack>
-      </Stack>
-    </Paper>
-  );
-}
-
-const statusMeta: Record<
-  Project["status"],
-  { label: string; color: string; variant: string }
-> = {
-  draft: { label: "Rascunho", color: "gray", variant: "outline" },
-  pending: { label: "Em revisão", color: "yellow", variant: "light" },
-  published: { label: "No ar", color: "teal", variant: "light" },
-  rejected: { label: "Rejeitado", color: "red", variant: "light" },
-};
-
-function StatusBadge({ project }: { project: Project }) {
-  // A hidden project is still `published` in the database, but calling it "no
-  // ar" to the person whose project is not on the air would be a lie.
-  if (project.hidden) {
-    return (
-      <Badge variant="light" color="orange" size="sm">
-        Oculto
-      </Badge>
-    );
-  }
-
-  const meta = statusMeta[project.status];
-
-  return (
-    <Badge variant={meta.variant} color={meta.color} size="sm">
-      {meta.label}
-    </Badge>
+    <article className="flex h-full flex-col gap-4 rounded-lg border bg-card p-5">
+      <div className="flex items-start justify-between gap-3">
+        <ProjectIcon iconUrl={project.logoUrl} className="size-11" />
+        <div className="flex gap-1">
+          <a
+            href={project.websiteUrl}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Abrir website"
+            className="rounded p-2 hover:bg-muted"
+          >
+            <ExternalLink className="size-4" />
+          </a>
+          <button
+            onClick={() => onEdit(project)}
+            aria-label="Editar projeto"
+            className="rounded p-2 hover:bg-muted"
+          >
+            <Pencil className="size-4" />
+          </button>
+          <button
+            onClick={() => onDelete(project)}
+            disabled={isDeleting}
+            aria-label="Remover projeto"
+            className="rounded p-2 text-destructive hover:bg-muted"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        </div>
+      </div>
+      <div className="flex-1 space-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h2 className="font-semibold">{project.name}</h2>
+          <Badge>
+            {project.hidden ? "Oculto" : statusLabels[project.status]}
+          </Badge>
+        </div>
+        <p className="line-clamp-2 text-sm text-muted-foreground">
+          {project.shortDescription}
+        </p>
+        {project.category && <Badge>{project.category.name}</Badge>}
+      </div>
+      <ModerationNotice project={project} />
+      {canPublish && (
+        <Button disabled={isPublishing} onClick={() => onPublish(project)}>
+          <Rocket />
+          {isPublishing
+            ? "A publicar..."
+            : project.status === "rejected"
+              ? "Voltar a publicar"
+              : "Publicar"}
+        </Button>
+      )}
+    </article>
   );
 }

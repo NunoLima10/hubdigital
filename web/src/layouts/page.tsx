@@ -1,14 +1,13 @@
-import { Flex, Stack } from "@mantine/core";
-import React from "react";
-import classes from "./page.module.css";
+import type { ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 type PageProps = {
-  children: React.ReactNode;
-  leftSection?: React.ReactNode;
-  rightSection?: React.ReactNode;
-  banner?: React.ReactNode;
-  header?: React.ReactNode;
-  footer?: React.ReactNode;
+  children: ReactNode;
+  leftSection?: ReactNode;
+  rightSection?: ReactNode;
+  banner?: ReactNode;
+  header?: ReactNode;
+  footer?: ReactNode;
 };
 
 export function Page({
@@ -20,20 +19,27 @@ export function Page({
   footer,
 }: PageProps) {
   return (
-    <Stack gap={0}>
+    <div className="min-h-screen bg-background">
       {banner}
-      {header && <Stack className={classes.container}>{header}</Stack>}
-
-      <Flex className={classes.container}>
-        {leftSection && (
-          <Stack className={classes.leftSection}>{leftSection}</Stack>
+      {header}
+      <div
+        className={cn(
+          "mx-auto grid w-full max-w-6xl gap-8 px-4 py-6 md:px-6 md:py-8",
+          rightSection &&
+            "lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:gap-10",
+          leftSection &&
+            "lg:grid-cols-[minmax(220px,1fr)_minmax(0,3fr)] lg:gap-10",
         )}
-        <Stack className={classes.center}>{children}</Stack>
-        {rightSection && (
-          <Stack className={classes.rightSection}>{rightSection}</Stack>
-        )}
-      </Flex>
-      {footer && <Stack className={classes.container}>{footer}</Stack>}
-    </Stack>
+      >
+        {leftSection && <aside className="lg:order-1">{leftSection}</aside>}
+        <main
+          className={cn("min-w-0", leftSection ? "lg:order-2" : "lg:order-1")}
+        >
+          {children}
+        </main>
+        {rightSection && <aside className="lg:order-2">{rightSection}</aside>}
+      </div>
+      {footer}
+    </div>
   );
 }

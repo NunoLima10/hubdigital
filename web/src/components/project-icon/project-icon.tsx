@@ -1,20 +1,28 @@
-import { Avatar } from "@mantine/core";
-import { IconRocket } from "@tabler/icons-react";
+import { Rocket } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-type ProjectIconProps = {
-  iconUrl?: string;
+export function ProjectIcon({
+  iconUrl,
+  className,
+  size,
+}: {
+  iconUrl?: string | null;
   className?: string;
   size?: number;
-};
-
-export function ProjectIcon({ iconUrl, className, size }: ProjectIconProps) {
-  if (iconUrl) {
-    return <img src={iconUrl} className={className}></img>;
-  }
-
+}) {
   return (
-    <Avatar size={size} radius={"lg"} className={className}>
-      <IconRocket size={28} />
-    </Avatar>
+    <div
+      className={cn(
+        "flex size-12 items-center justify-center overflow-hidden rounded-lg border bg-muted text-muted-foreground",
+        className,
+      )}
+      style={size ? { width: size, height: size } : undefined}
+    >
+      {iconUrl ? (
+        <img src={iconUrl} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <Rocket className="size-5" />
+      )}
+    </div>
   );
 }

@@ -1,38 +1,33 @@
 import { usePublicSettings } from "@/modules/settings/hooks/use-public-settings";
 import SumbmitProvider from "@/modules/submit/context/sumbmit-form";
 import { FormStepper } from "@/modules/submit/ui/container/form-stepper/form-stepper";
-import { Alert, Stack } from "@mantine/core";
-import { IconTool } from "@tabler/icons-react";
 import { createFileRoute } from "@tanstack/react-router";
+import { Wrench } from "lucide-react";
 
 export const Route = createFileRoute("/_authed/dashboard/submit")({
-  component: RouteComponent,
+  component: SubmitPage,
 });
-
-function RouteComponent() {
+function SubmitPage() {
   const { data: settings } = usePublicSettings();
-
-  // The API refuses the submission anyway; this is so the maker finds out
-  // before filling in five steps of a form.
-  if (settings && !settings["submissions.open"]) {
+  if (settings && !settings["submissions.open"])
     return (
-      <Alert
-        variant="light"
-        color="yellow"
-        icon={<IconTool size={18} />}
-        title="Submissões temporariamente fechadas"
+      <div
+        role="status"
+        className="flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
       >
-        Estamos a preparar o próximo ciclo. Volte em breve para lançar o seu
-        projeto.
-      </Alert>
+        <Wrench className="size-5" />
+        <div>
+          <strong>Submissões temporariamente fechadas</strong>
+          <p>
+            Estamos a preparar o próximo ciclo. Volta em breve para lançar o teu
+            projeto.
+          </p>
+        </div>
+      </div>
     );
-  }
-
   return (
-    <Stack>
-      <SumbmitProvider>
-        <FormStepper></FormStepper>
-      </SumbmitProvider>
-    </Stack>
+    <SumbmitProvider>
+      <FormStepper />
+    </SumbmitProvider>
   );
 }

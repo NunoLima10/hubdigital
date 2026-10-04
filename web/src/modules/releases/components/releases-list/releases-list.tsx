@@ -1,13 +1,6 @@
-import { Project } from "@/modules/submit/types/project";
-import {
-  Button,
-  Flex,
-  Modal,
-  Skeleton,
-  SimpleGrid,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import type { Project } from "@/modules/submit/types/project";
 import { useState } from "react";
 import { useMyProjects } from "../../hooks/use-my-projects";
 import {
@@ -21,49 +14,34 @@ export function ReleasesList() {
   const { data, isLoading, isError } = useMyProjects();
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
-
   const { publishProject, pendingProjectId: publishingId } =
     usePublishProject();
   const { deleteProject, pendingProjectId: deletingId } = useDeleteProject({
     onSuccess: () => setDeletingProject(null),
   });
-
-  if (isLoading) {
+  if (isLoading)
     return (
-      <SimpleGrid cols={{ base: 1, xl: 2 }} w={"100%"} spacing={"xs"}>
-        <Skeleton h={140} radius={"md"} />
-        <Skeleton h={140} radius={"md"} />
-      </SimpleGrid>
+      <div className="grid gap-3 md:grid-cols-2">
+        {[1, 2].map((n) => (
+          <div key={n} className="h-40 animate-pulse rounded-lg bg-muted" />
+        ))}
+      </div>
     );
-  }
-
-  if (isError) {
+  if (isError)
     return (
-      <Stack align="center" py={"xl"}>
-        <Text c={"dimmed"}>
-          Não foi possível carregar os teus projetos. Tenta novamente mais
-          tarde.
-        </Text>
-      </Stack>
+      <p className="py-10 text-center text-sm text-muted-foreground">
+        Não foi possível carregar os teus projetos. Tenta novamente mais tarde.
+      </p>
     );
-  }
-
-  if (!data || data.data.length === 0) {
+  if (!data?.data.length)
     return (
-      <Stack align="center" py={"xl"}>
-        <Text c={"dimmed"}>Ainda não publicaste nenhum projeto.</Text>
-      </Stack>
+      <p className="py-10 text-center text-sm text-muted-foreground">
+        Ainda não publicaste nenhum projeto.
+      </p>
     );
-  }
-
   return (
     <>
-      <SimpleGrid
-        cols={{ base: 1, xl: 2 }}
-        w={"100%"}
-        h={"100%"}
-        spacing={"xs"}
-      >
+      <div className="grid gap-3 md:grid-cols-2">
         {data.data.map((project) => (
           <ReleasesItem
             key={project.id}
@@ -75,44 +53,37 @@ export function ReleasesList() {
             isDeleting={deletingId === project.id}
           />
         ))}
-      </SimpleGrid>
-
+      </div>
       <EditProjectModal
         project={editingProject}
         onClose={() => setEditingProject(null)}
       />
-
-      <Modal
-        opened={!!deletingProject}
+      <Dialog
+        open={Boolean(deletingProject)}
         onClose={() => setDeletingProject(null)}
         title="Remover projeto"
-        centered
       >
-        <Stack>
-          <Text size="sm">
-            Queres mesmo remover <b>{deletingProject?.name}</b>? Deixará de
-            aparecer no site e nos rankings.
-          </Text>
-          <Flex justify="flex-end" gap="sm">
-            <Button
-              variant="default"
-              onClick={() => setDeletingProject(null)}
-              disabled={!!deletingId}
-            >
-              Cancelar
-            </Button>
-            <Button
-              color="red"
-              loading={!!deletingId}
-              onClick={() =>
-                deletingProject && deleteProject(deletingProject.id)
-              }
-            >
-              Remover
-            </Button>
-          </Flex>
-        </Stack>
-      </Modal>
+        <p className="text-sm">
+          Queres mesmo remover <strong>{deletingProject?.name}</strong>? Deixará
+          de aparecer no site e nos rankings.
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button
+            variant="outline"
+            disabled={Boolean(deletingId)}
+            onClick={() => setDeletingProject(null)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={Boolean(deletingId)}
+            onClick={() => deletingProject && deleteProject(deletingProject.id)}
+          >
+            {deletingId ? "A remover..." : "Remover"}
+          </Button>
+        </div>
+      </Dialog>
     </>
   );
 }

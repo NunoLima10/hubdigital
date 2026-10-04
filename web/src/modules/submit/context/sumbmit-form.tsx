@@ -1,22 +1,27 @@
-import { useForm, UseFormReturnType } from "@mantine/form";
-import { useCounter } from "@mantine/hooks";
-import { zodResolver } from "mantine-form-zod-resolver";
-import { notifications } from "@mantine/notifications";
-import { IconCheck } from "@tabler/icons-react";
-import { createContext, PropsWithChildren, useRef } from "react";
-
+import { zodResolver } from "@hookform/resolvers/zod";
+import { createContext, useRef, useState, type PropsWithChildren } from "react";
+import { useForm, type Resolver, type UseFormReturn } from "react-hook-form";
 import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
+import { usePublishProject } from "@/modules/releases/hooks/use-project-actions";
 import {
   createProjectSchema,
   toCreateProjectPayload,
   useCreateProject,
 } from "../hooks/use-create-project";
-import { usePublishProject } from "@/modules/releases/hooks/use-project-actions";
-import { CreateProjectInput } from "../types/project";
+import type { CreateProjectInput } from "../types/project";
 import { emptyLocation, isLocationComplete } from "../utils/location";
 
-const stepFieldNames: (keyof CreateProjectInput)[][] = [
-  ["name", "shortDescription", "websiteUrl"],
+const stepFields: (keyof CreateProjectInput)[][] = [
+  [
+    "name",
+    "shortDescription",
+    "websiteUrl",
+    "githubUrl",
+    "description",
+    "logoUrl",
+    "bannerImageUrl",
+  ],
   [
     "projectStage",
     "platform",
@@ -29,37 +34,23 @@ const stepFieldNames: (keyof CreateProjectInput)[][] = [
   ],
 ];
 
-const stepValidatedFieldNames: (keyof CreateProjectInput)[][] = [
-  [
-    ...stepFieldNames[0],
-    "githubUrl",
-    "description",
-    "logoUrl",
-    "bannerImageUrl",
-  ],
-  stepFieldNames[1],
-];
-
-type SumbmitContextType = {
-  form: UseFormReturnType<CreateProjectInput>;
+type SubmitContextType = {
+  form: UseFormReturn<CreateProjectInput>;
   active: number;
   isFist: boolean;
   isLast: boolean;
   next: () => void;
   previous: () => void;
-  /** Saves without publishing; the project stays private to the maker. */
   saveDraft: () => void;
-  /** Saves and puts the project into this week's ranking straight away. */
   publish: () => void;
   canProceed: boolean;
   isPending: boolean;
 };
-
-export const SumbmitContext = createContext<SumbmitContextType | undefined>(
-  undefined
+export const SumbmitContext = createContext<SubmitContextType | undefined>(
+  undefined,
 );
 
-const initialValues: CreateProjectInput = {
+export const initialProjectValues: CreateProjectInput = {
   name: "",
   shortDescription: "",
   description: "",
@@ -77,107 +68,71 @@ const initialValues: CreateProjectInput = {
   categoryId: "",
 };
 
-function SumbmitProvider({ children }: PropsWithChildren) {
-  const min = 0;
-  const max = 2;
-  const [step, handlers] = useCounter(0, { min, max });
+export default function SumbmitProvider({ children }: PropsWithChildren) {
+  const [step, setStep] = useState(0);
   const navigate = useNavigate();
-
-  // "Publicar" is create-then-publish: the API always creates a draft, so the
-  // one-click path chains the publish call rather than needing its own endpoint.
-  // A ref, not state — `save()` fires the mutation in the same tick it records
-  // the intent, so a state update would still be the previous value by then.
   const publishAfterCreate = useRef(false);
-
-  const { publishProject, isPending: isPublishing } = usePublishProject({
-    onSuccess: () => {
-      navigate({ to: "/dashboard/releases" });
-    },
+  const form = useForm<CreateProjectInput>({
+    defaultValues: initialProjectValues,
+    resolver: zodResolver(createProjectSchema, undefined, {
+      raw: true,
+    }) as Resolver<CreateProjectInput>,
+    mode: "onChange",
   });
-
+  const values = form.watch();
+  const { publishProject, isPending: isPublishing } = usePublishProject({
+    onSuccess: () => navigate({ to: "/dashboard/releases" }),
+  });
   const { createProject, isPending: isCreating } = useCreateProject({
     errorMessage: "Não foi possível guardar o projeto",
     onSuccess: (created) => {
       if (publishAfterCreate.current) {
-        // The publish mutation announces the launch itself.
         publishProject(created.data.id);
         return;
       }
-
-      notifications.show({
-        title: "Tudo certo!",
-        message: "Rascunho guardado. Publica quando estiveres pronto.",
-        icon: <IconCheck />,
-        color: "teal",
-      });
+      toast.success("Rascunho guardado. Publica quando estiveres pronto.");
       navigate({ to: "/dashboard/releases" });
     },
   });
-
-  const isPending = isCreating || isPublishing;
-
-  const form = useForm<CreateProjectInput>({
-    initialValues,
-    validate: zodResolver(createProjectSchema),
-  });
-
-  const currentStepFields = stepFieldNames[step] ?? [];
-  const currentStepValidatedFields =
-    stepValidatedFieldNames[step] ?? currentStepFields;
-  const canProceed = currentStepFields.every((field) => {
-    if (field === "location") return isLocationComplete(form.values.location);
-
-    const value = form.values[field];
+  const isPending = isPublishing || isCreating;
+  const required =
+    step === 0
+      ? (["name", "shortDescription", "websiteUrl"] as const)
+      : step === 1
+        ? stepFields[1]
+        : [];
+  const canProceed = required.every((field) => {
+    const value = values[field];
+    if (field === "location") return isLocationComplete(values.location);
     if (Array.isArray(value)) return value.length > 0;
     return value !== "" && value !== undefined && value !== null;
   });
-
-  function next() {
-    if (!canProceed) return;
-
-    const result = form.validate();
-
-    // Errors are keyed by path, so a nested field reports as "location.island"
-    // rather than "location"; a step owns every path beneath its fields.
-    const inStep = (path: string) =>
-      currentStepValidatedFields.some(
-        (field) => path === field || path.startsWith(`${field}.`)
-      );
-    const errorPaths = Object.keys(result.errors);
-
-    errorPaths
-      .filter((path) => !inStep(path))
-      .forEach((path) => form.clearFieldError(path));
-
-    if (errorPaths.some(inStep)) return;
-
-    handlers.increment();
+  async function next() {
+    if (canProceed && (await form.trigger(stepFields[step])))
+      setStep((current) => Math.min(current + 1, 2));
   }
-
   function save(shouldPublish: boolean) {
-    const result = form.validate();
-    if (result.hasErrors) return;
-
-    publishAfterCreate.current = shouldPublish;
-    createProject(toCreateProjectPayload(form.values));
+    void form.handleSubmit((valid) => {
+      publishAfterCreate.current = shouldPublish;
+      createProject(toCreateProjectPayload(valid));
+    })();
   }
-
-  const value = {
-    form,
-    active: step,
-    isFist: step === min,
-    isLast: step === max,
-    next,
-    previous: handlers.decrement,
-    saveDraft: () => save(false),
-    publish: () => save(true),
-    canProceed,
-    isPending,
-  };
-
   return (
-    <SumbmitContext.Provider value={value}>{children}</SumbmitContext.Provider>
+    <SumbmitContext.Provider
+      value={{
+        form,
+        active: step,
+        isFist: step === 0,
+        isLast: step === 2,
+        next,
+        previous: () => setStep((current) => Math.max(current - 1, 0)),
+        saveDraft: () => save(false),
+        publish: () => save(true),
+        canProceed,
+        isPending,
+      }}
+    >
+      {children}
+    </SumbmitContext.Provider>
   );
 }
-
-export default SumbmitProvider;

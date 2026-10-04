@@ -1,5 +1,4 @@
 import { ProfileForm } from "@/modules/makers/components/profile-form/profile-form";
-import { Stack } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/dashboard/profile")({
@@ -8,8 +7,8 @@ export const Route = createFileRoute("/_authed/dashboard/profile")({
 
 function RouteComponent() {
   return (
-    <Stack p={"md"}>
+    <div className="p-4">
       <ProfileForm />
-    </Stack>
+    </div>
   );
 }

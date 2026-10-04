@@ -1,16 +1,29 @@
-import { UserButton } from "@/components/user-button/user-button";
-import { Group, Stack, Text } from "@mantine/core";
+import { authClient } from "@/lib/auth-client";
+import { UserRound } from "lucide-react";
 
 export function Profile() {
+  const { data } = authClient.useSession();
   return (
-    <Group>
-      <UserButton />
-      <Stack gap="none">
-        <Text fw={"600"}>Nome do user</Text>
-        <Text size="sm" c={"dimmed"}>
-          Algo sobre user
-        </Text>
-      </Stack>
-    </Group>
+    <div className="flex items-center gap-3">
+      <span className="flex size-10 items-center justify-center overflow-hidden rounded-full bg-muted">
+        {data?.user.image ? (
+          <img
+            src={data.user.image}
+            alt=""
+            className="size-full object-cover"
+          />
+        ) : (
+          <UserRound className="size-4" />
+        )}
+      </span>
+      <div className="min-w-0">
+        <p className="truncate text-sm font-medium">
+          {data?.user.name ?? "Minha conta"}
+        </p>
+        <p className="truncate text-xs text-muted-foreground">
+          {data?.user.email}
+        </p>
+      </div>
+    </div>
   );
 }

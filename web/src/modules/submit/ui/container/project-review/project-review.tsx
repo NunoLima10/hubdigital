@@ -1,5 +1,4 @@
 import { toAssetUrl } from "@/utils/asset-url";
-import { Box, SimpleGrid, Stack, Text } from "@mantine/core";
 import { useSubmitForm } from "../../../hooks/use-submit-form";
 import { useCategories } from "../../../hooks/use-categories";
 import {
@@ -16,81 +15,71 @@ import { ProjectCard } from "../../components/project-card/project-card";
 
 export function ProjectReview() {
   const { form } = useSubmitForm();
+  const values = form.watch();
   const { data: categories } = useCategories();
-
-  const category = categories?.find((c) => c.id === form.values.categoryId);
-
-  const locationLabel = formatLocationFormValue(form.values.location);
-
+  const category = categories?.find((item) => item.id === values.categoryId);
+  const location = formatLocationFormValue(values.location);
   const badges = [
-    form.values.pricing && pricingLabels[form.values.pricing],
-    form.values.businessModel && businessModelLabels[form.values.businessModel],
+    values.pricing && pricingLabels[values.pricing],
+    values.businessModel && businessModelLabels[values.businessModel],
   ].filter(Boolean) as string[];
-
   return (
-    <Stack>
+    <div className="space-y-6">
       <ProjectCard
-        name={form.values.name || "Nome do projeto"}
-        description={
-          form.values.shortDescription || "Pequena descrição do projeto"
-        }
-        websiteUrl={form.values.websiteUrl || "#"}
-        iconUrl={toAssetUrl(form.values.logoUrl)}
+        name={values.name || "Nome do projeto"}
+        description={values.shortDescription || "Pequena descrição do projeto"}
+        websiteUrl={values.websiteUrl || "#"}
+        iconUrl={toAssetUrl(values.logoUrl)}
         badges={badges}
       />
-      <SimpleGrid cols={{ base: 2, sm: 3 }} w={"100%"}>
+      <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <CategoriesDisplay
           label="Categoria"
           badges={category ? [category.name] : []}
         />
         <CategoriesDisplay
           label="Localização"
-          badges={locationLabel ? [locationLabel] : []}
+          badges={location ? [location] : []}
         />
         <CategoriesDisplay
-          label="Maturidade do projeto"
+          label="Maturidade"
           badges={
-            form.values.projectStage
-              ? [projectStageLabels[form.values.projectStage]]
-              : []
+            values.projectStage ? [projectStageLabels[values.projectStage]] : []
           }
         />
         <CategoriesDisplay
-          label="Plataformas suportadas"
-          badges={form.values.platform.map((p) => platformLabels[p])}
+          label="Plataformas"
+          badges={values.platform.map((platform) => platformLabels[platform])}
         />
         <CategoriesDisplay
           label="Público-alvo"
           badges={
-            form.values.audienceStage
-              ? [audienceLabels[form.values.audienceStage]]
-              : []
+            values.audienceStage ? [audienceLabels[values.audienceStage]] : []
           }
         />
         <CategoriesDisplay
           label="Modelo de negócio"
           badges={
-            form.values.businessModel
-              ? [businessModelLabels[form.values.businessModel]]
+            values.businessModel
+              ? [businessModelLabels[values.businessModel]]
               : []
           }
         />
         <CategoriesDisplay
           label="Acesso"
-          badges={
-            form.values.access ? [accessLabels[form.values.access]] : []
-          }
+          badges={values.access ? [accessLabels[values.access]] : []}
         />
-      </SimpleGrid>
-
-      {form.values.description && (
-        <Box
-          dangerouslySetInnerHTML={{ __html: form.values.description }}
+      </dl>
+      {values.description ? (
+        <div
+          className="prose-project border-t pt-4 text-sm"
+          dangerouslySetInnerHTML={{ __html: values.description }}
         />
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          Nenhuma descrição detalhada foi adicionada.
+        </p>
       )}
-      {!form.values.description && (
-        <Text c="dimmed">Nenhuma descrição detalhada foi adicionada.</Text>
-      )}
-    </Stack>
+    </div>
   );
 }

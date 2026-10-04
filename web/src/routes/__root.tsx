@@ -1,5 +1,5 @@
 import { AppProvider } from "@/app/provider";
-import { ColorSchemeScript, mantineHtmlProps } from "@mantine/core";
+import "@/index.css";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   HeadContent,
@@ -65,11 +65,13 @@ function RootComponent() {
 // html, head and body live here and not in RootComponent.
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="pt" {...mantineHtmlProps}>
+    <html lang="pt" suppressHydrationWarning>
       <head>
-        {/* Applies the saved colour scheme before first paint, so a dark-mode
-            visitor is not flashed a light page while React hydrates. */}
-        <ColorSchemeScript />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{const t=localStorage.getItem('hubdigital-theme');if(t==='dark'||(!t&&matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch{}`,
+          }}
+        />
         <HeadContent />
       </head>
       <body>

@@ -1,21 +1,18 @@
-import { Button, Container, Stack, Text, Title } from "@mantine/core";
 import { Link } from "@tanstack/react-router";
 
-/** Shown with a 404 status, so search engines also learn the page is gone. */
 export function NotFound() {
   return (
-    <Container size={480} py={120}>
-      <Stack align="center" gap="md">
-        <Title order={1} ta="center">
-          Página não encontrada
-        </Title>
-        <Text c="dimmed" ta="center">
-          O endereço que abriste não existe ou já foi removido.
-        </Text>
-        <Button component={Link} to="/">
-          Voltar ao início
-        </Button>
-      </Stack>
-    </Container>
+    <main className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
+      <h1 className="text-2xl font-semibold">Página não encontrada</h1>
+      <p className="text-sm text-muted-foreground">
+        O endereço que abriste não existe ou já foi removido.
+      </p>
+      <Link
+        to="/"
+        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+      >
+        Voltar ao início
+      </Link>
+    </main>
   );
 }

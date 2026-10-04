@@ -1,21 +1,26 @@
-import { Burger, Collapse, Flex, Stack } from "@mantine/core";
-import { useDisclosure, useMediaQuery } from "@mantine/hooks";
+import { useState } from "react";
+import { Menu } from "lucide-react";
 import { Profile } from "../profile/profile";
 import { DashboardNav } from "../navbar/navbar";
 
 export function SideBar() {
-  const [opened, handlers] = useDisclosure(false);
-  const smallScreen = useMediaQuery("(max-width: 88em)");
-
+  const [open, setOpen] = useState(false);
   return (
-    <Stack>
-      <Flex gap={"md"} justify={"space-between"} align={"center"}>
+    <div className="rounded-lg border p-4 lg:sticky lg:top-6">
+      <div className="flex items-center justify-between">
         <Profile />
-        {smallScreen && <Burger opened={!opened} onClick={handlers.toggle} />}
-      </Flex>
-      <Collapse in={!opened || !smallScreen}>
+        <button
+          className="rounded p-2 hover:bg-muted lg:hidden"
+          aria-label="Alternar navegação"
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        >
+          <Menu className="size-4" />
+        </button>
+      </div>
+      <div className={`${open ? "block" : "hidden"} mt-5 lg:block`}>
         <DashboardNav />
-      </Collapse>
-    </Stack>
+      </div>
+    </div>
   );
 }

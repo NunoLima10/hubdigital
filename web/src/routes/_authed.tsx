@@ -16,7 +16,14 @@ function AuthedLayout() {
   //   const role = data?.user.role
   //   if (data && role != UserRole) signOut();
 
-  if (isPending || error || !data) return <Navigate to={"/"} replace />;
+  if (isPending)
+    return (
+      <div className="mx-auto max-w-6xl px-4 py-16 text-sm text-muted-foreground">
+        A verificar sessÃ£o...
+      </div>
+    );
+
+  if (error || !data) return <Navigate to={"/"} replace />;
 
   return <Outlet />;
 }

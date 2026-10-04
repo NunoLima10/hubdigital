@@ -1,19 +1,5 @@
-import {
-  Flex,
-  Skeleton,
-  SegmentedControl,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
-import {
-  IconEye,
-  IconExternalLink,
-  IconHeart,
-  IconMessageCircle,
-} from "@tabler/icons-react";
 import type { StatsRange } from "@hubdigital/shared";
+import { Eye, ExternalLink, Heart, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useMyProjectStats } from "../../hooks/use-my-project-stats";
 import { computeDelta } from "../../utils/format";
@@ -21,96 +7,90 @@ import { ProjectStatsList } from "../project-stats-list/project-stats-list";
 import { StatCard } from "../stat-card/stat-card";
 import { TrafficChart } from "../traffic-chart/traffic-chart";
 
-const rangeOptions: { value: StatsRange; label: string }[] = [
+const ranges: { value: StatsRange; label: string }[] = [
   { value: "7d", label: "7 dias" },
   { value: "30d", label: "30 dias" },
   { value: "90d", label: "90 dias" },
 ];
-
 export function MetricsView() {
   const [range, setRange] = useState<StatsRange>("30d");
   const { data, isLoading, isError } = useMyProjectStats(range);
-
   return (
-    <Stack p="md" gap="lg">
-      <Flex align="center" justify="space-between" wrap="wrap" gap="sm">
-        <Title order={3}>Desempenho</Title>
-        <SegmentedControl
-          value={range}
-          onChange={(value) => setRange(value as StatsRange)}
-          data={rangeOptions}
-        />
-      </Flex>
-
-      {isLoading && <MetricsSkeleton />}
-
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold">Desempenho</h1>
+        <div
+          role="group"
+          aria-label="Período"
+          className="flex rounded-md border p-1"
+        >
+          {ranges.map(({ value, label }) => (
+            <button
+              key={value}
+              aria-pressed={range === value}
+              className={`rounded px-3 py-1.5 text-sm ${range === value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+              onClick={() => setRange(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {isLoading && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="h-28 animate-pulse rounded-lg bg-muted" />
+            ))}
+          </div>
+          <div className="h-72 animate-pulse rounded-lg bg-muted" />
+        </div>
+      )}
       {isError && (
-        <Stack align="center" py="xl">
-          <Text c="dimmed">
-            Não foi possível carregar as métricas. Tenta novamente mais tarde.
-          </Text>
-        </Stack>
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Não foi possível carregar as métricas. Tenta novamente mais tarde.
+        </p>
       )}
-
       {data && data.projects.length === 0 && (
-        <Stack align="center" py="xl">
-          <Text c="dimmed">
-            Ainda não tens projetos. Publica um para começares a ver métricas.
-          </Text>
-        </Stack>
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Ainda não tens projetos. Publica um para começares a ver métricas.
+        </p>
       )}
-
       {data && data.projects.length > 0 && (
         <>
-          <SimpleGrid cols={{ base: 2, md: 4 }} spacing="sm">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <StatCard
               label="Visualizações"
-              icon={<IconEye size={16} />}
+              icon={<Eye className="size-4" />}
               value={data.totals.views}
               delta={computeDelta(data.totals.views, data.previous.views)}
             />
             <StatCard
               label="Visitas ao site"
-              icon={<IconExternalLink size={16} />}
+              icon={<ExternalLink className="size-4" />}
               value={data.totals.visits}
               delta={computeDelta(data.totals.visits, data.previous.visits)}
             />
             <StatCard
               label="Votos"
-              icon={<IconHeart size={16} />}
+              icon={<Heart className="size-4" />}
               value={data.totals.upvotes}
               delta={computeDelta(data.totals.upvotes, data.previous.upvotes)}
             />
             <StatCard
               label="Comentários"
-              icon={<IconMessageCircle size={16} />}
+              icon={<MessageCircle className="size-4" />}
               value={data.totals.comments}
               delta={computeDelta(data.totals.comments, data.previous.comments)}
             />
-          </SimpleGrid>
-
+          </div>
           <TrafficChart series={data.series} />
-
-          <Stack gap="xs">
-            <Text fw={600}>Por projeto</Text>
+          <section className="space-y-3">
+            <h2 className="font-semibold">Por projeto</h2>
             <ProjectStatsList projects={data.projects} />
-          </Stack>
+          </section>
         </>
       )}
-    </Stack>
-  );
-}
-
-function MetricsSkeleton() {
-  return (
-    <Stack gap="lg">
-      <SimpleGrid cols={{ base: 2, md: 4 }} spacing="sm">
-        <Skeleton h={110} radius="md" />
-        <Skeleton h={110} radius="md" />
-        <Skeleton h={110} radius="md" />
-        <Skeleton h={110} radius="md" />
-      </SimpleGrid>
-      <Skeleton h={320} radius="md" />
-    </Stack>
+    </div>
   );
 }

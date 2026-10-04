@@ -1,33 +1,19 @@
 import { ProjectIcon } from "@/components/project-icon/project-icon";
-import { trackProjectEvent } from "@/modules/project-stats/utils/track-project-event";
-import {
-  Anchor,
-  Badge,
-  Button,
-  Flex,
-  Group,
-  Skeleton,
-  Stack,
-  Text,
-} from "@mantine/core";
-import { IconConfetti, IconMessageCircle } from "@tabler/icons-react";
-import classes from "./project-card.module.css";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Link } from "@tanstack/react-router";
+import { MessageSquare, ThumbsUp } from "lucide-react";
+import type { Project } from "../../types/project";
 
-import { useMediaQuery } from "@mantine/hooks";
-import { useReward } from "react-rewards";
-import { Project } from "../../types/project";
-
-type ProjectcardProps = Project & {
-  /** Position in the current weekly ranking, 1-based. */
+type Props = Project & {
   rank?: number;
-  onOpen?: () => void;
-  /** Return false to signal the vote was not cast (e.g. sign-in required). */
   onUpvote?: () => boolean | void;
   isUpvotePending?: boolean;
 };
 
-export function Projectcard({
+export function ProjectCard({
   id,
+  slug,
   title,
   description,
   iconUrl,
@@ -35,126 +21,60 @@ export function Projectcard({
   upCount,
   hasUpvoted,
   commentCount,
-  website,
   rank,
-  onOpen,
   onUpvote,
   isUpvotePending,
-}: ProjectcardProps) {
-  // Equivalent to $mantine-breakpoint-xs -> 36em
-  const rewardId = "rewardId" + id.toString();
-
-  const isRowButton = useMediaQuery("(min-width: 36em)");
-
-  const { reward } = useReward(rewardId, "confetti", {
-    // lifetime is a frame count (at 60fps), not milliseconds — 120 ≈ 2s
-    lifetime: 120,
-  });
-
-  function onClickUp() {
-    // Celebrate only when a vote actually lands — a logged-out click opens the
-    // sign-in prompt instead, and confetti there is a lie.
-    const cast = onUpvote?.();
-    if (cast !== false && !hasUpvoted) reward();
-  }
-
+}: Props) {
   return (
-    <Flex className={classes.card}>
-      <Flex
-        gap={"xs"}
-        className={onOpen ? classes.clickable : undefined}
-        onClick={onOpen}
-        role={onOpen ? "button" : undefined}
-        tabIndex={onOpen ? 0 : undefined}
-      >
-        {rank !== undefined && (
-          <Text
-            className={rank <= 3 ? classes.rankTop : classes.rank}
-            aria-label={`Posição ${rank}`}
-          >
-            {rank}
-          </Text>
-        )}
-        <ProjectIcon iconUrl={iconUrl} className={classes.icon} />
-        <Stack gap={0}>
-          <Anchor
-            className={classes.titleLink}
-            href={website}
-            target="_blank"
-            onClick={(event) => {
-              event.stopPropagation();
-              trackProjectEvent(id, "visit");
-            }}
-          >
-            <Text className={classes.title}>{title}</Text>
-          </Anchor>
-          <Text lh={"sm"} fz="xs">
-            {description}
-          </Text>
-          <Group gap={5} mt={5} className={classes.topics}>
-            {topis.map((topic, index) => {
-              return (
-                <Badge key={index} size="xs" variant="light">
-                  {topic}
-                </Badge>
-              );
-            })}
-            {commentCount > 0 && (
-              <Group gap={3} c="dimmed">
-                <IconMessageCircle size={14} />
-                <Text fz="xs">{commentCount}</Text>
-              </Group>
-            )}
-          </Group>
-        </Stack>
-      </Flex>
-      {!isRowButton && <span id={rewardId} />}
-
+    <article className="group flex items-start gap-3 rounded-lg border-b px-2 py-4 transition-colors hover:bg-muted/40 sm:gap-4">
+      {rank !== undefined && (
+        <span
+          className="w-5 pt-3 text-right text-sm font-semibold tabular-nums text-muted-foreground"
+          aria-label={`Posição ${rank}`}
+        >
+          {rank}
+        </span>
+      )}
+      <ProjectIcon
+        iconUrl={iconUrl}
+        className="size-12 shrink-0 rounded-lg sm:size-14"
+      />
+      <div className="min-w-0 flex-1">
+        <Link
+          to="/projects/$slug"
+          params={{ slug }}
+          className="font-semibold leading-6 hover:text-primary hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-ring"
+        >
+          {title}
+        </Link>
+        <p className="line-clamp-2 text-sm text-muted-foreground">
+          {description}
+        </p>
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {topis.map((topic) => (
+            <Badge key={topic}>{topic}</Badge>
+          ))}
+          {commentCount > 0 && (
+            <span className="ml-1 inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <MessageSquare className="size-3.5" />
+              {commentCount}
+            </span>
+          )}
+        </div>
+      </div>
       <Button
-        variant={hasUpvoted ? "light" : "default"}
-        color={hasUpvoted ? "orange" : undefined}
-        className={classes.upvotetest}
-        leftSection={isRowButton ? <span id={rewardId} /> : null}
-        rightSection={<IconConfetti size={18} className={classes.upvoteIcon} />}
-        classNames={{
-          inner: classes.inner,
-          root: classes.root,
-          section: classes.section,
-          label: classes.label,
-        }}
-        onClick={onClickUp}
+        variant="outline"
+        size="sm"
+        className="h-auto min-h-10 flex-col gap-0 px-2.5 text-xs sm:min-w-14"
+        aria-label={`${hasUpvoted ? "Retirar voto de" : "Votar em"} ${title}: ${upCount} votos`}
+        aria-pressed={hasUpvoted}
         disabled={isUpvotePending}
+        onClick={() => onUpvote?.()}
       >
-        <Text size="sm">{upCount}</Text>
+        <ThumbsUp className={hasUpvoted ? "fill-primary text-primary" : ""} />
+        <span>{upCount}</span>
       </Button>
-    </Flex>
+      <span className="sr-only">Projeto {id}</span>
+    </article>
   );
 }
-
-function Loading() {
-  return (
-    <Flex className={classes.card}>
-      <Flex gap={"xs"}>
-        <Skeleton className={classes.icon} animate={false} />
-        <Stack gap={0}>
-          <Skeleton
-            height={15}
-            mt={"sm"}
-            width={100}
-            radius="xs"
-            animate={false}
-          />
-          <Skeleton
-            height={15}
-            mt={"sm"}
-            width={150}
-            radius="xs"
-            animate={false}
-          />
-        </Stack>
-      </Flex>
-      <Skeleton h={40} className={classes.root} animate={false} />
-    </Flex>
-  );
-}
-Projectcard.Loading = Loading;

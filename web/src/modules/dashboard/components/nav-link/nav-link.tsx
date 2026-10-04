@@ -1,27 +1,26 @@
-import { Group } from "@mantine/core";
-import { Link, LinkProps } from "@tanstack/react-router";
-import { ReactNode } from "react";
-import classes from "./nav-link.module.css";
+import { Link, type LinkProps } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 
-type NavLinkProps = {
+export function NavLink({
+  title,
+  icon,
+  to,
+  disabled,
+}: {
   title: string;
   icon: ReactNode;
   to: LinkProps["to"];
   disabled?: boolean;
-};
-
-export function NavLink({ title, icon, to, disabled }: NavLinkProps) {
+}) {
   return (
     <Link
       to={to}
-      activeProps={{ className: classes.active }}
-      className={disabled ? classes.disabled : classes.link}
       disabled={disabled}
+      className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-muted ${disabled ? "pointer-events-none opacity-50" : ""}`}
+      activeProps={{ className: "bg-primary/10 text-primary font-medium" }}
     >
-      <Group gap={"xxs"}>
-        {icon}
-        {title}
-      </Group>
+      {icon}
+      {title}
     </Link>
   );
 }

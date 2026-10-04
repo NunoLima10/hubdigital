@@ -1,49 +1,39 @@
-import { Project } from "@/modules/submit/types/project";
-import { Alert, Text } from "@mantine/core";
-import { IconAlertTriangle, IconEyeOff } from "@tabler/icons-react";
+import type { Project } from "@/modules/submit/types/project";
+import { EyeOff, TriangleAlert } from "lucide-react";
 
-/**
- * What a maker is told about a moderation decision on their own project.
- *
- * A hide is deliberately not silent: the person it was applied to sees that it
- * happened and reads the reason (specs/ADMIN.md §A4). Only the owner ever gets
- * these fields — the API leaves them out for everyone else.
- */
 export function ModerationNotice({ project }: { project: Project }) {
-  if (project.hidden) {
+  if (project.hidden)
     return (
-      <Alert
-        variant="light"
-        color="orange"
-        icon={<IconEyeOff size={18} />}
-        title="Este projeto está oculto"
-        p="xs"
+      <div
+        role="alert"
+        className="flex gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200"
       >
-        <Text size="sm">
-          Não aparece no site nem nos rankings. Motivo:{" "}
-          <b>{project.hiddenReason ?? "não indicado"}</b>. Fale com a equipa se
-          achar que houve um engano.
-        </Text>
-      </Alert>
+        <EyeOff className="size-5 shrink-0" />
+        <div>
+          <strong>Este projeto está oculto</strong>
+          <p>
+            Não aparece no site nem nos rankings. Motivo:{" "}
+            <b>{project.hiddenReason ?? "não indicado"}</b>. Fala com a equipa
+            se achares que houve um engano.
+          </p>
+        </div>
+      </div>
     );
-  }
-
-  if (project.status === "rejected" && project.rejectionReason) {
+  if (project.status === "rejected" && project.rejectionReason)
     return (
-      <Alert
-        variant="light"
-        color="red"
-        icon={<IconAlertTriangle size={18} />}
-        title="Precisa de alterações"
-        p="xs"
+      <div
+        role="alert"
+        className="flex gap-3 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
       >
-        <Text size="sm">
-          {project.rejectionReason} Corrija e volte a publicar para entrar de
-          novo na fila.
-        </Text>
-      </Alert>
+        <TriangleAlert className="size-5 shrink-0" />
+        <div>
+          <strong>Precisa de alterações</strong>
+          <p>
+            {project.rejectionReason} Corrige e volta a publicar para entrar de
+            novo na fila.
+          </p>
+        </div>
+      </div>
     );
-  }
-
   return null;
 }

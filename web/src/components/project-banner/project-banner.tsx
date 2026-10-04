@@ -1,33 +1,32 @@
-import { Center, Stack, Text } from "@mantine/core";
-import { IconPhoto } from "@tabler/icons-react";
-import classes from "./project-banner.module.css";
+import { ImageIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-type ProjectBannerProps = {
+export function ProjectBanner({
+  bannerUrl,
+  className,
+}: {
   bannerUrl?: string | null;
   className?: string;
-};
-
-export function ProjectBanner({ bannerUrl, className }: ProjectBannerProps) {
-  const rootClassName = className
-    ? `${classes.banner} ${className}`
-    : classes.banner;
-
-  if (bannerUrl) {
-    return (
-      <div className={rootClassName}>
-        <img src={bannerUrl} alt="" className={classes.image} />
-      </div>
-    );
-  }
-
+}) {
   return (
-    <Center className={`${rootClassName} ${classes.placeholder}`}>
-      <Stack align="center" gap={4}>
-        <IconPhoto size={32} stroke={1.5} />
-        <Text size="xs" c="dimmed">
+    <div
+      className={cn(
+        "flex aspect-video w-full items-center justify-center overflow-hidden rounded-lg border bg-muted text-sm text-muted-foreground",
+        className,
+      )}
+    >
+      {bannerUrl ? (
+        <img
+          src={bannerUrl}
+          alt="Imagem do projeto"
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <span className="flex flex-col items-center gap-2">
+          <ImageIcon className="size-8" />
           Imagem em breve
-        </Text>
-      </Stack>
-    </Center>
+        </span>
+      )}
+    </div>
   );
 }

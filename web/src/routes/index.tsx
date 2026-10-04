@@ -1,47 +1,41 @@
 import { Header } from "@/components/header/header";
 import { Page } from "@/layouts/page";
 import { ProjectList } from "@/modules/project-list";
-import { AnnouncementBanner } from "@/modules/settings/components/announcement-banner/announcement-banner";
+import { HomeSidebar } from "@/modules/project-list/components/home-sidebar/home-sidebar";
 import {
   ProjectFilters,
   type ProjectFilterValues,
 } from "@/modules/project-list/components/project-filters/project-filters";
+import { AnnouncementBanner } from "@/modules/settings/components/announcement-banner/announcement-banner";
 import {
   islandValues,
   listPeriodValues,
   pricingValues,
   type ListPeriod,
 } from "@hubdigital/shared";
-import { Container, Stack, Tabs, Text, Title } from "@mantine/core";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-// Every field is optional so that navigating to "/" from anywhere else does not
-// have to supply search params.
 type HomeSearch = ProjectFilterValues & { period?: ListPeriod };
+const periods: { value: ListPeriod; label: string }[] = [
+  { value: "this_week", label: "Esta semana" },
+  { value: "last_week", label: "Semana passada" },
+  { value: "all", label: "Todos" },
+];
 
 export const Route = createFileRoute("/")({
-  /**
-   * Filters live in the URL so a filtered view survives a reload and can be
-   * shared. Anything unrecognised is dropped rather than passed to the API.
-   */
   validateSearch: (search: Record<string, unknown>): HomeSearch => {
     const period = listPeriodValues.includes(search.period as ListPeriod)
       ? (search.period as ListPeriod)
       : "this_week";
-
     const island = islandValues.includes(search.island as never)
       ? (search.island as HomeSearch["island"])
       : undefined;
-
     const pricing = pricingValues.includes(search.pricing as never)
       ? (search.pricing as HomeSearch["pricing"])
       : undefined;
-
     const categoryId = Number(search.categoryId);
     const q = typeof search.q === "string" ? search.q.trim() : "";
-
     return {
-      // Left out when it is the default, so the common URL stays clean.
       period: period === "this_week" ? undefined : period,
       island,
       pricing,
@@ -50,61 +44,78 @@ export const Route = createFileRoute("/")({
       q: q || undefined,
     };
   },
-  component: RouteComponent,
+  component: Home,
 });
 
-function RouteComponent() {
+function Home() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
-
   const { period = "this_week", ...filters } = search;
-
-  /**
-   * Replaces the filter half of the search wholesale rather than merging, so
-   * clearing a filter actually drops it from the URL. ProjectFilters always
-   * hands back the complete set it wants applied.
-   */
-  function setFilters(next: ProjectFilterValues) {
+  const setFilters = (next: ProjectFilterValues) =>
     navigate({ search: { ...next, period } });
-  }
-
-  function setPeriod(next: ListPeriod) {
-    navigate({ search: (current) => ({ ...current, period: next }) });
-  }
-
+  const setPeriod = (next: ListPeriod) =>
+    navigate({
+      search: (current) => ({
+        ...current,
+        period: next === "this_week" ? undefined : next,
+      }),
+    });
   return (
-    <Page banner={<AnnouncementBanner />}>
-      <Header />
-      <Stack mt={100}>
-        <Title ta={"center"} order={1}>
-          HubDigital Cabo Verde
-        </Title>
-        <Container p={0} size={600}>
-          <Text ta={"center"} size="md" c="dimmed">
-            Um Hub digital de código aberto para impulsionar a inovação em Cabo
-            Verde, meio para descobrir, partilhar e apoiar projetos e produtos
-            criados por caboverdianos para caboverdianos.
-          </Text>
-        </Container>
-
-        <ProjectFilters
-          value={filters}
-          onChange={setFilters}
-        />
-
-        <Tabs
-          value={period}
-          onChange={(value) => setPeriod((value as ListPeriod) ?? "this_week")}
-        >
-          <Tabs.List mb="xl">
-            <Tabs.Tab value="this_week">Esta semana</Tabs.Tab>
-            <Tabs.Tab value="last_week">Semana passada</Tabs.Tab>
-            <Tabs.Tab value="all">Todos</Tabs.Tab>
-          </Tabs.List>
-        </Tabs>
-
-        <ProjectList period={period} filters={filters} />
-      </Stack>
+    <Page
+      banner={<AnnouncementBanner />}
+      header={<Header />}
+      rightSection={
+        <div className="hidden lg:block">
+          <HomeSidebar />
+        </div>
+      }
+    >
+      <div className="space-y-7">
+        <div className="rounded-lg border bg-muted/40 px-5 py-5 sm:px-6">
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            Descobre o que Cabo Verde está a criar
+          </h1>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
+            Projetos e produtos da comunidade cabo-verdiana, reunidos num só
+            lugar.
+          </p>
+        </div>
+        <section aria-labelledby="projects-title" className="space-y-4">
+          <div>
+            <h2
+              id="projects-title"
+              className="text-xl font-semibold tracking-tight"
+            >
+              Projetos
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Explora, apoia e acompanha os lançamentos.
+            </p>
+          </div>
+          <ProjectFilters value={filters} onChange={setFilters} />
+          <div className="lg:hidden">
+            <HomeSidebar />
+          </div>
+          <div
+            role="tablist"
+            aria-label="Período"
+            className="flex gap-1 border-b"
+          >
+            {periods.map((item) => (
+              <button
+                key={item.value}
+                role="tab"
+                aria-selected={period === item.value}
+                className={`border-b-2 px-3 py-2 text-sm font-medium transition-colors ${period === item.value ? "border-primary text-foreground" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+                onClick={() => setPeriod(item.value)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+          <ProjectList period={period} filters={filters} />
+        </section>
+      </div>
     </Page>
   );
 }

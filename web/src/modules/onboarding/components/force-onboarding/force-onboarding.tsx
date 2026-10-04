@@ -6,9 +6,8 @@ export function ForceOnboarding({ children }: PropsWithChildren) {
   const { useSession } = authClient;
   const { data } = useSession();
 
-  // @ts-ignore
-  const onboarded = data?.user.onboardedAt;
-  console.log(data?.user);
+  const onboarded =
+    data?.user && "onboardedAt" in data.user ? data.user.onboardedAt : null;
 
   if (!onboarded) return <Navigate to={"/onboarding"} replace />;
   return children;

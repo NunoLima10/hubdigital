@@ -1,26 +1,16 @@
-import { Button, Flex, Title } from "@mantine/core";
-import { IconRocket } from "@tabler/icons-react";
-import { useNavigate } from "@tanstack/react-router";
-
-type HearderProps = {};
-
-export function Hearder({}: HearderProps) {
-  const navigate = useNavigate();
-
-  function handelGoToSubmit() {
-    navigate({ to: "/dashboard/submit" });
-  }
-
+import { Link } from "@tanstack/react-router";
+import { Rocket } from "lucide-react";
+export function Hearder() {
   return (
-    <Flex align={"center"} justify={"space-between"}>
-      <Title order={3}>Lançamentos</Title>
-      <Button
-        variant="default"
-        leftSection={<IconRocket size={18} />}
-        onClick={handelGoToSubmit}
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <h1 className="text-xl font-semibold">Lançamentos</h1>
+      <Link
+        to="/dashboard/submit"
+        className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85"
       >
-        Publicar Projeto
-      </Button>
-    </Flex>
+        <Rocket className="size-4" />
+        Publicar projeto
+      </Link>
+    </div>
   );
 }

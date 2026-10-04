@@ -1,6 +1,5 @@
 import { Hearder } from "@/modules/releases/components/hearder/hearder";
 import { ReleasesList } from "@/modules/releases/components/releases-list/releases-list";
-import { Stack } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/dashboard/releases")({
@@ -9,9 +8,9 @@ export const Route = createFileRoute("/_authed/dashboard/releases")({
 
 function RouteComponent() {
   return (
-    <Stack p={"md"}>
+    <div className="space-y-5 p-4">
       <Hearder />
       <ReleasesList />
-    </Stack>
+    </div>
   );
 }

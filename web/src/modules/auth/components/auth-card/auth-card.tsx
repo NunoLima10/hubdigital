@@ -1,42 +1,29 @@
-import { Card, Flex, Image, Stack, Text, Title } from "@mantine/core";
 import type { PropsWithChildren } from "react";
-import classes from "./auth-card.module.css";
-
-type AuthCardProps = PropsWithChildren & {
-  title?: string;
-  subtitle?: string;
-  imageSrc?: string;
-};
+import { Link } from "@tanstack/react-router";
 
 export function AuthCard({
   title,
   subtitle,
-  imageSrc,
   children,
-}: AuthCardProps) {
-  const rootClass = imageSrc ? classes.root : classes.rootWithoutImage;
-  const contentClass = imageSrc
-    ? classes.contend
-    : classes.contendWithoutImage;
-
+}: PropsWithChildren<{
+  title?: string;
+  subtitle?: string;
+  imageSrc?: string;
+}>) {
   return (
-    <Stack className={rootClass}>
-      <Card className={classes.card} withBorder>
-        <Stack className={contentClass}>
-          <Stack gap="none" align="center">
-            <Title order={3}>{title}</Title>
-            <Text c="dimmed" size="sm">
-              {subtitle}
-            </Text>
-          </Stack>
-          {children}
-        </Stack>
-        {imageSrc && (
-          <Flex className={classes.image} visibleFrom="md">
-            <Image src={imageSrc} />
-          </Flex>
-        )}
-      </Card>
-    </Stack>
+    <div className="w-full max-w-md rounded-xl border bg-card p-6 shadow-sm sm:p-8">
+      <Link
+        to="/"
+        className="mb-8 inline-flex items-center gap-2 text-sm font-semibold"
+      >
+        <span className="flex size-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          H
+        </span>
+        HubDigital
+      </Link>
+      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+      <p className="mt-1 mb-6 text-sm text-muted-foreground">{subtitle}</p>
+      {children}
+    </div>
   );
 }

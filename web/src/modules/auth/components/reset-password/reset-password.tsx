@@ -1,10 +1,10 @@
-import { Button, PasswordInput } from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
-import { IconCheck, IconX } from "@tabler/icons-react";
-import { useNavigate } from "@tanstack/react-router";
-import { zodResolver } from "mantine-form-zod-resolver";
 import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate } from "@tanstack/react-router";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import {
   type ResetPasswordCredentials,
   resetPasswordSchema,
@@ -14,75 +14,53 @@ import { AuthCard } from "../auth-card/auth-card";
 
 export function ResetPassword() {
   const navigate = useNavigate();
-  const token = new URLSearchParams(window.location.search).get("token");
-
   const form = useForm<ResetPasswordCredentials>({
-    initialValues: {
-      password: "",
-      confirmPassword: "",
-    },
-    validate: zodResolver(resetPasswordSchema),
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: "", confirmPassword: "" },
   });
-
-  async function handleResetPassword(credentials: ResetPasswordCredentials) {
+  async function submit(credentials: ResetPasswordCredentials) {
+    const token = new URLSearchParams(window.location.search).get("token");
     if (!token) {
-      notifications.show({
-        title: "Algo correu mal!",
-        message: "O link de recuperação é inválido ou expirou.",
-        color: "red",
-        icon: <IconX />,
-      });
+      toast.error("O link de recuperação é inválido ou expirou.");
       return;
     }
-
     const { error } = await authClient.resetPassword({
       newPassword: credentials.password,
       token,
     });
-
     if (error?.code) {
-      notifications.show({
-        title: "Algo correu mal!",
-        message:
-          getAuthErrorMessage(error.code) ??
+      toast.error(
+        getAuthErrorMessage(error.code) ??
           "Não foi possível redefinir a password.",
-        color: "red",
-        icon: <IconX />,
-      });
+      );
       return;
     }
-
-    notifications.show({
-      title: "Tudo certo!",
-      message: "A sua password foi redefinida.",
-      color: "teal",
-      icon: <IconCheck />,
-    });
+    toast.success("A tua password foi redefinida.");
     navigate({ to: "/sign-in" });
   }
-
   return (
     <AuthCard
       title="Redefinir password"
-      subtitle="Escolha uma nova password para continuar a aceder à sua conta"
+      subtitle="Escolhe uma nova password para continuar a aceder à tua conta"
     >
-      <form onSubmit={form.onSubmit(handleResetPassword)}>
-        <PasswordInput
-          label="Password"
-          required
-          mt="md"
-          {...form.getInputProps("password")}
-          key={form.key("password")}
-        />
-
-        <PasswordInput
-          label="Confirmar password"
-          required
-          mt="md"
-          {...form.getInputProps("confirmPassword")}
-          key={form.key("confirmPassword")}
-        />
-        <Button fullWidth mt="md" type="submit">
+      <form onSubmit={form.handleSubmit(submit)} className="space-y-4">
+        {(
+          [
+            ["password", "Password"],
+            ["confirmPassword", "Confirmar password"],
+          ] as const
+        ).map(([name, label]) => (
+          <label key={name} className="block space-y-1.5 text-sm font-medium">
+            {label}
+            <Input type="password" required {...form.register(name)} />
+            {form.formState.errors[name] && (
+              <span className="text-xs text-destructive">
+                {form.formState.errors[name]?.message}
+              </span>
+            )}
+          </label>
+        ))}
+        <Button type="submit" className="w-full">
           Redefinir password
         </Button>
       </form>

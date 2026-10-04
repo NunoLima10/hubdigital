@@ -1,21 +1,21 @@
-import { Badge, Flex, Stack, Text } from "@mantine/core";
-
-type CategoriesDisplayProps = {
+import { Badge } from "@/components/ui/badge";
+export function CategoriesDisplay({
+  label,
+  badges,
+}: {
   label: string;
   badges: string[];
-};
-
-export function CategoriesDisplay({ label, badges }: CategoriesDisplayProps) {
+}) {
   return (
-    <Stack gap={"xxs"}>
-      <Text fw={600}>{label}</Text>
-      <Flex gap={"xs"}>
-        {badges.map((badge) => (
-          <Badge key={badge} variant="default">
-            {badge}
-          </Badge>
-        ))}
-      </Flex>
-    </Stack>
+    <div className="space-y-1.5">
+      <dt className="text-sm font-medium">{label}</dt>
+      <dd className="flex flex-wrap gap-1.5">
+        {badges.length ? (
+          badges.map((badge) => <Badge key={badge}>{badge}</Badge>)
+        ) : (
+          <span className="text-sm text-muted-foreground">—</span>
+        )}
+      </dd>
+    </div>
   );
 }
