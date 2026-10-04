@@ -29,19 +29,32 @@ export function TrafficChart({ series }: { series: ProjectStats["series"] }) {
             data={data}
             margin={{ top: 4, right: 4, left: -24, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid
+              stroke="var(--border)"
+              strokeDasharray="3 3"
+              vertical={false}
+            />
             <XAxis
               dataKey="day"
               tickLine={false}
-              tick={{ fontSize: 11 }}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
               minTickGap={24}
             />
             <YAxis
               allowDecimals={false}
               tickLine={false}
-              tick={{ fontSize: 11 }}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
             />
-            <Tooltip />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "var(--popover)",
+                borderColor: "var(--border)",
+                borderRadius: "var(--radius)",
+                color: "var(--popover-foreground)",
+              }}
+              cursor={{ stroke: "var(--border)" }}
+              labelStyle={{ color: "var(--popover-foreground)" }}
+            />
             <Legend />
             <Area
               type="monotone"

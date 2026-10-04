@@ -1,10 +1,17 @@
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { StatsRange } from "@hubdigital/shared";
-import { Eye, ExternalLink, Heart, MessageCircle } from "lucide-react";
+import { BarChart3, Eye, ExternalLink, Heart, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useMyProjectStats } from "../../hooks/use-my-project-stats";
+import { useProjectStats } from "../../hooks/use-project-stats";
 import { computeDelta } from "../../utils/format";
-import { ProjectStatsList } from "../project-stats-list/project-stats-list";
 import { StatCard } from "../stat-card/stat-card";
 import { TrafficChart } from "../traffic-chart/traffic-chart";
 
@@ -15,11 +22,31 @@ const ranges: { value: StatsRange; label: string }[] = [
 ];
 export function MetricsView() {
   const [range, setRange] = useState<StatsRange>("30d");
+  const [projectFilter, setProjectFilter] = useState("all");
   const { data, isLoading, isError } = useMyProjectStats(range);
-  const showLoading = useDelayedLoading(isLoading);
+  const selectedProjectId =
+    projectFilter === "all" ? undefined : Number(projectFilter);
+  const {
+    data: selectedProjectStats,
+    isLoading: isProjectLoading,
+    isError: isProjectError,
+  } = useProjectStats(selectedProjectId, range);
+  const stats = selectedProjectId === undefined ? data : selectedProjectStats;
+  const showLoading = useDelayedLoading(
+    isLoading || (selectedProjectId !== undefined && isProjectLoading),
+  );
+  const hasError = isError || isProjectError;
+  const projectOptions = [
+    { value: "all", label: "Todos os projetos" },
+    ...(data?.projects.map((project) => ({
+      value: String(project.id),
+      label: project.name,
+    })) ?? []),
+  ];
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold">Desempenho</h1>
         <div
           role="group"
@@ -38,6 +65,44 @@ export function MetricsView() {
           ))}
         </div>
       </div>
+      {data && data.projects.length > 0 && (
+        <div className="flex flex-col gap-2 sm:max-w-xs">
+          <label className="text-sm font-medium" htmlFor="project-metrics-filter">
+            Projeto
+          </label>
+          <Select
+            items={projectOptions}
+            value={projectFilter}
+            onValueChange={(value) => setProjectFilter(value ?? "all")}
+          >
+            <SelectTrigger
+              id="project-metrics-filter"
+              className="w-full rounded-lg bg-card"
+            >
+              <BarChart3 className="size-4 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent
+              align="start"
+              alignItemWithTrigger={false}
+              className="rounded-lg p-1 ring-1 ring-border"
+            >
+              {projectOptions.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="rounded-md"
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground sm:hidden">
+            Escolhe um projeto para ver os totais e a evolução no gráfico.
+          </p>
+        </div>
+      )}
       {showLoading && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -48,7 +113,7 @@ export function MetricsView() {
           <div className="h-72 animate-pulse rounded-lg bg-muted" />
         </div>
       )}
-      {isError && (
+      {hasError && (
         <p className="py-8 text-center text-sm text-muted-foreground">
           Não foi possível carregar as métricas. Tenta novamente mais tarde.
         </p>
@@ -58,39 +123,35 @@ export function MetricsView() {
           Ainda não tens projetos. Publica um para começares a ver métricas.
         </p>
       )}
-      {data && data.projects.length > 0 && (
+      {data && data.projects.length > 0 && stats && !hasError && (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <StatCard
               label="Visualizações"
               icon={<Eye className="size-4" />}
-              value={data.totals.views}
-              delta={computeDelta(data.totals.views, data.previous.views)}
+              value={stats.totals.views}
+              delta={computeDelta(stats.totals.views, stats.previous.views)}
             />
             <StatCard
               label="Visitas ao site"
               icon={<ExternalLink className="size-4" />}
-              value={data.totals.visits}
-              delta={computeDelta(data.totals.visits, data.previous.visits)}
+              value={stats.totals.visits}
+              delta={computeDelta(stats.totals.visits, stats.previous.visits)}
             />
             <StatCard
               label="Votos"
               icon={<Heart className="size-4" />}
-              value={data.totals.upvotes}
-              delta={computeDelta(data.totals.upvotes, data.previous.upvotes)}
+              value={stats.totals.upvotes}
+              delta={computeDelta(stats.totals.upvotes, stats.previous.upvotes)}
             />
             <StatCard
               label="Comentários"
               icon={<MessageCircle className="size-4" />}
-              value={data.totals.comments}
-              delta={computeDelta(data.totals.comments, data.previous.comments)}
+              value={stats.totals.comments}
+              delta={computeDelta(stats.totals.comments, stats.previous.comments)}
             />
           </div>
-          <TrafficChart series={data.series} />
-          <section className="space-y-3">
-            <h2 className="font-semibold">Por projeto</h2>
-            <ProjectStatsList projects={data.projects} />
-          </section>
+          <TrafficChart series={stats.series} />
         </>
       )}
     </div>
