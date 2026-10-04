@@ -17,6 +17,7 @@ import {
 } from "fastify-type-provider-zod";
 import { usersRoutes } from "./modules/users/users-routes";
 import { projectsRoutes } from "./modules/projects/projects-routes";
+import { projectStatsRoutes } from "./modules/project-stats/project-stats-routes";
 import { categoriesRoutes } from "./modules/categories/categories-routes";
 import { commentsRoutes } from "./modules/comments/comments-routes";
 import { adminRoutes } from "./modules/admin/admin-routes";
@@ -80,6 +81,7 @@ export async function buildServer(db: DB) {
 
   await server.register(usersRoutes, { prefix: "/v1/users" });
   await server.register(projectsRoutes, { prefix: "/v1/projects" });
+  await server.register(projectStatsRoutes, { prefix: "/v1/projects" });
   await server.register(categoriesRoutes, { prefix: "/v1/categories" });
   // Registered at /v1 because it owns both /projects/:slug/comments and
   // /comments/:id.

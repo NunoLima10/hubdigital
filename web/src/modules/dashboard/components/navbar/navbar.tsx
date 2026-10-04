@@ -22,10 +22,9 @@ export function DashboardNav() {
           icon={<IconRocket size={18} />}
         />
         <NavLink
-          to="/onboarding"
-          title="Metricas"
+          to="/dashboard/metrics"
+          title="Métricas"
           icon={<IconChartBarPopular size={18} />}
-          disabled
         />
       </Stack>
       <Space h={"sm"}></Space>

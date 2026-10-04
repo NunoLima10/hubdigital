@@ -1,4 +1,5 @@
 import { ProjectIcon } from "@/components/project-icon/project-icon";
+import { trackProjectEvent } from "@/modules/project-stats/utils/track-project-event";
 import {
   Anchor,
   Badge,
@@ -80,7 +81,10 @@ export function Projectcard({
             className={classes.titleLink}
             href={website}
             target="_blank"
-            onClick={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              trackProjectEvent(id, "visit");
+            }}
           >
             <Text className={classes.title}>{title}</Text>
           </Anchor>

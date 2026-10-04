@@ -3,6 +3,7 @@ export * from "./auth";
 export * from "./categories";
 export * from "./comments";
 export * from "./moderation-actions";
+export * from "./project-events";
 export * from "./project-upvotes";
 export * from "./projects";
 export * from "./publishers";

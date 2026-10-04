@@ -3,6 +3,7 @@ import { users } from "./auth";
 import { categories } from "./categories";
 import { comments } from "./comments";
 import { moderationActions } from "./moderation-actions";
+import { projectEvents } from "./project-events";
 import { projectUpvotes } from "./project-upvotes";
 import { projects } from "./projects";
 import { publishers } from "./publishers";
@@ -36,6 +37,14 @@ export const projectRelations = relations(projects, ({ one, many }) => ({
   }),
   upvotes: many(projectUpvotes),
   comments: many(comments),
+  events: many(projectEvents),
+}));
+
+export const projectEventRelations = relations(projectEvents, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectEvents.projectId],
+    references: [projects.id],
+  }),
 }));
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
