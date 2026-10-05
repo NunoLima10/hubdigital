@@ -1,4 +1,3 @@
-import { NativeSelect } from "@/components/ui/native-select";
 import type { UseFormReturn } from "react-hook-form";
 import {
   countryOptions,
@@ -7,6 +6,7 @@ import {
 } from "../../../options";
 import type { CreateProjectInput } from "../../../types/project";
 import { emptyLocation } from "../../../utils/location";
+import { FormSelect } from "../form-select/form-select";
 
 export function LocationFields({
   form,
@@ -22,27 +22,22 @@ export function LocationFields({
         className={`block space-y-1.5 text-sm font-medium ${inCapeVerde ? "" : "sm:col-span-3"}`}
       >
         País de origem
-        <NativeSelect
+        <FormSelect
           value={location.country}
-          onChange={(event) =>
+          options={countryOptions}
+          placeholder="Seleciona o país"
+          invalid={Boolean(form.formState.errors.location)}
+          onValueChange={(value) =>
             form.setValue(
               "location",
               {
                 ...emptyLocation,
-                country: event.target.value as typeof location.country,
+                country: value as typeof location.country,
               },
               { shouldValidate: true },
             )
           }
-          required
-        >
-          <option value="">Seleciona o país</option>
-          {countryOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </NativeSelect>
+        />
         <span className="block text-xs font-normal text-muted-foreground">
           De onde é construído o projeto
         </span>
@@ -51,55 +46,45 @@ export function LocationFields({
         <>
           <label className="block space-y-1.5 text-sm font-medium">
             Ilha
-            <NativeSelect
+            <FormSelect
               value={location.island}
-              onChange={(event) =>
+              options={islandOptions}
+              placeholder="Seleciona a ilha"
+              invalid={Boolean(form.formState.errors.location)}
+              onValueChange={(value) =>
                 form.setValue(
                   "location",
                   {
                     ...emptyLocation,
                     country: "cv",
-                    island: event.target.value as typeof location.island,
+                    island: value as typeof location.island,
                   },
                   { shouldValidate: true },
                 )
               }
-              required
-            >
-              <option value="">Seleciona a ilha</option>
-              {islandOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </NativeSelect>
+            />
           </label>
           <label className="block space-y-1.5 text-sm font-medium">
             Concelho
-            <NativeSelect
+            <FormSelect
               value={location.municipality}
               disabled={!location.island}
-              onChange={(event) =>
+              options={
+                location.island ? municipalityOptionsOf(location.island) : []
+              }
+              placeholder="Opcional"
+              onValueChange={(value) =>
                 form.setValue(
                   "location",
                   {
                     ...location,
-                    municipality: event.target
-                      .value as typeof location.municipality,
+                    municipality: value as typeof location.municipality,
                     zone: "",
                   },
                   { shouldValidate: true },
                 )
               }
-            >
-              <option value="">Opcional</option>
-              {location.island &&
-                municipalityOptionsOf(location.island).map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-            </NativeSelect>
+            />
           </label>
         </>
       )}

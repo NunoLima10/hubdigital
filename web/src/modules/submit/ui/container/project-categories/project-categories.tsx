@@ -1,4 +1,3 @@
-import { NativeSelect } from "@/components/ui/native-select";
 import type { UseFormReturn } from "react-hook-form";
 import { useCategories } from "../../../hooks/use-categories";
 import {
@@ -10,6 +9,7 @@ import {
   projectStageOptions,
 } from "../../../options";
 import type { CreateProjectInput } from "../../../types/project";
+import { FormSelect } from "../../components/form-select/form-select";
 import { LocationFields } from "../../components/location-fields/location-fields";
 
 const fields = [
@@ -42,22 +42,17 @@ export function ProjectCategories({
         {fields.map(({ name, label, options }) => (
           <label key={name} className="block space-y-1.5 text-sm font-medium">
             {label}
-            <NativeSelect
-              required
+            <FormSelect
               value={values[name]}
-              onChange={(event) =>
-                form.setValue(name, event.target.value as never, {
+              options={options}
+              placeholder="Seleciona uma opção"
+              invalid={Boolean(form.formState.errors[name])}
+              onValueChange={(value) =>
+                form.setValue(name, value as never, {
                   shouldValidate: true,
                 })
               }
-            >
-              <option value="">Seleciona uma opção</option>
-              {options.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </NativeSelect>
+            />
             {form.formState.errors[name]?.message && (
               <span className="text-xs text-destructive">
                 {form.formState.errors[name]?.message}
@@ -105,25 +100,25 @@ export function ProjectCategories({
       </fieldset>
       <label className="block space-y-1.5 text-sm font-medium">
         Qual categoria melhor descreve o teu projeto?
-        <NativeSelect
-          required
+        <FormSelect
           disabled={isLoading}
-          value={values.categoryId}
-          onChange={(event) =>
+          value={String(values.categoryId)}
+          options={(categories ?? []).map((category) => ({
+            value: String(category.id),
+            label: category.name,
+          }))}
+          placeholder={
+            isLoading ? "A carregar categorias..." : "Seleciona uma categoria"
+          }
+          invalid={Boolean(form.formState.errors.categoryId)}
+          onValueChange={(value) =>
             form.setValue(
               "categoryId",
-              event.target.value ? Number(event.target.value) : "",
+              value ? Number(value) : "",
               { shouldValidate: true },
             )
           }
-        >
-          <option value="">Seleciona uma categoria</option>
-          {categories?.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
-          ))}
-        </NativeSelect>
+        />
         {form.formState.errors.categoryId && (
           <span className="text-xs text-destructive">
             {form.formState.errors.categoryId.message}
