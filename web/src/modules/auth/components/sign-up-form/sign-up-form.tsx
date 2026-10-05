@@ -10,6 +10,8 @@ import {
 } from "../../schemas/auth-schema";
 import { useEmailSignUp } from "../../hooks/use-email-sign-up";
 import { AuthCard } from "../auth-card/auth-card";
+import { AuthDivider } from "../auth-divider/auth-divider";
+import { GoogleSignInButton } from "../google-sign-in-button/google-sign-in-button";
 
 export function SignUpForm() {
   const navigate = useNavigate();
@@ -30,6 +32,10 @@ export function SignUpForm() {
       title="Criar uma conta"
       subtitle="Regista-te para partilhar os teus projetos"
     >
+      <div className="mb-4 space-y-4">
+        <GoogleSignInButton />
+        <AuthDivider />
+      </div>
       <form
         onSubmit={form.handleSubmit((values) => emailSignUp(values))}
         className="space-y-4"

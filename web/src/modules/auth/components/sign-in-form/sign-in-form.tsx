@@ -10,6 +10,8 @@ import {
 } from "../../schemas/auth-schema";
 import { useEmailSignIn } from "../../hooks/use-email-sign-in";
 import { AuthCard } from "../auth-card/auth-card";
+import { AuthDivider } from "../auth-divider/auth-divider";
+import { GoogleSignInButton } from "../google-sign-in-button/google-sign-in-button";
 
 export function SignInForm() {
   const navigate = useNavigate();
@@ -29,6 +31,10 @@ export function SignInForm() {
   });
   return (
     <AuthCard title="Bem-vindo de volta!" subtitle="Inicia sessão na tua conta">
+      <div className="mb-4 space-y-4">
+        <GoogleSignInButton />
+        <AuthDivider />
+      </div>
       <form
         onSubmit={form.handleSubmit((values) => emailSignIn(values))}
         className="space-y-4"
