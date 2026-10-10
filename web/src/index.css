@@ -6,6 +6,34 @@
   font-family: var(--font-sans);
 }
 
+.project-map.leaflet-container {
+  background: var(--muted);
+}
+
+.dark .project-map-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.75) saturate(0.65);
+}
+
+.project-map .leaflet-bar a,
+.project-map .leaflet-control-attribution,
+.project-map .leaflet-tooltip {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border-color: var(--border);
+}
+
+.project-map .leaflet-bar a:hover {
+  background: var(--accent);
+}
+
+.project-map .leaflet-control-attribution a {
+  color: var(--primary);
+}
+
+.project-map .leaflet-tooltip-top::before {
+  border-top-color: var(--popover);
+}
+
 .project-map-marker-shell {
   background: transparent;
   border: 0;
@@ -52,7 +80,7 @@
   min-width: 22px;
   height: 22px;
   padding: 0 5px;
-  border: 2px solid white;
+  border: 2px solid var(--background);
   border-radius: 999px;
   background: var(--foreground);
   color: var(--background);

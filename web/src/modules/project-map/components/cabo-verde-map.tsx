@@ -72,6 +72,7 @@ export function CaboVerdeMap({
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         maxZoom: 19,
+        className: "project-map-tile",
       }).addTo(map);
       markerLayerRef.current = L.layerGroup().addTo(map);
       map.on("click", () => callbacksRef.current.onClearSelection());
@@ -159,7 +160,7 @@ export function CaboVerdeMap({
   return (
     <div
       ref={containerRef}
-      className="h-full min-h-0 w-full bg-muted"
+      className="project-map h-full min-h-0 w-full bg-muted"
       aria-label="Mapa interativo dos projetos de Cabo Verde"
     />
   );

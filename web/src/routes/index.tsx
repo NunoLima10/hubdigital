@@ -1,10 +1,8 @@
 import { Header } from "@/components/header/header";
 import { Page } from "@/layouts/page";
 import { ProjectList } from "@/modules/project-list";
-import { HomeSidebar } from "@/modules/project-list/components/home-sidebar/home-sidebar";
 import { projectsQueryOptions } from "@/modules/project-list/hooks/use-projects";
 import { AnnouncementBanner } from "@/modules/settings/components/announcement-banner/announcement-banner";
-import { categoriesQueryOptions } from "@/modules/submit/hooks/use-categories";
 import { createFileRoute } from "@tanstack/react-router";
 
 const launchSections = [
@@ -25,7 +23,6 @@ export const Route = createFileRoute("/")({
       context.queryClient.prefetchQuery(
         projectsQueryOptions({ period: "all" }),
       ),
-      context.queryClient.prefetchQuery(categoriesQueryOptions),
     ]);
   },
   component: Home,
@@ -37,21 +34,10 @@ function Home() {
       banner={<AnnouncementBanner />}
       header={<Header />}
       rightSection={
-        <div className="hidden lg:block">
-          <HomeSidebar />
-        </div>
+        <div aria-hidden="true" className="hidden min-h-[445px] lg:block" />
       }
     >
       <div className="space-y-7">
-        <div className="rounded-lg border bg-muted/40 px-5 py-5 sm:px-6">
-          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
-            Descobre o que Cabo Verde está a criar
-          </h1>
-          <p className="mt-1 text-sm leading-6 text-muted-foreground">
-            Projetos e produtos da comunidade cabo-verdiana, reunidos num só
-            lugar.
-          </p>
-        </div>
         <section aria-labelledby="projects-title" className="space-y-4">
           <div>
             <h2
@@ -63,9 +49,6 @@ function Home() {
             <p className="text-sm text-muted-foreground">
               Explora, apoia e acompanha os lançamentos.
             </p>
-          </div>
-          <div className="lg:hidden">
-            <HomeSidebar />
           </div>
           <div className="space-y-10">
             {launchSections.map(({ period, title, id }) => (
