@@ -1,4 +1,4 @@
-import { BarChart3, Heart, Rocket, Settings, UserRound } from "lucide-react";
+import { BarChart3, Heart, Rocket, UserRound } from "lucide-react";
 import { NavLink } from "../nav-link/nav-link";
 
 export function DashboardNav() {
@@ -29,11 +29,6 @@ export function DashboardNav() {
         to="/dashboard/favorites"
         title="Favoritos"
         icon={<Heart className="size-4" />}
-      />
-      <NavLink
-        to="/dashboard/preferences"
-        title="Preferências"
-        icon={<Settings className="size-4" />}
       />
     </nav>
   );
