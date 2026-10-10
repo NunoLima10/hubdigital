@@ -63,8 +63,18 @@ export function Header({
         label: "Dashboard",
         icon: LayoutDashboard,
       };
+  const avatar = (
+    <span className="flex size-8 items-center justify-center overflow-hidden rounded-full border bg-muted text-xs font-semibold">
+      {session?.user.image ? (
+        <img src={session.user.image} alt="" className="size-full object-cover" />
+      ) : (
+        session?.user.name?.[0]?.toUpperCase() ?? <UserRound className="size-4" />
+      )}
+    </span>
+  );
   const ContextIcon = contextLink.icon;
   useEffect(() => {
+    if (isDashboard) return;
     function handleSearchShortcut(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
@@ -74,7 +84,7 @@ export function Header({
     }
     document.addEventListener("keydown", handleSearchShortcut);
     return () => document.removeEventListener("keydown", handleSearchShortcut);
-  }, []);
+  }, [isDashboard]);
   useEffect(() => {
     if (!menuOpen) return;
     function closeOnEscape(event: KeyboardEvent) {
@@ -112,6 +122,17 @@ export function Header({
           </span>
           HubDigital
         </Link>
+        {!isDashboard && (
+        <Link
+          to="/map"
+          className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:inline-flex"
+          aria-label="Mapa de projetos"
+          title="Mapa de projetos"
+        >
+          <Map className="size-4" />
+          <span className="hidden md:inline">Mapa</span>
+        </Link>
+        )}
         {showContextLink && (
           <Link
             to={contextLink.to}
@@ -123,55 +144,40 @@ export function Header({
             <span className="hidden md:inline">{contextLink.label}</span>
           </Link>
         )}
-        <Link
-          to="/map"
-          className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:inline-flex"
-          aria-label="Mapa de projetos"
-          title="Mapa de projetos"
-        >
-          <Map className="size-4" />
-          <span className="hidden md:inline">Mapa</span>
-        </Link>
-        <Link
-          to={hasAuthenticatedActions ? "/dashboard/profile" : "/sign-in"}
-          onClick={() => setMenuOpen(false)}
-          aria-label={hasAuthenticatedActions ? "Abrir perfil" : "Entrar"}
-          title={hasAuthenticatedActions ? "Perfil" : "Entrar"}
-          className="inline-flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:hidden"
-        >
-          <UserRound className="size-4" />
-        </Link>
+        {!isDashboard && (
+          <Link
+            to={session ? "/dashboard/profile" : "/sign-in"}
+            onClick={() => setMenuOpen(false)}
+            aria-label={session ? "Abrir perfil" : "Entrar"}
+            title={session ? session.user.name : "Entrar"}
+            className={session
+              ? "inline-flex size-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-ring md:hidden"
+              : "inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/85 focus-visible:outline-2 focus-visible:outline-ring md:hidden"}
+          >
+            {session ? avatar : "Entrar"}
+          </Link>
+        )}
+        <div className="hidden md:block">
+          <ThemeToggle dark={dark} onToggle={toggleTheme} />
+        </div>
         <button
           type="button"
           onClick={() => { setMenuOpen(false); setSearchOpen(true); }}
           aria-label="Procurar projetos"
           aria-keyshortcuts="Control+K Meta+K"
-          className="inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-md border focus-visible:outline-2 focus-visible:outline-ring border-transparent text-sm text-muted-foreground hover:bg-muted hover:text-foreground lg:w-44 lg:justify-start lg:border-input lg:px-3 xl:w-52"
+          className={`inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-md border focus-visible:outline-2 focus-visible:outline-ring border-transparent text-sm text-muted-foreground hover:bg-muted hover:text-foreground lg:w-44 lg:justify-start lg:border-input lg:px-3 xl:w-52 ${isDashboard ? "md:hidden" : ""}`}
         >
           <Search className="size-4" />
           <span className="hidden lg:inline">Procurar projetos</span>
         </button>
-        <div className="hidden md:block">
-          <ThemeToggle dark={dark} onToggle={toggleTheme} />
-        </div>
-        {hasAuthenticatedActions ? (
+        {!isDashboard && (session ? (
           <Link
             to="/dashboard/profile"
-            className="hidden size-11 shrink-0 md:flex items-center justify-center overflow-hidden rounded-full border bg-muted text-sm font-semibold hover:bg-muted/70 focus-visible:outline-2 focus-visible:outline-ring"
+            className="hidden size-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-ring md:flex"
             aria-label="Abrir perfil"
-            title="Perfil"
+            title={session.user.name}
           >
-            {session?.user.image ? (
-              <img
-                src={session.user.image}
-                alt=""
-                className="size-full object-cover"
-              />
-            ) : (
-              (session?.user.name?.[0]?.toUpperCase() ?? (
-                <UserRound className="size-4" />
-              ))
-            )}
+            {avatar}
           </Link>
         ) : (
           <Link
@@ -180,7 +186,7 @@ export function Header({
           >
             Entrar
           </Link>
-        )}
+        ))}
         {!hasAuthenticatedActions && (
           <Link
             to="/sign-up"
