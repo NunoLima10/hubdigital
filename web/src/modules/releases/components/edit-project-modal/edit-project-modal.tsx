@@ -47,7 +47,7 @@ export function EditProjectModal({
       open={Boolean(project)}
       onClose={onClose}
       title="Editar projeto"
-      className="max-h-[90dvh] w-[min(100%-2rem,48rem)] overflow-y-auto"
+      className="max-h-[90dvh] max-w-none md:max-w-3xl"
     >
       {project && (
         <EditProjectForm key={project.id} project={project} onClose={onClose} />
