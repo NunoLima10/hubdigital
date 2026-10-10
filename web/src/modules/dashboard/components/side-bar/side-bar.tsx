@@ -1,39 +1,49 @@
-import { Menu } from "lucide-react";
 import { useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef } from "react";
 import { DashboardNav } from "../navbar/navbar";
 
 export function SideBar() {
-  const [open, setOpen] = useState(false);
+  const navigationRef = useRef<HTMLDivElement>(null);
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
-  const pageTitle = pathname.startsWith("/dashboard/metrics")
-    ? "Desempenho"
-    : pathname.startsWith("/dashboard/favorites")
-      ? "Favoritos"
-      : pathname.startsWith("/dashboard/preferences")
-        ? "Preferências"
-    : pathname.startsWith("/dashboard/profile")
-      ? "Perfil público"
-      : pathname.startsWith("/dashboard/submit")
-        ? "Submeter projeto"
-        : "Lançamentos";
+  useEffect(() => {
+    const container = navigationRef.current;
+    const active = container?.querySelector<HTMLElement>('[aria-current="page"]');
+    if (!container || !active || window.matchMedia("(min-width: 1024px)").matches) return;
+    const containerBounds = container.getBoundingClientRect();
+    const activeBounds = active.getBoundingClientRect();
+    if (activeBounds.left < containerBounds.left) {
+      container.scrollLeft -= containerBounds.left - activeBounds.left + 4;
+    } else if (activeBounds.right > containerBounds.right) {
+      container.scrollLeft += activeBounds.right - containerBounds.right + 4;
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    const container = navigationRef.current;
+    if (!container) return;
+    function scrollTabs(event: WheelEvent) {
+      if (!container || event.ctrlKey || event.shiftKey || event.deltaX !== 0 ||
+          window.matchMedia("(min-width: 1024px)").matches) return;
+      const maximum = container.scrollWidth - container.clientWidth;
+      if (maximum <= 0) return;
+      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? container.clientWidth : 1);
+      const next = Math.max(0, Math.min(maximum, container.scrollLeft + delta));
+      if (next === container.scrollLeft) return;
+      event.preventDefault();
+      container.scrollLeft = next;
+    }
+    container.addEventListener("wheel", scrollTabs, { passive: false });
+    return () => container.removeEventListener("wheel", scrollTabs);
+  }, []);
 
   return (
-    <div className="rounded-lg border p-4 lg:sticky lg:top-6">
-      <div className="flex items-center justify-between lg:hidden">
-        <h1 className="text-xl font-semibold">{pageTitle}</h1>
-        <button
-          className="rounded p-2 hover:bg-muted lg:hidden"
-          aria-label="Alternar navegação"
-          aria-expanded={open}
-          onClick={() => setOpen(!open)}
-        >
-          <Menu className="size-4" />
-        </button>
-      </div>
-      <div className={`${open ? "block" : "hidden"} lg:block`}>
+    <div className="min-w-0 lg:sticky lg:top-6 lg:rounded-lg lg:border lg:p-4">
+      <div
+        ref={navigationRef}
+        className="overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden border-b pb-2 lg:overflow-visible lg:border-0 lg:pb-0"
+      >
         <DashboardNav />
       </div>
     </div>

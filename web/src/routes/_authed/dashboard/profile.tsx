@@ -4,6 +4,7 @@ import { authClient } from "@/lib/auth-client";
 import { DashboardPage } from "@/modules/dashboard/components/dashboard-page/dashboard-page";
 import { Profile } from "@/modules/dashboard/components/profile/profile";
 import { ProfileForm } from "@/modules/makers/components/profile-form/profile-form";
+import { PreferencesForm } from "@/modules/onboarding/components/preferences-form/preferences-form";
 import { createFileRoute } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import { useState } from "react";
@@ -29,6 +30,15 @@ function RouteComponent() {
         <Profile />
       </section>
       <ProfileForm />
+      <section aria-labelledby="preferences-title" className="space-y-5 border-t pt-6">
+        <div>
+          <h2 id="preferences-title" className="font-semibold">Preferências</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Atualiza as respostas que deste ao entrar no HubDigital.
+          </p>
+        </div>
+        <PreferencesForm />
+      </section>
       <section className="border-t pt-6">
         <h2 className="font-semibold">Sessão</h2>
         <p className="mt-1 text-sm text-muted-foreground">

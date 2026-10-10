@@ -1,8 +1,10 @@
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import type { Project } from "@/modules/submit/types/project";
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
+import { Rocket } from "lucide-react";
 import { useMyProjects } from "../../hooks/use-my-projects";
 import {
   useDeleteProject,
@@ -37,9 +39,29 @@ export function ReleasesList() {
     );
   if (!data?.data.length)
     return (
-      <p className="py-10 text-center text-sm text-muted-foreground">
-        Ainda não publicaste nenhum projeto.
-      </p>
+      <section
+        aria-labelledby="first-launch-title"
+        className="flex min-h-[320px] flex-col items-center justify-center px-3 py-10 text-center sm:min-h-[380px] sm:px-6"
+      >
+        <div aria-hidden="true" className="mb-5 flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Rocket className="size-6" />
+        </div>
+        <h2 id="first-launch-title" className="max-w-sm text-xl font-semibold tracking-tight sm:text-2xl">
+          O teu primeiro lançamento começa aqui
+        </h2>
+        <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
+          Partilha o que estás a criar com a comunidade de Cabo Verde e recebe feedback para dar o próximo passo.
+        </p>
+        <Link
+          to="/dashboard/submit"
+          className={buttonVariants({ className: "mt-6 h-auto min-h-11 whitespace-normal px-4 py-3" })}
+        >
+          Publicar o primeiro projeto
+        </Link>
+        <p className="mt-3 text-xs text-muted-foreground">
+          Podes guardar um rascunho antes de publicar.
+        </p>
+      </section>
     );
   return (
     <>

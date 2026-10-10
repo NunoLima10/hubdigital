@@ -76,28 +76,28 @@ export function Dialog({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Backdrop
           data-hub-dialog-backdrop
-          className="fixed inset-y-0 left-0 z-50 w-screen bg-black/50 backdrop-blur-[2px]"
+          className="fixed inset-y-0 left-0 z-[1200] w-screen bg-black/50 backdrop-blur-[2px]"
         />
-        <DialogPrimitive.Viewport className="fixed inset-y-0 left-0 z-50 flex w-screen items-center justify-center overflow-y-auto p-4">
+        <DialogPrimitive.Viewport className="fixed inset-y-0 left-0 z-[1200] flex w-screen items-end justify-center overflow-y-auto md:items-center md:p-4">
           <DialogPrimitive.Popup
             ref={dialogRef}
             className={cn(
-              "flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-lg border bg-card text-card-foreground shadow-xl outline-none",
+              "flex max-h-[calc(100dvh-2rem)] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border bg-card text-card-foreground shadow-xl outline-none transition-transform duration-200 data-[starting-style]:translate-y-full data-[ending-style]:translate-y-full motion-reduce:transition-none md:rounded-lg md:data-[starting-style]:translate-y-0 md:data-[ending-style]:translate-y-0",
               className,
             )}
           >
-            <div className="flex shrink-0 items-center justify-between border-b px-5 py-4">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 md:px-5 md:py-4">
               <DialogPrimitive.Title className="text-lg font-semibold">
                 {title}
               </DialogPrimitive.Title>
               <DialogPrimitive.Close
                 aria-label="Fechar"
-                className="rounded p-1 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex size-11 shrink-0 items-center justify-center rounded hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:size-8"
               >
                 <X className="size-4" />
               </DialogPrimitive.Close>
             </div>
-            <div className={cn("min-h-0 overflow-y-auto p-5", bodyClassName)}>
+            <div className={cn("min-h-0 overflow-y-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:p-5", bodyClassName)}>
               {children}
             </div>
           </DialogPrimitive.Popup>

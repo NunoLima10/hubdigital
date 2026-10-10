@@ -51,7 +51,7 @@ export function ReleasesItem({
   const hasPublicPage = project.status === "published" && !project.hidden;
 
   return (
-    <article className="rounded-lg border bg-card p-4 sm:p-5">
+    <article className="rounded-lg border bg-card p-3 sm:p-5">
       <ProjectSummary
         iconUrl={project.logoUrl}
         className="flex-wrap items-start sm:flex-nowrap sm:items-center"

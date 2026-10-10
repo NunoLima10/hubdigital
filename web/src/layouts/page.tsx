@@ -19,7 +19,7 @@ export function Page({
   footer,
 }: PageProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className={cn("min-h-screen bg-background", header && "pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0")}>
       {banner}
       {header}
       <div
@@ -28,10 +28,10 @@ export function Page({
           rightSection &&
             "lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:gap-10",
           leftSection &&
-            "lg:grid-cols-[minmax(220px,1fr)_minmax(0,3fr)] lg:gap-10",
+            "gap-4 px-3 py-3 sm:gap-8 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:grid-cols-[minmax(220px,1fr)_minmax(0,3fr)] lg:gap-10",
         )}
       >
-        {leftSection && <aside className="lg:order-1">{leftSection}</aside>}
+        {leftSection && <aside className="min-w-0 lg:order-1">{leftSection}</aside>}
         <main
           className={cn("min-w-0", leftSection ? "lg:order-2" : "lg:order-1")}
         >
