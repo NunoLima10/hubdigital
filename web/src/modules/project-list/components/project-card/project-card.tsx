@@ -39,7 +39,7 @@ export function ProjectCard({
   isFavoritePending,
 }: Props) {
   return (
-    <article className="group relative rounded-lg px-2 py-3 transition-[background-color,box-shadow] duration-200 hover:bg-muted/40 hover:shadow-sm sm:py-4">
+    <article className="group relative rounded-lg px-2 py-3 sm:py-4">
       <ProjectSummary
         iconUrl={iconUrl}
         description={description}
