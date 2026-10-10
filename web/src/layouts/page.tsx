@@ -19,7 +19,7 @@ export function Page({
   footer,
 }: PageProps) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className={cn("min-h-screen bg-background", header && "pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0")}>
       {banner}
       {header}
       <div

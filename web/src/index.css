@@ -178,7 +178,7 @@
 
   html.hub-map-fullscreen {
     overflow: hidden;
-    scrollbar-gutter: auto;
+    scrollbar-gutter: stable;
   }
 
   html.hub-map-fullscreen body {
@@ -197,6 +197,18 @@
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+}
+
+@media (max-width: 767px) {
+  html,
+  html.hub-map-fullscreen {
+    scrollbar-gutter: auto;
+    scrollbar-width: none;
+  }
+
+  html::-webkit-scrollbar {
+    display: none;
   }
 }
 

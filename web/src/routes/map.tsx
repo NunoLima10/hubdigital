@@ -20,7 +20,7 @@ function MapPage() {
   }, []);
 
   return (
-    <div className="flex h-screen min-h-0 flex-col overflow-hidden bg-background">
+    <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-background pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
       <div className="shrink-0">
         <Header />
       </div>

@@ -1,18 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { MobileBottomNav } from "./mobile-bottom-nav";
 import { Link } from "@tanstack/react-router";
 import {
   Compass,
   LayoutDashboard,
   Map,
-  Menu,
   Moon,
   Search,
   Sun,
   UserRound,
-  X,
 } from "lucide-react";
-import { lazy, Suspense, useEffect, useId, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 const ProjectSearch = lazy(() =>
   import("@/modules/project-list/components/project-search/project-search").then(
@@ -40,7 +39,6 @@ export function Header({
   context?: "explorer" | "dashboard";
 }) {
   const { data: session } = authClient.useSession();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [dark, setDark] = useState(false);
   useEffect(() => setDark(document.documentElement.classList.contains("dark")), []);
@@ -50,9 +48,6 @@ export function Header({
     localStorage.setItem("hubdigital-theme", next ? "dark" : "light");
     setDark(next);
   }
-  const menuId = useId();
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
-  const headerRef = useRef<HTMLElement>(null);
   const isDashboard = context === "dashboard";
   const hasAuthenticatedActions = isDashboard || Boolean(session);
   const showContextLink = isDashboard || Boolean(session);
@@ -78,44 +73,19 @@ export function Header({
     function handleSearchShortcut(event: KeyboardEvent) {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setMenuOpen(false);
         setSearchOpen(true);
       }
     }
     document.addEventListener("keydown", handleSearchShortcut);
     return () => document.removeEventListener("keydown", handleSearchShortcut);
   }, [isDashboard]);
-  useEffect(() => {
-    if (!menuOpen) return;
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setMenuOpen(false);
-        menuButtonRef.current?.focus();
-      }
-    }
-    function closeOutside(event: PointerEvent) {
-      if (!headerRef.current?.contains(event.target as Node)) setMenuOpen(false);
-    }
-    const desktop = window.matchMedia("(min-width: 768px)");
-    function closeOnDesktop() {
-      if (desktop.matches) setMenuOpen(false);
-    }
-    document.addEventListener("keydown", closeOnEscape);
-    document.addEventListener("pointerdown", closeOutside);
-    desktop.addEventListener("change", closeOnDesktop);
-    return () => {
-      document.removeEventListener("keydown", closeOnEscape);
-      document.removeEventListener("pointerdown", closeOutside);
-      desktop.removeEventListener("change", closeOnDesktop);
-    };
-  }, [menuOpen]);
   return (
-    <header ref={headerRef} className="border-b bg-background/95">
+    <>
+    <header className="border-b bg-background/95">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-0 px-4 md:gap-4 md:px-6">
         <Link
           to="/"
           className="mr-auto flex shrink-0 items-center gap-2 rounded font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-ring"
-          onClick={() => setMenuOpen(false)}
         >
           <span className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
             H
@@ -144,11 +114,22 @@ export function Header({
             <span className="hidden md:inline">{contextLink.label}</span>
           </Link>
         )}
-        {!isDashboard && (
+        <div>
+          <ThemeToggle dark={dark} onToggle={toggleTheme} />
+        </div>
+        <button
+          type="button"
+          onClick={() => setSearchOpen(true)}
+          aria-label="Procurar projetos"
+          aria-keyshortcuts="Control+K Meta+K"
+          className={`${isDashboard ? "md:hidden" : ""} inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-md border focus-visible:outline-2 focus-visible:outline-ring border-transparent text-sm text-muted-foreground hover:bg-muted hover:text-foreground lg:w-44 lg:justify-start lg:border-input lg:px-3 xl:w-52`}
+        >
+          <Search className="size-4" />
+          <span className="hidden lg:inline">Procurar projetos</span>
+        </button>
           <Link
             to={session ? "/dashboard/profile" : "/sign-in"}
-            onClick={() => setMenuOpen(false)}
-            aria-label={session ? "Abrir perfil" : "Entrar"}
+              aria-label={session ? "Abrir perfil" : "Entrar"}
             title={session ? session.user.name : "Entrar"}
             className={session
               ? "inline-flex size-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-ring md:hidden"
@@ -156,20 +137,6 @@ export function Header({
           >
             {session ? avatar : "Entrar"}
           </Link>
-        )}
-        <div className="hidden md:block">
-          <ThemeToggle dark={dark} onToggle={toggleTheme} />
-        </div>
-        <button
-          type="button"
-          onClick={() => { setMenuOpen(false); setSearchOpen(true); }}
-          aria-label="Procurar projetos"
-          aria-keyshortcuts="Control+K Meta+K"
-          className={`inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-md border focus-visible:outline-2 focus-visible:outline-ring border-transparent text-sm text-muted-foreground hover:bg-muted hover:text-foreground lg:w-44 lg:justify-start lg:border-input lg:px-3 xl:w-52 ${isDashboard ? "md:hidden" : ""}`}
-        >
-          <Search className="size-4" />
-          <span className="hidden lg:inline">Procurar projetos</span>
-        </button>
         {!isDashboard && (session ? (
           <Link
             to="/dashboard/profile"
@@ -196,57 +163,14 @@ export function Header({
             Criar conta
           </Link>
         )}
-        <Button
-          ref={menuButtonRef}
-          className="size-11 md:hidden"
-          size="icon"
-          variant="ghost"
-          aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
-          aria-expanded={menuOpen}
-          aria-controls={menuId}
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          {menuOpen ? <X /> : <Menu />}
-        </Button>
       </div>
-      {menuOpen && (
-        <nav
-          id={menuId}
-          className="flex flex-col gap-1 border-t px-4 py-2 text-sm md:hidden"
-          aria-label="Navegação móvel"
-        >
-          {showContextLink && (
-            <Link
-              to={contextLink.to}
-              onClick={() => setMenuOpen(false)}
-              className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-            >
-              <ContextIcon className="size-4" /> {contextLink.label}
-            </Link>
-          )}
-          <Link
-            to="/map"
-            onClick={() => setMenuOpen(false)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-          >
-            <Map className="size-4" /> Mapa
-          </Link>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            aria-label="Alternar esquema de cores"
-            className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-          >
-            {dark ? <Sun className="size-4" /> : <Moon className="size-4" />}
-            Tema
-          </button>
-        </nav>
-      )}
       {searchOpen && (
         <Suspense fallback={null}>
           <ProjectSearch onClose={() => setSearchOpen(false)} />
         </Suspense>
       )}
     </header>
+    <MobileBottomNav />
+    </>
   );
 }
