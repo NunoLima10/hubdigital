@@ -209,13 +209,15 @@ export function Header({
           className="flex flex-col gap-1 border-t px-4 py-2 text-sm md:hidden"
           aria-label="Navegação móvel"
         >
-          <Link
-            to="/"
-            onClick={() => setMenuOpen(false)}
-            className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-          >
-            <Compass className="size-4" /> Explorar
-          </Link>
+          {showContextLink && (
+            <Link
+              to={contextLink.to}
+              onClick={() => setMenuOpen(false)}
+              className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <ContextIcon className="size-4" /> {contextLink.label}
+            </Link>
+          )}
           <Link
             to="/map"
             onClick={() => setMenuOpen(false)}
@@ -223,15 +225,6 @@ export function Header({
           >
             <Map className="size-4" /> Mapa
           </Link>
-          {session && (
-            <Link
-              to="/dashboard/releases"
-              onClick={() => setMenuOpen(false)}
-              className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
-            >
-              <LayoutDashboard className="size-4" /> Dashboard
-            </Link>
-          )}
           <button
             type="button"
             onClick={toggleTheme}
