@@ -33,6 +33,24 @@ export function SideBar() {
     }
   }, [pathname]);
 
+  useEffect(() => {
+    const container = navigationRef.current;
+    if (!container) return;
+    function scrollTabs(event: WheelEvent) {
+      if (!container || event.ctrlKey || event.shiftKey || event.deltaX !== 0 ||
+          window.matchMedia("(min-width: 1024px)").matches) return;
+      const maximum = container.scrollWidth - container.clientWidth;
+      if (maximum <= 0) return;
+      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? container.clientWidth : 1);
+      const next = Math.max(0, Math.min(maximum, container.scrollLeft + delta));
+      if (next === container.scrollLeft) return;
+      event.preventDefault();
+      container.scrollLeft = next;
+    }
+    container.addEventListener("wheel", scrollTabs, { passive: false });
+    return () => container.removeEventListener("wheel", scrollTabs);
+  }, []);
+
   return (
     <div className="min-w-0 lg:sticky lg:top-6 lg:rounded-lg lg:border lg:p-4">
       <h1 className="mb-3 text-xl font-semibold lg:hidden">{pageTitle}</h1>
