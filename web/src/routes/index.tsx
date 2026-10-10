@@ -39,14 +39,29 @@ function LaunchSection({ period, title, id }: (typeof launchSections)[number]) {
   );
 }
 
+function ActivityPlaceholder() {
+  return (
+    <section aria-labelledby="activity-title" className="hidden rounded-lg border p-5 lg:block">
+      <h2 id="activity-title" className="text-base font-semibold">Atividade da comunidade</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Gráfico em breve</p>
+      <div aria-hidden="true" className="relative mt-6 h-48 rounded-md bg-muted/30">
+        <div className="absolute inset-x-4 inset-y-5 flex flex-col justify-between">
+          {[0, 1, 2, 3].map((line) => <div key={line} className="border-t border-dashed border-border" />)}
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="rounded-md bg-background px-3 py-2 text-sm text-muted-foreground">Espaço reservado para o gráfico</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Home() {
   return (
     <Page
       banner={<AnnouncementBanner />}
       header={<Header />}
-      rightSection={
-        <div aria-hidden="true" className="hidden min-h-[445px] lg:block" />
-      }
+      rightSection={<ActivityPlaceholder />}
     >
       <div className="space-y-7">
         <section aria-labelledby="projects-title" className="space-y-4">
