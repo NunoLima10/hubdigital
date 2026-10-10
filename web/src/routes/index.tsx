@@ -33,7 +33,7 @@ function LaunchSection({ period, title, id }: (typeof launchSections)[number]) {
   if (!isLoading && !isError && !data?.data.length) return null;
   return (
     <section aria-labelledby={id} className="space-y-3">
-      <h3 id={id} className="border-b pb-3 text-lg font-semibold">{title}</h3>
+      <h3 id={id} className="text-lg font-semibold">{title}</h3>
       <ProjectList period={period} />
     </section>
   );
@@ -63,25 +63,10 @@ function Home() {
       header={<Header />}
       rightSection={<ActivityPlaceholder />}
     >
-      <div className="space-y-7">
-        <section aria-labelledby="projects-title" className="space-y-4">
-          <div>
-            <h2
-              id="projects-title"
-              className="text-xl font-semibold tracking-tight"
-            >
-              Lançamentos
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Explora, apoia e acompanha os lançamentos.
-            </p>
-          </div>
-          <div className="space-y-10">
-            {launchSections.map((section) => (
-              <LaunchSection key={section.period} {...section} />
-            ))}
-          </div>
-        </section>
+      <div className="space-y-10">
+        {launchSections.map((section) => (
+          <LaunchSection key={section.period} {...section} />
+        ))}
       </div>
     </Page>
   );
