@@ -223,6 +223,15 @@ export function Header({
           >
             <Map className="size-4" /> Mapa
           </Link>
+          {session && (
+            <Link
+              to="/dashboard/releases"
+              onClick={() => setMenuOpen(false)}
+              className="inline-flex min-h-11 items-center gap-2 rounded-md px-3 text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"
+            >
+              <LayoutDashboard className="size-4" /> Dashboard
+            </Link>
+          )}
           <button
             type="button"
             onClick={toggleTheme}
