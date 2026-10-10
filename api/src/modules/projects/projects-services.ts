@@ -18,7 +18,7 @@ import {
 } from "@/utils/location";
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
-import { WeekRange } from "@/utils/week";
+import { LaunchRange } from "@/utils/week";
 import { getYoutubeVideoId, ListSort, ProjectLocation } from "@hubdigital/shared";
 import {
   SQL,
@@ -305,7 +305,7 @@ export type ProjectFilters = {
 
 /** Everything a visitor is allowed to see, narrowed by the caller's filters. */
 function publicProjectFilter(
-  week?: WeekRange | null,
+  week?: LaunchRange | null,
   filters: ProjectFilters = {}
 ) {
   const conditions: (SQL | undefined)[] = [
@@ -374,8 +374,8 @@ type ListProjectsOptions = ProjectFilters & {
   limit: number;
   offset: number;
   sort: ListSort;
-  /** Restricts the listing to one weekly cycle; null lists every week. */
-  week?: WeekRange | null;
+  /** Restricts the listing to a launch period; null lists every launch. */
+  week?: LaunchRange | null;
 };
 
 async function listProjects(

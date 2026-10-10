@@ -1,3 +1,4 @@
+import { noop } from "@tanstack/react-query";
 import { Header } from "@/components/header/header";
 import { ProjectDetailSkeleton, ProjectDetailSidebarSkeleton } from "@/modules/project-detail/components/project-detail-view/project-detail-skeleton";
 import { Page } from "@/layouts/page";
@@ -17,8 +18,8 @@ import { ArrowLeft } from "lucide-react";
 export const Route = createFileRoute("/projects/$slug")({
   loader: async ({ context, params }) => {
     await Promise.all([
-      context.queryClient.prefetchQuery(projectQueryOptions(params.slug)),
-      context.queryClient.prefetchQuery(commentsQueryOptions(params.slug)),
+      context.queryClient.query(projectQueryOptions(params.slug)).catch(noop),
+      context.queryClient.query(commentsQueryOptions(params.slug)).catch(noop),
     ]);
   },
   component: ProjectPage,

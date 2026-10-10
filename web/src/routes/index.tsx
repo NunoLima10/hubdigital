@@ -3,26 +3,27 @@ import { Page } from "@/layouts/page";
 import { ProjectList } from "@/modules/project-list";
 import { projectsQueryOptions, useProjects } from "@/modules/project-list/hooks/use-projects";
 import { AnnouncementBanner } from "@/modules/settings/components/announcement-banner/announcement-banner";
+import { noop } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 const launchSections = [
   { period: "this_week", title: "Esta semana", id: "this-week-title" },
-  { period: "last_week", title: "Semana passada", id: "last-week-title" },
+  { period: "this_month", title: "Este mês", id: "this-month-title" },
   { period: "all", title: "Todos os lançamentos", id: "all-launches-title" },
 ] as const;
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
     await Promise.all([
-      context.queryClient.prefetchQuery(
+      context.queryClient.query(
         projectsQueryOptions({ period: "this_week" }),
-      ),
-      context.queryClient.prefetchQuery(
-        projectsQueryOptions({ period: "last_week" }),
-      ),
-      context.queryClient.prefetchQuery(
+      ).catch(noop),
+      context.queryClient.query(
+        projectsQueryOptions({ period: "this_month" }),
+      ).catch(noop),
+      context.queryClient.query(
         projectsQueryOptions({ period: "all" }),
-      ),
+      ).catch(noop),
     ]);
   },
   component: Home,

@@ -1,3 +1,4 @@
+import { noop } from "@tanstack/react-query";
 import { Header } from "@/components/header/header";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { Page } from "@/layouts/page";
@@ -12,7 +13,7 @@ import { Github, Globe, Linkedin, UserRound } from "lucide-react";
 
 export const Route = createFileRoute("/makers/$handle")({
   loader: async ({ context, params }) => {
-    await context.queryClient.prefetchQuery(makerQueryOptions(params.handle));
+    await context.queryClient.query(makerQueryOptions(params.handle)).catch(noop);
   },
   component: MakerPage,
 });

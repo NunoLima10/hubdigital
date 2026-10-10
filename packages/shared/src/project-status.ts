@@ -20,10 +20,10 @@ export const privateProjectStatusValues = [
 ] as const;
 
 /**
- * Which slice of the weekly cycle a listing request wants. `this_week` is the
- * live leaderboard, `last_week` the frozen one, `all` ignores the cycle.
+ * Which launch period a listing request wants. Calendar periods use Cabo Verde
+ * time; `all` includes every launch.
  */
-export const listPeriodValues = ["this_week", "last_week", "all"] as const;
+export const listPeriodValues = ["this_week", "this_month", "last_week", "all"] as const;
 
 export type ListPeriod = (typeof listPeriodValues)[number];
 

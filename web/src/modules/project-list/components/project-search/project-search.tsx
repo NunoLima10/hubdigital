@@ -3,6 +3,7 @@ import { Dialog } from "@/components/ui/dialog";
 import type { ListPeriod } from "@hubdigital/shared";
 import { useRef, useState } from "react";
 import { ProjectList } from "../..";
+import { projectPeriodOptions } from "../../options";
 import {
   ProjectFilters,
   type ProjectFilterValues,
@@ -44,13 +45,7 @@ export function ProjectSearch({ onClose }: { onClose: () => void }) {
               Período
             </span>
             <div className="flex flex-wrap gap-1.5">
-              {(
-                [
-                  ["all", "Todos"],
-                  ["this_week", "Esta semana"],
-                  ["last_week", "Semana passada"],
-                ] as const
-              ).map(([value, label]) => (
+              {projectPeriodOptions.map(([value, label]) => (
                 <button
                   type="button"
                   key={value}

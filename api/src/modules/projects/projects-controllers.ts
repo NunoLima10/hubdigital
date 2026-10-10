@@ -3,7 +3,7 @@ import {
   NotFoundError,
   ServiceUnavailableError,
 } from "@/utils/custom-errors";
-import { WeekRange, currentWeek, previousWeek, weekFromId } from "@/utils/week";
+import { WeekRange, currentMonth, currentWeek, previousWeek, weekFromId } from "@/utils/week";
 import {
   CreateProjectReply,
   CreateProjectRequest,
@@ -114,6 +114,7 @@ async function listFavoriteProjectsHandler(
 
 function resolvePeriod(period: ListProjectsRequest["query"]["period"]) {
   if (period === "this_week") return currentWeek();
+  if (period === "this_month") return currentMonth();
   if (period === "last_week") return previousWeek();
   return null;
 }

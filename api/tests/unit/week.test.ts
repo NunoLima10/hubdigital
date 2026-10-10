@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import "../setup-env";
-import { currentWeek, previousWeek, toWeekId, weekFromId } from "@/utils/week";
+import { currentMonth, currentWeek, previousWeek, toWeekId, weekFromId } from "@/utils/week";
 
 // Cabo Verde is UTC-1, so a local Monday 00:00 is 01:00 UTC the same day.
 describe("week helpers", () => {
@@ -65,5 +65,23 @@ describe("week helpers", () => {
     expect(weekFromId("2026-W99")).toBeNull();
     // 2025 has 52 ISO weeks, so W53 must not silently resolve to 2026-W01.
     expect(weekFromId("2025-W53")).toBeNull();
+  });
+});
+
+describe("calendar month", () => {
+  it("changes month at Cabo Verde midnight", () => {
+    const before = currentMonth(new Date("2026-10-01T00:59:59Z"));
+    expect(before.start.toISOString()).toBe("2026-09-01T01:00:00.000Z");
+    expect(before.end.toISOString()).toBe("2026-10-01T01:00:00.000Z");
+    const after = currentMonth(new Date("2026-10-01T01:00:00Z"));
+    expect(after.start.toISOString()).toBe("2026-10-01T01:00:00.000Z");
+    expect(after.end.toISOString()).toBe("2026-11-01T01:00:00.000Z");
+    expect(after.weekId).toBeNull();
+  });
+  it("handles leap February and the year boundary", () => {
+    expect(currentMonth(new Date("2028-02-20T12:00:00Z")).end.toISOString())
+      .toBe("2028-03-01T01:00:00.000Z");
+    expect(currentMonth(new Date("2026-12-20T12:00:00Z")).end.toISOString())
+      .toBe("2027-01-01T01:00:00.000Z");
   });
 });

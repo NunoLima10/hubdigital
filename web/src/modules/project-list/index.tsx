@@ -12,6 +12,7 @@ import { useToggleUpvote } from "./hooks/use-toggle-upvote";
 
 const emptyMessages: Record<ListPeriod, string> = {
   this_week: "Ainda nÃ£o hÃ¡ lanÃ§amentos esta semana. SÃª o primeiro!",
+  this_month: "Ainda não há lançamentos este mês. Sê o primeiro!",
   last_week: "NÃ£o houve lanÃ§amentos na semana passada.",
   all: "Ainda nÃ£o hÃ¡ projetos publicados. SÃª o primeiro a partilhar o teu!",
 };

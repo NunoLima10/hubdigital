@@ -10,13 +10,15 @@ export const CV_OFFSET_MS = -60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * DAY_MS;
 
-export type WeekRange = {
-  weekId: string;
+export type LaunchRange = {
+  weekId: string | null;
   /** Inclusive start of the week, as a UTC instant. */
   start: Date;
   /** Exclusive end of the week, as a UTC instant. */
   end: Date;
 };
+
+export type WeekRange = LaunchRange & { weekId: string };
 
 /**
  * Shifts a UTC instant into a Date whose *UTC fields* read as Cape Verdean wall
@@ -101,4 +103,16 @@ export function weekFromId(weekId: string): WeekRange | null {
   // Week 53 of a 52-week year rolls into the next year; reject rather than
   // silently answering for a different week than the caller asked for.
   return range.weekId === weekId ? range : null;
+}
+
+/** Current calendar month, from local midnight through the next month's start. */
+export function currentMonth(instant: Date = new Date()): LaunchRange {
+  const local = toLocalFields(instant);
+  const year = local.getUTCFullYear();
+  const month = local.getUTCMonth();
+  return {
+    weekId: null,
+    start: fromLocalFields(new Date(Date.UTC(year, month, 1))),
+    end: fromLocalFields(new Date(Date.UTC(year, month + 1, 1))),
+  };
 }
