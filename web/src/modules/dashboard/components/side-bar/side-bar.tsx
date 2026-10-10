@@ -38,7 +38,7 @@ export function SideBar() {
       <h1 className="mb-3 text-xl font-semibold lg:hidden">{pageTitle}</h1>
       <div
         ref={navigationRef}
-        className="overflow-x-auto overscroll-x-contain border-b pb-2 lg:overflow-visible lg:border-0 lg:pb-0"
+        className="overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden border-b pb-2 lg:overflow-visible lg:border-0 lg:pb-0"
       >
         <DashboardNav />
       </div>
