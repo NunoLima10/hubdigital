@@ -1,5 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createContext, useRef, useState, type PropsWithChildren } from "react";
+import {
+  addTransitionType,
+  createContext,
+  startTransition,
+  useRef,
+  useState,
+  type PropsWithChildren,
+} from "react";
 import { useForm, type Resolver, type UseFormReturn } from "react-hook-form";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -108,8 +115,18 @@ export default function SumbmitProvider({ children }: PropsWithChildren) {
     return value !== "" && value !== undefined && value !== null;
   });
   async function next() {
-    if (canProceed && (await form.trigger(stepFields[step])))
-      setStep((current) => Math.min(current + 1, 2));
+    if (canProceed && (await form.trigger(stepFields[step]))) {
+      startTransition(() => {
+        addTransitionType("submit-forward");
+        setStep((current) => Math.min(current + 1, 2));
+      });
+    }
+  }
+  function previous() {
+    startTransition(() => {
+      addTransitionType("submit-backward");
+      setStep((current) => Math.max(current - 1, 0));
+    });
   }
   function save(shouldPublish: boolean) {
     void form.handleSubmit((valid) => {
@@ -125,7 +142,7 @@ export default function SumbmitProvider({ children }: PropsWithChildren) {
         isFist: step === 0,
         isLast: step === 2,
         next,
-        previous: () => setStep((current) => Math.max(current - 1, 0)),
+        previous,
         saveDraft: () => save(false),
         publish: () => save(true),
         canProceed,

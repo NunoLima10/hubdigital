@@ -21,12 +21,14 @@ type Props = {
   week?: string;
   filters?: ProjectFilterValues;
   onSelect?: () => void;
+  transitionScope?: string;
 };
 export function ProjectList({
   period = "this_week",
   week,
   filters = {},
   onSelect,
+  transitionScope,
 }: Props) {
   const { data, isLoading, isError, isFetching } = useProjects({
     period,
@@ -86,6 +88,7 @@ export function ProjectList({
         <ProjectCard
           key={project.id}
           id={project.id}
+          transitionScope={transitionScope ?? `${period}:${week ?? "current"}`}
           slug={project.slug}
           title={project.name}
           description={project.shortDescription}

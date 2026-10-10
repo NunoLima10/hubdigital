@@ -8,6 +8,7 @@ type PageProps = {
   banner?: ReactNode;
   header?: ReactNode;
   footer?: ReactNode;
+  viewTransition?: boolean;
 };
 
 export function Page({
@@ -17,6 +18,7 @@ export function Page({
   banner,
   header,
   footer,
+  viewTransition = false,
 }: PageProps) {
   return (
     <div className={cn("min-h-screen bg-background", header && "pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0")}>
@@ -33,6 +35,7 @@ export function Page({
       >
         {leftSection && <aside className="min-w-0 lg:order-1">{leftSection}</aside>}
         <main
+          style={viewTransition ? { viewTransitionName: "project-content" } : undefined}
           className={cn("min-w-0", leftSection ? "lg:order-2" : "lg:order-1")}
         >
           {children}

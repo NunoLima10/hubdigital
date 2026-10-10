@@ -59,6 +59,7 @@ function ActivityPlaceholder() {
 function Home() {
   return (
     <Page
+      viewTransition
       banner={<AnnouncementBanner />}
       header={<Header />}
       rightSection={<ActivityPlaceholder />}

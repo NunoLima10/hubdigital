@@ -82,7 +82,7 @@ export function ProjectSearch({ onClose }: { onClose: () => void }) {
         <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
           Resultados
         </h3>
-        <ProjectList period={period} filters={filters} onSelect={onClose} />
+        <ProjectList period={period} filters={filters} onSelect={onClose} transitionScope="search" />
       </div>
     </Dialog>
   );
