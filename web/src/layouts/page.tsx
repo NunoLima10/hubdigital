@@ -31,7 +31,7 @@ export function Page({
             "gap-4 px-3 py-3 sm:gap-8 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:grid-cols-[minmax(220px,1fr)_minmax(0,3fr)] lg:gap-10",
         )}
       >
-        {leftSection && <aside className="lg:order-1">{leftSection}</aside>}
+        {leftSection && <aside className="min-w-0 lg:order-1">{leftSection}</aside>}
         <main
           className={cn("min-w-0", leftSection ? "lg:order-2" : "lg:order-1")}
         >
