@@ -28,7 +28,7 @@ export function Page({
           rightSection &&
             "lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:gap-10",
           leftSection &&
-            "lg:grid-cols-[minmax(220px,1fr)_minmax(0,3fr)] lg:gap-10",
+            "gap-4 px-3 py-3 sm:gap-8 sm:px-4 sm:py-6 md:px-6 md:py-8 lg:grid-cols-[minmax(220px,1fr)_minmax(0,3fr)] lg:gap-10",
         )}
       >
         {leftSection && <aside className="lg:order-1">{leftSection}</aside>}

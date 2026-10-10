@@ -22,7 +22,7 @@ export function SideBar() {
         : "Lançamentos";
 
   return (
-    <div className="rounded-lg border p-4 lg:sticky lg:top-6">
+    <div className="rounded-lg border p-2 sm:p-4 lg:sticky lg:top-6">
       <div className="flex items-center justify-between lg:hidden">
         <h1 className="text-xl font-semibold">{pageTitle}</h1>
         <button
