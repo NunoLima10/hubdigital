@@ -1,7 +1,7 @@
 import { Header } from "@/components/header/header";
 import { Page } from "@/layouts/page";
 import { ProjectList } from "@/modules/project-list";
-import { projectsQueryOptions } from "@/modules/project-list/hooks/use-projects";
+import { projectsQueryOptions, useProjects } from "@/modules/project-list/hooks/use-projects";
 import { AnnouncementBanner } from "@/modules/settings/components/announcement-banner/announcement-banner";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -28,6 +28,17 @@ export const Route = createFileRoute("/")({
   component: Home,
 });
 
+function LaunchSection({ period, title, id }: (typeof launchSections)[number]) {
+  const { data, isLoading, isError } = useProjects({ period });
+  if (!isLoading && !isError && !data?.data.length) return null;
+  return (
+    <section aria-labelledby={id} className="space-y-3">
+      <h3 id={id} className="border-b pb-3 text-lg font-semibold">{title}</h3>
+      <ProjectList period={period} />
+    </section>
+  );
+}
+
 function Home() {
   return (
     <Page
@@ -51,13 +62,8 @@ function Home() {
             </p>
           </div>
           <div className="space-y-10">
-            {launchSections.map(({ period, title, id }) => (
-              <section key={period} aria-labelledby={id} className="space-y-3">
-                <h3 id={id} className="border-b pb-3 text-lg font-semibold">
-                  {title}
-                </h3>
-                <ProjectList period={period} />
-              </section>
+            {launchSections.map((section) => (
+              <LaunchSection key={section.period} {...section} />
             ))}
           </div>
         </section>
