@@ -2,13 +2,13 @@ import { DB } from "@/db";
 import { comments, projects, reports, users } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
+import { getPostgresError } from "@/utils/postgres-error";
 import {
   ReportReason,
   ReportStatus,
   ReportTarget,
 } from "@hubdigital/shared";
 import { and, count, desc, eq, inArray } from "drizzle-orm";
-import { PostgresError } from "postgres";
 
 type CreateReportInput = {
   reporterId: string;
@@ -37,10 +37,7 @@ async function createReport(db: DB, input: CreateReportInput) {
 
     return { id: created.id, duplicate: false };
   } catch (error) {
-    if (
-      error instanceof PostgresError &&
-      error.code === PG_ERR_UNIQUE_VIOLATION
-    ) {
+    if (getPostgresError(error)?.code === PG_ERR_UNIQUE_VIOLATION) {
       return { id: null, duplicate: true };
     }
 

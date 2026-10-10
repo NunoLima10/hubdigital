@@ -2,9 +2,9 @@ import { DB } from "@/db";
 import { categories, projects } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
+import { getPostgresError } from "@/utils/postgres-error";
 import { ConflictError } from "@/utils/custom-errors";
 import { asc, count, eq } from "drizzle-orm";
-import { PostgresError } from "postgres";
 
 /**
  * Categories carry a project count because `projects.category_id` is
@@ -33,10 +33,7 @@ async function listWithCounts(db: DB) {
 }
 
 function rethrowConflict(error: unknown): never {
-  if (
-    error instanceof PostgresError &&
-    error.code === PG_ERR_UNIQUE_VIOLATION
-  ) {
+  if (getPostgresError(error)?.code === PG_ERR_UNIQUE_VIOLATION) {
     throw new ConflictError("Já existe uma categoria com essa chave.");
   }
 

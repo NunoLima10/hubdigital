@@ -9,27 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LoginRouteImport } from './routes/login'
 import { Route as StaffRouteImport } from './routes/_staff'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as StaffIndexRouteImport } from './routes/_staff/index'
-import { Route as StaffSettingsRouteImport } from './routes/_staff/settings'
-import { Route as StaffReportsRouteImport } from './routes/_staff/reports'
-import { Route as StaffQueueRouteImport } from './routes/_staff/queue'
-import { Route as StaffCommentsRouteImport } from './routes/_staff/comments'
-import { Route as StaffCategoriesRouteImport } from './routes/_staff/categories'
 import { Route as StaffAuditRouteImport } from './routes/_staff/audit'
-import { Route as StaffUsersIndexRouteImport } from './routes/_staff/users.index'
+import { Route as StaffCategoriesRouteImport } from './routes/_staff/categories'
+import { Route as StaffCommentsRouteImport } from './routes/_staff/comments'
+import { Route as StaffQueueRouteImport } from './routes/_staff/queue'
+import { Route as StaffReportsRouteImport } from './routes/_staff/reports'
+import { Route as StaffSettingsRouteImport } from './routes/_staff/settings'
 import { Route as StaffProjectsIndexRouteImport } from './routes/_staff/projects.index'
-import { Route as StaffUsersIdRouteImport } from './routes/_staff/users.$id'
 import { Route as StaffProjectsIdRouteImport } from './routes/_staff/projects.$id'
+import { Route as StaffUsersIndexRouteImport } from './routes/_staff/users.index'
+import { Route as StaffUsersIdRouteImport } from './routes/_staff/users.$id'
 
+const StaffRoute = StaffRouteImport.update({
+  id: '/_staff',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const StaffRoute = StaffRouteImport.update({
-  id: '/_staff',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StaffIndexRoute = StaffIndexRouteImport.update({
@@ -37,24 +37,9 @@ const StaffIndexRoute = StaffIndexRouteImport.update({
   path: '/',
   getParentRoute: () => StaffRoute,
 } as any)
-const StaffSettingsRoute = StaffSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => StaffRoute,
-} as any)
-const StaffReportsRoute = StaffReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => StaffRoute,
-} as any)
-const StaffQueueRoute = StaffQueueRouteImport.update({
-  id: '/queue',
-  path: '/queue',
-  getParentRoute: () => StaffRoute,
-} as any)
-const StaffCommentsRoute = StaffCommentsRouteImport.update({
-  id: '/comments',
-  path: '/comments',
+const StaffAuditRoute = StaffAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => StaffRoute,
 } as any)
 const StaffCategoriesRoute = StaffCategoriesRouteImport.update({
@@ -62,14 +47,24 @@ const StaffCategoriesRoute = StaffCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => StaffRoute,
 } as any)
-const StaffAuditRoute = StaffAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
+const StaffCommentsRoute = StaffCommentsRouteImport.update({
+  id: '/comments',
+  path: '/comments',
   getParentRoute: () => StaffRoute,
 } as any)
-const StaffUsersIndexRoute = StaffUsersIndexRouteImport.update({
-  id: '/users/',
-  path: '/users/',
+const StaffQueueRoute = StaffQueueRouteImport.update({
+  id: '/queue',
+  path: '/queue',
+  getParentRoute: () => StaffRoute,
+} as any)
+const StaffReportsRoute = StaffReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => StaffRoute,
+} as any)
+const StaffSettingsRoute = StaffSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => StaffRoute,
 } as any)
 const StaffProjectsIndexRoute = StaffProjectsIndexRouteImport.update({
@@ -77,18 +72,24 @@ const StaffProjectsIndexRoute = StaffProjectsIndexRouteImport.update({
   path: '/projects/',
   getParentRoute: () => StaffRoute,
 } as any)
-const StaffUsersIdRoute = StaffUsersIdRouteImport.update({
-  id: '/users/$id',
-  path: '/users/$id',
-  getParentRoute: () => StaffRoute,
-} as any)
 const StaffProjectsIdRoute = StaffProjectsIdRouteImport.update({
   id: '/projects/$id',
   path: '/projects/$id',
   getParentRoute: () => StaffRoute,
 } as any)
+const StaffUsersIndexRoute = StaffUsersIndexRouteImport.update({
+  id: '/users/',
+  path: '/users/',
+  getParentRoute: () => StaffRoute,
+} as any)
+const StaffUsersIdRoute = StaffUsersIdRouteImport.update({
+  id: '/users/$id',
+  path: '/users/$id',
+  getParentRoute: () => StaffRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
+  '/': typeof StaffIndexRoute
   '/login': typeof LoginRoute
   '/audit': typeof StaffAuditRoute
   '/categories': typeof StaffCategoriesRoute
@@ -96,11 +97,10 @@ export interface FileRoutesByFullPath {
   '/queue': typeof StaffQueueRoute
   '/reports': typeof StaffReportsRoute
   '/settings': typeof StaffSettingsRoute
-  '/': typeof StaffIndexRoute
   '/projects/$id': typeof StaffProjectsIdRoute
   '/users/$id': typeof StaffUsersIdRoute
-  '/projects': typeof StaffProjectsIndexRoute
-  '/users': typeof StaffUsersIndexRoute
+  '/projects/': typeof StaffProjectsIndexRoute
+  '/users/': typeof StaffUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -135,6 +135,7 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/'
     | '/login'
     | '/audit'
     | '/categories'
@@ -142,11 +143,10 @@ export interface FileRouteTypes {
     | '/queue'
     | '/reports'
     | '/settings'
-    | '/'
     | '/projects/$id'
     | '/users/$id'
-    | '/projects'
-    | '/users'
+    | '/projects/'
+    | '/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -185,18 +185,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/_staff': {
+      id: '/_staff'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof StaffRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_staff': {
-      id: '/_staff'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof StaffRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_staff/': {
@@ -206,32 +206,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffIndexRouteImport
       parentRoute: typeof StaffRoute
     }
-    '/_staff/settings': {
-      id: '/_staff/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof StaffSettingsRouteImport
-      parentRoute: typeof StaffRoute
-    }
-    '/_staff/reports': {
-      id: '/_staff/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof StaffReportsRouteImport
-      parentRoute: typeof StaffRoute
-    }
-    '/_staff/queue': {
-      id: '/_staff/queue'
-      path: '/queue'
-      fullPath: '/queue'
-      preLoaderRoute: typeof StaffQueueRouteImport
-      parentRoute: typeof StaffRoute
-    }
-    '/_staff/comments': {
-      id: '/_staff/comments'
-      path: '/comments'
-      fullPath: '/comments'
-      preLoaderRoute: typeof StaffCommentsRouteImport
+    '/_staff/audit': {
+      id: '/_staff/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof StaffAuditRouteImport
       parentRoute: typeof StaffRoute
     }
     '/_staff/categories': {
@@ -241,32 +220,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffCategoriesRouteImport
       parentRoute: typeof StaffRoute
     }
-    '/_staff/audit': {
-      id: '/_staff/audit'
-      path: '/audit'
-      fullPath: '/audit'
-      preLoaderRoute: typeof StaffAuditRouteImport
+    '/_staff/comments': {
+      id: '/_staff/comments'
+      path: '/comments'
+      fullPath: '/comments'
+      preLoaderRoute: typeof StaffCommentsRouteImport
       parentRoute: typeof StaffRoute
     }
-    '/_staff/users/': {
-      id: '/_staff/users/'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof StaffUsersIndexRouteImport
+    '/_staff/queue': {
+      id: '/_staff/queue'
+      path: '/queue'
+      fullPath: '/queue'
+      preLoaderRoute: typeof StaffQueueRouteImport
+      parentRoute: typeof StaffRoute
+    }
+    '/_staff/reports': {
+      id: '/_staff/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof StaffReportsRouteImport
+      parentRoute: typeof StaffRoute
+    }
+    '/_staff/settings': {
+      id: '/_staff/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof StaffSettingsRouteImport
       parentRoute: typeof StaffRoute
     }
     '/_staff/projects/': {
       id: '/_staff/projects/'
       path: '/projects'
-      fullPath: '/projects'
+      fullPath: '/projects/'
       preLoaderRoute: typeof StaffProjectsIndexRouteImport
-      parentRoute: typeof StaffRoute
-    }
-    '/_staff/users/$id': {
-      id: '/_staff/users/$id'
-      path: '/users/$id'
-      fullPath: '/users/$id'
-      preLoaderRoute: typeof StaffUsersIdRouteImport
       parentRoute: typeof StaffRoute
     }
     '/_staff/projects/$id': {
@@ -274,6 +260,20 @@ declare module '@tanstack/react-router' {
       path: '/projects/$id'
       fullPath: '/projects/$id'
       preLoaderRoute: typeof StaffProjectsIdRouteImport
+      parentRoute: typeof StaffRoute
+    }
+    '/_staff/users/': {
+      id: '/_staff/users/'
+      path: '/users'
+      fullPath: '/users/'
+      preLoaderRoute: typeof StaffUsersIndexRouteImport
+      parentRoute: typeof StaffRoute
+    }
+    '/_staff/users/$id': {
+      id: '/_staff/users/$id'
+      path: '/users/$id'
+      fullPath: '/users/$id'
+      preLoaderRoute: typeof StaffUsersIdRouteImport
       parentRoute: typeof StaffRoute
     }
   }

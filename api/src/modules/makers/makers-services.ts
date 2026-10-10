@@ -2,13 +2,13 @@ import { DB } from "@/db";
 import { projects, publishers, users } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
+import { getPostgresError } from "@/utils/postgres-error";
 import { withLocation } from "@/utils/location";
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
 import { MakerProfileUpdate } from "@hubdigital/shared";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
-import { PostgresError } from "postgres";
 import type { MakerPreferences } from "./makers-schemas";
 
 /**
@@ -121,10 +121,7 @@ async function updateProfile(
 
     return updated ? { handle: updated.handle } : null;
   } catch (error) {
-    if (
-      error instanceof PostgresError &&
-      error.code === PG_ERR_UNIQUE_VIOLATION
-    ) {
+    if (getPostgresError(error)?.code === PG_ERR_UNIQUE_VIOLATION) {
       return "taken" as const;
     }
 
