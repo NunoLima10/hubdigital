@@ -1,10 +1,11 @@
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { DashboardNav } from "../navbar/navbar";
 
 export function SideBar() {
   const [open, setOpen] = useState(false);
+  const navigationId = useId();
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
@@ -25,15 +26,29 @@ export function SideBar() {
       <div className="flex items-center justify-between lg:hidden">
         <h1 className="text-xl font-semibold">{pageTitle}</h1>
         <button
-          className="rounded p-2 hover:bg-muted lg:hidden"
+          type="button"
+          className="flex size-11 items-center justify-center rounded hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring lg:hidden"
           aria-label="Alternar navegação"
           aria-expanded={open}
+          aria-controls={navigationId}
           onClick={() => setOpen(!open)}
         >
-          <Menu className="size-4" />
+          {open ? <X className="size-4" /> : <Menu className="size-4" />}
         </button>
       </div>
-      <div className={`${open ? "block" : "hidden"} lg:block`}>
+      <div
+        id={navigationId}
+        className={`${open ? "mt-4 block" : "hidden"} lg:mt-0 lg:block`}
+        onClick={(event) => {
+          if ((event.target as HTMLElement).closest("a")) setOpen(false);
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            setOpen(false);
+            event.currentTarget.parentElement?.querySelector("button")?.focus();
+          }
+        }}
+      >
         <DashboardNav />
       </div>
     </div>
