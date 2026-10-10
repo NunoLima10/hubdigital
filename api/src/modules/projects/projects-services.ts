@@ -9,6 +9,7 @@ import {
 } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
+import { getPostgresError } from "@/utils/postgres-error";
 import {
   LocationColumns,
   locationToColumns,
@@ -34,7 +35,6 @@ import {
   sql,
 } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
-import { PostgresError } from "postgres";
 
 // Only the ids are needed to produce a count. Neither a deleted comment nor one
 // hidden by staff belongs in a number shown on a card.
@@ -156,10 +156,7 @@ async function createProject(db: DB, input: CreateProjectInput) {
   try {
     return await insertProject(db, input, base);
   } catch (error) {
-    if (
-      error instanceof PostgresError &&
-      error.code === PG_ERR_UNIQUE_VIOLATION
-    ) {
+    if (getPostgresError(error)?.code === PG_ERR_UNIQUE_VIOLATION) {
       return await insertProject(
         db,
         input,
