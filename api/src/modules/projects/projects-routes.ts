@@ -7,10 +7,12 @@ import {
   deleteProjectRouteSchema,
   getProjectRouteSchema,
   leaderboardRouteSchema,
+  listFavoriteProjectsRouteSchema,
   listMyProjectsRouteSchema,
   listProjectsRouteSchema,
   publishProjectRouteSchema,
   toggleUpvoteRouteSchema,
+  toggleFavoriteRouteSchema,
   updateProjectRouteSchema,
 } from "./projects-schemas";
 
@@ -56,6 +58,12 @@ export async function projectsRoutes(server: FastifyInstance) {
     handler: projectsController.listMyProjectsHandler,
   });
 
+  server.get("/favorites", {
+    schema: listFavoriteProjectsRouteSchema,
+    preHandler: authenticate,
+    handler: projectsController.listFavoriteProjectsHandler,
+  });
+
   server.get("/:slug", {
     schema: getProjectRouteSchema,
     handler: projectsController.getProjectHandler,
@@ -75,5 +83,11 @@ export async function projectsRoutes(server: FastifyInstance) {
     },
     preHandler: authenticate,
     handler: projectsController.toggleUpvoteHandler,
+  });
+
+  server.post("/:id/favorite", {
+    schema: toggleFavoriteRouteSchema,
+    preHandler: authenticate,
+    handler: projectsController.toggleFavoriteHandler,
   });
 }

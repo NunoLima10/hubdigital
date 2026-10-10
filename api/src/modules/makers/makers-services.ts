@@ -9,6 +9,7 @@ import { MakerProfileUpdate } from "@hubdigital/shared";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { PostgresError } from "postgres";
+import type { MakerPreferences } from "./makers-schemas";
 
 /**
  * Derives a URL-safe handle from a display name, falling back to a generic stem
@@ -140,6 +141,46 @@ async function findUserName(db: DB, userId: string) {
   return user?.name ?? "";
 }
 
+const preferenceColumns = {
+  profileResponse: true,
+  objectiveResponse: true,
+  locationResponse: true,
+  diasporaCountry: true,
+  foundUsByResponse: true,
+} as const;
+
+async function getPreferences(db: DB, userId: string) {
+  return db.query.publishers.findFirst({
+    where: eq(publishers.userId, userId),
+    columns: preferenceColumns,
+  });
+}
+
+async function updatePreferences(
+  db: DB,
+  userId: string,
+  input: MakerPreferences,
+) {
+  const preferences = {
+    ...input,
+    diasporaCountry:
+      input.locationResponse === "diaspora" ? input.diasporaCountry : null,
+  };
+  const [updated] = await db
+    .update(publishers)
+    .set({ ...preferences, updatedAt: new Date().toISOString() })
+    .where(eq(publishers.userId, userId))
+    .returning({
+      profileResponse: publishers.profileResponse,
+      objectiveResponse: publishers.objectiveResponse,
+      locationResponse: publishers.locationResponse,
+      diasporaCountry: publishers.diasporaCountry,
+      foundUsByResponse: publishers.foundUsByResponse,
+    });
+
+  return updated ?? null;
+}
+
 export const MakersService = {
   getProfileByHandle: errorLogger(
     getProfileByHandle,
@@ -151,6 +192,11 @@ export const MakersService = {
   ),
   updateProfile: errorLogger(updateProfile, "makersService.updateProfile"),
   findUserName: errorLogger(findUserName, "makersService.findUserName"),
+  getPreferences: errorLogger(getPreferences, "makersService.getPreferences"),
+  updatePreferences: errorLogger(
+    updatePreferences,
+    "makersService.updatePreferences",
+  ),
   generateUniqueHandle: errorLogger(
     generateUniqueHandle,
     "makersService.generateUniqueHandle"

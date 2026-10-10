@@ -1,16 +1,16 @@
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCategories } from "@/modules/submit/hooks/use-categories";
 import { islandOptions, pricingOptions } from "@/modules/submit/options";
 import type { Island } from "@hubdigital/shared";
-import {
-  Button,
-  CloseButton,
-  Group,
-  Select,
-  TextInput,
-} from "@mantine/core";
-import { useDebouncedCallback } from "@mantine/hooks";
-import { IconSearch } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 export type ProjectFilterValues = {
   q?: string;
@@ -19,106 +19,162 @@ export type ProjectFilterValues = {
   pricing?: "free" | "freemium" | "paid";
 };
 
-type ProjectFiltersProps = {
+type FilterOption = { value: string; label: string };
+
+function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+  portalContainer,
+}: {
+  label: string;
+  value: string;
+  options: FilterOption[];
+  onChange: (value: string) => void;
+  portalContainer: RefObject<HTMLElement | null>;
+}) {
+  return (
+    <Select
+      items={options}
+      value={value}
+      onValueChange={(next) => onChange(next ?? "all")}
+    >
+      <SelectTrigger
+        aria-label={label}
+        className="w-full min-w-0 rounded-md bg-background"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent
+        portalContainer={portalContainer}
+        alignItemWithTrigger={false}
+        align="start"
+        className="max-h-64 w-max min-w-56 max-w-[calc(100vw-2rem)] rounded-lg p-1 shadow-lg ring-1 ring-border"
+      >
+        {options.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={option.value}
+            className="rounded-md"
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+export function ProjectFilters({
+  value,
+  onChange,
+  autoFocusSearch = false,
+  portalContainer,
+}: {
   value: ProjectFilterValues;
   onChange: (next: ProjectFilterValues) => void;
-};
-
-export function ProjectFilters({ value, onChange }: ProjectFiltersProps) {
+  autoFocusSearch?: boolean;
+  portalContainer: RefObject<HTMLElement | null>;
+}) {
   const { data: categories } = useCategories();
   const [query, setQuery] = useState(value.q ?? "");
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchInput = useRef<HTMLInputElement>(null);
+  const latestValue = useRef(value);
+  latestValue.current = value;
 
-  // Keep the field in step when the URL changes from outside (back button,
-  // a shared link, the clear button).
   useEffect(() => {
-    setQuery(value.q ?? "");
-  }, [value.q]);
-
-  // Typing shouldn't fire a request per keystroke.
-  const commitQuery = useDebouncedCallback((next: string) => {
-    onChange({ ...value, q: next || undefined });
-  }, 350);
-
-  const categoryOptions =
-    categories?.map((category) => ({
-      value: String(category.id),
-      label: category.name,
-    })) ?? [];
-
-  const hasFilters = Boolean(
-    value.q || value.island || value.categoryId || value.pricing
+    if (!autoFocusSearch) return;
+    const frame = requestAnimationFrame(() => searchInput.current?.focus());
+    return () => cancelAnimationFrame(frame);
+  }, [autoFocusSearch]);
+  useEffect(() => setQuery(value.q ?? ""), [value.q]);
+  useEffect(
+    () => () => {
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
   );
 
+  function changeQuery(next: string) {
+    setQuery(next);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(
+      () => onChange({ ...latestValue.current, q: next.trim() || undefined }),
+      350,
+    );
+  }
+
+  const islandItems = [
+    { value: "all", label: "Todas as ilhas" },
+    ...islandOptions,
+  ];
+  const categoryItems = [
+    { value: "all", label: "Categorias" },
+    ...(categories ?? []).map((category) => ({
+      value: String(category.id),
+      label: category.name,
+    })),
+  ];
+  const pricingItems = [{ value: "all", label: "Preço" }, ...pricingOptions];
+
   return (
-    <Group gap="sm" align="flex-end" wrap="wrap">
-      <TextInput
-        placeholder="Procurar projetos..."
-        leftSection={<IconSearch size={16} />}
-        value={query}
-        onChange={(event) => {
-          setQuery(event.currentTarget.value);
-          commitQuery(event.currentTarget.value);
-        }}
-        rightSection={
-          query ? (
-            <CloseButton
-              size="sm"
-              onClick={() => {
-                setQuery("");
-                onChange({ ...value, q: undefined });
-              }}
-            />
-          ) : null
-        }
-        style={{ flex: 1, minWidth: 220 }}
-      />
-
-      <Select
-        placeholder="Ilha"
-        data={islandOptions}
-        value={value.island ?? null}
-        onChange={(island) =>
-          onChange({ ...value, island: (island as Island) ?? undefined })
-        }
-        clearable
-        searchable
-        w={160}
-      />
-
-      <Select
-        placeholder="Categoria"
-        data={categoryOptions}
-        value={value.categoryId ? String(value.categoryId) : null}
-        onChange={(categoryId) =>
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1.4fr_1fr]">
+      <label className="relative col-span-full">
+        <span className="sr-only">Procurar projetos</span>
+        <Search className="pointer-events-none absolute left-3 top-2.5 size-4 text-muted-foreground" />
+        <Input
+          ref={searchInput}
+          className="pl-9"
+          placeholder="Procurar projetos..."
+          value={query}
+          onChange={(event) => changeQuery(event.currentTarget.value)}
+        />
+      </label>
+      <FilterSelect
+        label="Ilha"
+        value={value.island ?? "all"}
+        options={islandItems}
+        onChange={(next) =>
           onChange({
             ...value,
-            categoryId: categoryId ? Number(categoryId) : undefined,
+            island: next === "all" ? undefined : (next as Island),
           })
         }
-        clearable
-        searchable
-        w={190}
+        portalContainer={portalContainer}
       />
-
-      <Select
-        placeholder="Preço"
-        data={pricingOptions}
-        value={value.pricing ?? null}
-        onChange={(pricing) =>
+      <FilterSelect
+        label="Categoria"
+        value={
+          value.categoryId === undefined ? "all" : String(value.categoryId)
+        }
+        options={categoryItems}
+        onChange={(next) =>
           onChange({
             ...value,
-            pricing: (pricing as ProjectFilterValues["pricing"]) ?? undefined,
+            categoryId: next === "all" ? undefined : Number(next),
           })
         }
-        clearable
-        w={140}
+        portalContainer={portalContainer}
       />
-
-      {hasFilters && (
-        <Button variant="subtle" onClick={() => onChange({})}>
-          Limpar
-        </Button>
-      )}
-    </Group>
+      <div className="col-span-full sm:col-span-1">
+        <FilterSelect
+          label="Preço"
+          value={value.pricing ?? "all"}
+          options={pricingItems}
+          onChange={(next) =>
+            onChange({
+              ...value,
+              pricing:
+                next === "all"
+                  ? undefined
+                  : (next as ProjectFilterValues["pricing"]),
+            })
+          }
+          portalContainer={portalContainer}
+        />
+      </div>
+    </div>
   );
 }

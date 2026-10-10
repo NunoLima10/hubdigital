@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { z } from "zod";
 import {
+  diasporaCountryValues,
   foundUsByQuestionValues,
   locationQuestionValues,
   objectiveQuestionValues,
@@ -15,6 +16,7 @@ const schema = z.object({
   profileResponse: z.enum(profileQuestionValues),
   objectiveResponse: z.enum(objectiveQuestionValues),
   locationResponse: z.enum(locationQuestionValues),
+  diasporaCountry: z.enum(diasporaCountryValues).optional(),
   foundUsByResponse: z.enum(foundUsByQuestionValues),
 });
 

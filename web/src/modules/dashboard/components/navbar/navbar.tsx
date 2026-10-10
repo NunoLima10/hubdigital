@@ -1,55 +1,40 @@
-import { Badge, Space, Stack } from "@mantine/core";
-
-import {
-  IconChartBarPopular,
-  IconHeart,
-  IconRocket,
-  IconSettings,
-  IconUser,
-} from "@tabler/icons-react";
+import { BarChart3, Heart, Rocket, Settings, UserRound } from "lucide-react";
 import { NavLink } from "../nav-link/nav-link";
 
 export function DashboardNav() {
   return (
-    <Stack gap={"xxs"}>
-      <Badge c={"dimmed"} variant="transparent">
-        WORKSPACE
-      </Badge>
-      <Stack gap={"xxs"}>
-        <NavLink
-          to="/dashboard/releases"
-          title="Lançamentos"
-          icon={<IconRocket size={18} />}
-        />
-        <NavLink
-          to="/dashboard/metrics"
-          title="Métricas"
-          icon={<IconChartBarPopular size={18} />}
-        />
-      </Stack>
-      <Space h={"sm"}></Space>
-      <Badge c={"dimmed"} variant="transparent">
+    <nav aria-label="Dashboard" className="space-y-1">
+      <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Workspace
+      </p>
+      <NavLink
+        to="/dashboard/releases"
+        title="Lançamentos"
+        icon={<Rocket className="size-4" />}
+      />
+      <NavLink
+        to="/dashboard/metrics"
+        title="Métricas"
+        icon={<BarChart3 className="size-4" />}
+      />
+      <p className="px-3 pb-1 pt-5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Minha conta
-      </Badge>
-      <Stack gap={"xxs"}>
-        <NavLink
-          to="/dashboard/profile"
-          title="Perfil"
-          icon={<IconUser size={18} />}
-        />
-        <NavLink
-          to="/onboarding"
-          title="Favoritos"
-          icon={<IconHeart size={18} />}
-          disabled
-        />
-        <NavLink
-          to="/onboarding"
-          title="Configurações"
-          icon={<IconSettings size={18} />}
-          disabled
-        />
-      </Stack>
-    </Stack>
+      </p>
+      <NavLink
+        to="/dashboard/profile"
+        title="Perfil"
+        icon={<UserRound className="size-4" />}
+      />
+      <NavLink
+        to="/dashboard/favorites"
+        title="Favoritos"
+        icon={<Heart className="size-4" />}
+      />
+      <NavLink
+        to="/dashboard/preferences"
+        title="Preferências"
+        icon={<Settings className="size-4" />}
+      />
+    </nav>
   );
 }

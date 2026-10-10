@@ -1,8 +1,9 @@
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { COMMENT_MAX_LENGTH } from "@hubdigital/shared";
-import { Button, Flex, Stack, Textarea } from "@mantine/core";
 import { useState } from "react";
 
-type CommentComposerProps = {
+type Props = {
   onSubmit: (body: string) => void;
   isPending?: boolean;
   placeholder?: string;
@@ -11,7 +12,6 @@ type CommentComposerProps = {
   initialValue?: string;
   autoFocus?: boolean;
 };
-
 export function CommentComposer({
   onSubmit,
   isPending,
@@ -20,46 +20,45 @@ export function CommentComposer({
   onCancel,
   initialValue = "",
   autoFocus,
-}: CommentComposerProps) {
+}: Props) {
   const [body, setBody] = useState(initialValue);
-
   const trimmed = body.trim();
   const isTooLong = trimmed.length > COMMENT_MAX_LENGTH;
   const canSubmit = trimmed.length > 0 && !isTooLong && !isPending;
-
-  function handleSubmit() {
+  function submit() {
     if (!canSubmit) return;
-
     onSubmit(trimmed);
     setBody("");
   }
-
   return (
-    <Stack gap="xs">
+    <div className="space-y-2">
       <Textarea
         value={body}
         onChange={(event) => setBody(event.currentTarget.value)}
         placeholder={placeholder}
-        autosize
-        minRows={2}
-        maxRows={8}
         autoFocus={autoFocus}
-        error={
-          isTooLong
-            ? `Máximo de ${COMMENT_MAX_LENGTH} caracteres.`
-            : undefined
-        }
+        aria-invalid={isTooLong}
       />
-      <Flex justify="flex-end" gap="xs">
+      {isTooLong && (
+        <p className="text-xs text-destructive">
+          Máximo de {COMMENT_MAX_LENGTH} caracteres.
+        </p>
+      )}
+      <div className="flex justify-end gap-2">
         {onCancel && (
-          <Button variant="default" size="xs" onClick={onCancel} disabled={isPending}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onCancel}
+            disabled={isPending}
+          >
             Cancelar
           </Button>
         )}
-        <Button size="xs" onClick={handleSubmit} disabled={!canSubmit} loading={isPending}>
-          {submitLabel}
+        <Button size="sm" onClick={submit} disabled={!canSubmit}>
+          {isPending ? "A guardar..." : submitLabel}
         </Button>
-      </Flex>
-    </Stack>
+      </div>
+    </div>
   );
 }

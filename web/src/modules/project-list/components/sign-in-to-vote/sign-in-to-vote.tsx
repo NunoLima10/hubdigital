@@ -1,5 +1,5 @@
 import { LoginButton } from "@/components/login-button/login-button";
-import { Modal, Stack, Text } from "@mantine/core";
+import { Dialog } from "@/components/ui/dialog";
 
 type SignInToVoteProps = {
   opened: boolean;
@@ -13,14 +13,14 @@ type SignInToVoteProps = {
  */
 export function SignInToVote({ opened, onClose }: SignInToVoteProps) {
   return (
-    <Modal opened={opened} onClose={onClose} title="Entra para votar" centered>
-      <Stack>
-        <Text size="sm">
+    <Dialog open={opened} onClose={onClose} title="Entra para votar">
+      <div className="space-y-4">
+        <p className="text-sm leading-6">
           Os votos definem o ranking da semana, por isso cada pessoa vota uma
           vez. Entra na tua conta e o teu voto é registado automaticamente.
-        </Text>
+        </p>
         <LoginButton />
-      </Stack>
-    </Modal>
+      </div>
+    </Dialog>
   );
 }

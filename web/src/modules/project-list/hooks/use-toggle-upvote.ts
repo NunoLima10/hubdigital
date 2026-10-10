@@ -8,7 +8,7 @@ type ToggleUpvoteResponse = { upvoted: boolean; upvoteCount: number };
 
 async function toggleUpvote(projectId: number) {
   const response = await API.post<ItemResponse<ToggleUpvoteResponse>>(
-    `/projects/${projectId}/upvote`
+    `/projects/${projectId}/upvote`,
   );
   return response.data.data;
 }
@@ -43,9 +43,9 @@ export function useToggleUpvote() {
           current && {
             ...current,
             data: current.data.map((project) =>
-              project.id === projectId ? patchProject(project) : project
+              project.id === projectId ? patchProject(project) : project,
             ),
-          }
+          },
       );
 
       return { previous };
@@ -70,10 +70,11 @@ export function useToggleUpvote() {
                     hasUpvoted: result.upvoted,
                     upvoteCount: result.upvoteCount,
                   }
-                : project
+                : project,
             ),
-          }
+          },
       );
+      void queryClient.invalidateQueries({ queryKey: ["project"] });
     },
     meta: {
       errorMessage: "Erro ao votar no projeto",

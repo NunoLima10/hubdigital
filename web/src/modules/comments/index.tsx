@@ -1,6 +1,6 @@
 import { LoginButton } from "@/components/login-button/login-button";
+import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { authClient } from "@/lib/auth-client";
-import { Box, Divider, Group, Skeleton, Stack, Text, Title } from "@mantine/core";
 import { CommentComposer } from "./components/comment-composer/comment-composer";
 import { CommentItem } from "./components/comment-item/comment-item";
 import {
@@ -10,70 +10,58 @@ import {
   useUpdateComment,
 } from "./hooks/use-comments";
 
-type CommentsProps = {
-  slug: string;
-};
-
-export function Comments({ slug }: CommentsProps) {
+export function Comments({ slug }: { slug: string }) {
   const { data, isLoading, isError } = useComments(slug);
+  const showLoading = useDelayedLoading(isLoading);
   const { data: session } = authClient.useSession();
-
   const { createComment, isPending: isCreating } = useCreateComment(slug);
   const { updateComment, isPending: isUpdating } = useUpdateComment(slug);
   const { deleteComment, isPending: isDeleting } = useDeleteComment(slug);
-
   const isPending = isCreating || isUpdating || isDeleting;
   const total =
-    data?.reduce((count, comment) => count + 1 + comment.replies.length, 0) ?? 0;
-
+    data?.reduce((count, comment) => count + 1 + comment.replies.length, 0) ??
+    0;
   return (
-    <Stack gap="md">
-      <Divider />
-      <Group gap="xs" align="baseline">
-        <Title order={4}>Comentários</Title>
-        {total > 0 && (
-          <Text c="dimmed" size="sm">
-            {total}
-          </Text>
-        )}
-      </Group>
-
+    <section
+      aria-labelledby="comments-title"
+      className="space-y-5 border-t pt-6"
+    >
+      <h2 id="comments-title" className="text-lg font-semibold">
+        Comentários{" "}
+        <span className="text-sm font-normal text-muted-foreground">
+          {total || ""}
+        </span>
+      </h2>
       {session ? (
         <CommentComposer
           onSubmit={(body) => createComment({ body })}
           isPending={isCreating}
         />
       ) : (
-        <Group gap="sm">
-          <Text size="sm" c="dimmed">
-            Entra na tua conta para comentar.
-          </Text>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          Entra na tua conta para comentar.
           <LoginButton />
-        </Group>
+        </div>
       )}
-
-      {isLoading && (
-        <Stack gap="md">
-          <Skeleton h={56} radius="sm" />
-          <Skeleton h={56} radius="sm" />
-        </Stack>
+      {showLoading && (
+        <div className="space-y-3" aria-label="A carregar comentários">
+          <div className="h-14 animate-pulse rounded bg-muted" />
+          <div className="h-14 animate-pulse rounded bg-muted" />
+        </div>
       )}
-
       {isError && (
-        <Text c="dimmed" size="sm">
+        <p className="text-sm text-muted-foreground">
           Não foi possível carregar os comentários.
-        </Text>
+        </p>
       )}
-
-      {data && data.length === 0 && (
-        <Text c="dimmed" size="sm">
+      {data?.length === 0 && (
+        <p className="text-sm text-muted-foreground">
           Ainda não há comentários. Sê o primeiro a dar feedback.
-        </Text>
+        </p>
       )}
-
-      <Stack gap="lg">
+      <div className="space-y-6">
         {data?.map((comment) => (
-          <Stack key={comment.id} gap="md">
+          <div key={comment.id} className="space-y-4">
             <CommentItem
               comment={comment}
               canReply={Boolean(session)}
@@ -82,27 +70,24 @@ export function Comments({ slug }: CommentsProps) {
               onEdit={(id, body) => updateComment({ id, body })}
               onDelete={deleteComment}
             />
-
             {comment.replies.length > 0 && (
-              <Box pl={40}>
-                <Stack gap="md">
-                  {comment.replies.map((reply) => (
-                    <CommentItem
-                      key={reply.id}
-                      comment={reply}
-                      isReply
-                      canReply={false}
-                      isPending={isPending}
-                      onEdit={(id, body) => updateComment({ id, body })}
-                      onDelete={deleteComment}
-                    />
-                  ))}
-                </Stack>
-              </Box>
+              <div className="space-y-4 pl-8 sm:pl-12">
+                {comment.replies.map((reply) => (
+                  <CommentItem
+                    key={reply.id}
+                    comment={reply}
+                    isReply
+                    canReply={false}
+                    isPending={isPending}
+                    onEdit={(id, body) => updateComment({ id, body })}
+                    onDelete={deleteComment}
+                  />
+                ))}
+              </div>
             )}
-          </Stack>
+          </div>
         ))}
-      </Stack>
-    </Stack>
+      </div>
+    </section>
   );
 }

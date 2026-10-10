@@ -1,8 +1,20 @@
+import { ProjectBanner } from "@/components/project-banner/project-banner";
+import { Button } from "@/components/ui/button";
+import {
+  ProjectSummary,
+  ProjectVoteButton,
+} from "@/components/project-summary/project-summary";
+import { authClient } from "@/lib/auth-client";
+import { SignInToVote } from "@/modules/project-list/components/sign-in-to-vote/sign-in-to-vote";
+import { useToggleUpvote } from "@/modules/project-list/hooks/use-toggle-upvote";
 import { ModerationNotice } from "@/modules/releases/components/moderation-notice/moderation-notice";
 import { ReportButton } from "@/modules/reports/components/report-button/report-button";
+import {
+  useFavorites,
+  useToggleFavorite,
+} from "@/modules/favorites/hooks/use-favorites";
 import { useTrackProjectView } from "@/modules/project-stats/hooks/use-track-project-view";
 import { trackProjectEvent } from "@/modules/project-stats/utils/track-project-event";
-import { ProjectBanner } from "@/components/project-banner/project-banner";
 import {
   accessLabels,
   audienceLabels,
@@ -11,127 +23,183 @@ import {
   pricingLabels,
   projectStageLabels,
 } from "@/modules/submit/options";
-import { Project } from "@/modules/submit/types/project";
+import type { Project } from "@/modules/submit/types/project";
 import { formatLocation } from "@hubdigital/shared";
-import { CategoriesDisplay } from "@/modules/submit/ui/components/categories-diplay/categories-display";
-import {
-  ActionIcon,
-  Box,
-  Button,
-  Flex,
-  Group,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
-import {
-  IconBrandGithub,
-  IconExternalLink,
-} from "@tabler/icons-react";
+import { ExternalLink, Github, Heart, Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ProjectAuthorRow } from "../project-author/project-author";
-import classes from "./project-detail-view.module.css";
 
-type ProjectDetailViewProps = {
-  project: Project;
-};
+function MetadataRow({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex justify-between gap-4 border-b py-3 text-sm">
+      <dt className="shrink-0 text-muted-foreground">{label}</dt>
+      <dd className="text-right font-medium">{children}</dd>
+    </div>
+  );
+}
 
-export function ProjectDetailView({ project }: ProjectDetailViewProps) {
-  const categoryBadges = project.category ? [project.category.name] : [];
-
+export function ProjectDetailView({ project }: { project: Project }) {
   useTrackProjectView(project.id);
+  const { data: session } = authClient.useSession();
+  const { toggleUpvote, pendingProjectId } = useToggleUpvote();
+  const [voteAfterSignIn, setVoteAfterSignIn] = useState(false);
+
+  useEffect(() => {
+    if (session && voteAfterSignIn && !project.hasUpvoted) {
+      toggleUpvote(project.id);
+      setVoteAfterSignIn(false);
+    }
+  }, [session, voteAfterSignIn, project.id, project.hasUpvoted, toggleUpvote]);
 
   return (
-    <Stack gap="lg">
+    <div className="space-y-6">
       <ModerationNotice project={project} />
+      <ProjectSummary
+        iconUrl={project.logoUrl}
+        description={project.shortDescription}
+        topics={[
+          ...(project.category ? [project.category.name] : []),
+          ...project.platform.map((platform) => platformLabels[platform]),
+        ]}
+        title={
+          <h1 className="text-xl font-semibold tracking-tight sm:text-2xl">
+            {project.name}
+          </h1>
+        }
+        actions={
+          <ProjectVoteButton
+            title={project.name}
+            count={project.upvoteCount}
+            active={project.hasUpvoted}
+            disabled={pendingProjectId === project.id}
+            onClick={() =>
+              session ? toggleUpvote(project.id) : setVoteAfterSignIn(true)
+            }
+          />
+        }
+      />
+      <ProjectBanner bannerUrl={project.bannerImageUrl} />
+      <section aria-labelledby="about-project-title">
+        <h2 id="about-project-title" className="text-lg font-semibold">
+          Sobre o projeto
+        </h2>
+        {project.description ? (
+          <div
+            className="prose-project mt-3 text-sm"
+            dangerouslySetInnerHTML={{ __html: project.description }}
+          />
+        ) : (
+          <p className="mt-3 text-sm leading-7 text-muted-foreground">
+            {project.shortDescription}
+          </p>
+        )}
+      </section>
+      <SignInToVote
+        opened={!session && voteAfterSignIn}
+        onClose={() => setVoteAfterSignIn(false)}
+      />
+    </div>
+  );
+}
 
-      <Flex justify="space-between" align="flex-start" wrap="wrap" gap="md">
-        <Stack gap={6}>
-          <Title order={2}>{project.name}</Title>
-          <ProjectAuthorRow author={project.author} />
-        </Stack>
-        <Group gap="xs">
-          {project.githubUrl && (
-            <ActionIcon
-              component="a"
-              href={project.githubUrl}
-              target="_blank"
-              rel="noreferrer"
-              variant="default"
-              size="lg"
-              aria-label="GitHub"
-            >
-              <IconBrandGithub size={18} />
-            </ActionIcon>
-          )}
-          <Button
-            component="a"
-            href={project.websiteUrl}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => trackProjectEvent(project.id, "visit")}
-            rightSection={<IconExternalLink size={16} />}
-          >
-            Visitar site
-          </Button>
-        </Group>
-      </Flex>
+export function ProjectDetailSidebar({ project }: { project: Project }) {
+  const { data: session } = authClient.useSession();
+  const { data: favorites } = useFavorites(Boolean(session));
+  const { toggleFavorite, pendingProjectId } = useToggleFavorite();
+  const favorited = favorites?.data.some((item) => item.id === project.id) ?? false;
 
-      <Group gap="xs" justify="flex-end">
+  function share() {
+    if (navigator.share)
+      void navigator.share({ title: project.name, url: location.href });
+    else void navigator.clipboard.writeText(location.href);
+  }
+  return (
+    <div className="space-y-6">
+      <section>
+        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          Publicado por
+        </h2>
+        <ProjectAuthorRow author={project.author} />
+      </section>
+      <a
+        href={project.websiteUrl}
+        target="_blank"
+        rel="noreferrer"
+        onClick={() => trackProjectEvent(project.id, "visit")}
+        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85"
+      >
+        <ExternalLink className="size-4" />
+        Visitar projeto
+      </a>
+      <dl>
+        {project.launchedAt && (
+          <MetadataRow label="Lançamento">
+            {new Date(project.launchedAt).toLocaleDateString("pt-CV")}
+          </MetadataRow>
+        )}
+        <MetadataRow label="Categoria">
+          {project.category?.name ?? "—"}
+        </MetadataRow>
+        <MetadataRow label="Localização">
+          {project.location ? formatLocation(project.location) : "—"}
+        </MetadataRow>
+        <MetadataRow label="Preço">
+          {pricingLabels[project.pricing]}
+        </MetadataRow>
+        <MetadataRow label="Maturidade">
+          {projectStageLabels[project.projectStage]}
+        </MetadataRow>
+        <MetadataRow label="Público-alvo">
+          {audienceLabels[project.audienceStage]}
+        </MetadataRow>
+        <MetadataRow label="Modelo de negócio">
+          {businessModelLabels[project.businessModel]}
+        </MetadataRow>
+        <MetadataRow label="Acesso">{accessLabels[project.access]}</MetadataRow>
+        <MetadataRow label="Plataformas">
+          {project.platform
+            .map((platform) => platformLabels[platform])
+            .join(", ")}
+        </MetadataRow>
+      </dl>
+      {project.githubUrl && (
+        <a
+          href={project.githubUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+        >
+          <Github className="size-4" />
+          Ver código no GitHub
+        </a>
+      )}
+      {session && (
+        <Button
+          variant="outline"
+          className="w-full"
+          disabled={pendingProjectId === project.id}
+          onClick={() => toggleFavorite(project.id)}
+        >
+          <Heart className={favorited ? "fill-current" : undefined} />
+          {favorited ? "Remover dos favoritos" : "Guardar nos favoritos"}
+        </Button>
+      )}
+      <div className="flex gap-2">
+        <button
+          onClick={share}
+          className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md border text-sm hover:bg-muted"
+        >
+          <Share2 className="size-4" />
+          Partilhar
+        </button>
         <ReportButton targetType="project" targetId={project.id} size="sm" />
-      </Group>
-
-      <div className={classes.grid}>
-        <ProjectBanner bannerUrl={project.bannerImageUrl} className={classes.banner} />
-
-        <Stack gap="lg">
-          <Stack gap="xxs">
-            <Text fw={600}>Sobre o projeto</Text>
-            {project.description ? (
-              <Box dangerouslySetInnerHTML={{ __html: project.description }} />
-            ) : (
-              <Text c="dimmed">{project.shortDescription}</Text>
-            )}
-          </Stack>
-
-          <Stack gap="xxs">
-            <Text fw={600}>Mais</Text>
-            <SimpleGrid cols={{ base: 2, xs: 3 }} spacing="sm">
-              <CategoriesDisplay label="Categoria" badges={categoryBadges} />
-              <CategoriesDisplay
-                label="Localização"
-                badges={
-                  project.location ? [formatLocation(project.location)] : []
-                }
-              />
-              <CategoriesDisplay
-                label="Preço"
-                badges={[pricingLabels[project.pricing]]}
-              />
-              <CategoriesDisplay
-                label="Maturidade"
-                badges={[projectStageLabels[project.projectStage]]}
-              />
-              <CategoriesDisplay
-                label="Público-alvo"
-                badges={[audienceLabels[project.audienceStage]]}
-              />
-              <CategoriesDisplay
-                label="Modelo de negócio"
-                badges={[businessModelLabels[project.businessModel]]}
-              />
-              <CategoriesDisplay
-                label="Acesso"
-                badges={[accessLabels[project.access]]}
-              />
-              <CategoriesDisplay
-                label="Plataformas"
-                badges={project.platform.map((p) => platformLabels[p])}
-              />
-            </SimpleGrid>
-          </Stack>
-        </Stack>
       </div>
-    </Stack>
+    </div>
   );
 }

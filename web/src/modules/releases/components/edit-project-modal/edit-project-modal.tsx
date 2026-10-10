@@ -1,31 +1,27 @@
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 import {
   createProjectSchema,
   toCreateProjectPayload,
 } from "@/modules/submit/hooks/use-create-project";
 import { useUpdateProject } from "@/modules/submit/hooks/use-update-project";
-import { CreateProjectInput, Project } from "@/modules/submit/types/project";
+import type {
+  CreateProjectInput,
+  Project,
+} from "@/modules/submit/types/project";
 import { locationToFormValue } from "@/modules/submit/utils/location";
 import { ProjectCategories } from "@/modules/submit/ui/container/project-categories/project-categories";
 import { ProjectForm } from "@/modules/submit/ui/container/project-form/project-form";
-import { Button, Divider, Flex, Modal, Stack } from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { zodResolver } from "mantine-form-zod-resolver";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, type Resolver } from "react-hook-form";
 
-type EditProjectModalProps = {
-  project: Project | null;
-  onClose: () => void;
-};
-
-function projectToFormValues(project: Project): CreateProjectInput {
+function toValues(project: Project): CreateProjectInput {
   return {
     name: project.name,
     shortDescription: project.shortDescription,
     description: project.description ?? "",
     websiteUrl: project.websiteUrl,
     githubUrl: project.githubUrl ?? "",
-    // Left undefined on purpose: the API hands back resolved public URLs, not the
-    // storage keys the form submits. Undefined means "keep the saved image"; the
-    // selector shows it via previewUrl until the maker replaces or removes it.
     logoUrl: undefined,
     bannerImageUrl: undefined,
     pricing: project.pricing,
@@ -39,62 +35,72 @@ function projectToFormValues(project: Project): CreateProjectInput {
   };
 }
 
-export function EditProjectModal({ project, onClose }: EditProjectModalProps) {
+export function EditProjectModal({
+  project,
+  onClose,
+}: {
+  project: Project | null;
+  onClose: () => void;
+}) {
   return (
-    <Modal
-      opened={!!project}
+    <Dialog
+      open={Boolean(project)}
       onClose={onClose}
       title="Editar projeto"
-      size="lg"
-      centered
+      className="max-h-[90dvh] w-[min(100%-2rem,48rem)] overflow-y-auto"
     >
-      {project && <EditProjectForm project={project} onClose={onClose} />}
-    </Modal>
+      {project && (
+        <EditProjectForm key={project.id} project={project} onClose={onClose} />
+      )}
+    </Dialog>
   );
 }
 
-type EditProjectFormProps = {
+function EditProjectForm({
+  project,
+  onClose,
+}: {
   project: Project;
   onClose: () => void;
-};
-
-function EditProjectForm({ project, onClose }: EditProjectFormProps) {
+}) {
   const form = useForm<CreateProjectInput>({
-    initialValues: projectToFormValues(project),
-    validate: zodResolver(createProjectSchema),
+    defaultValues: toValues(project),
+    resolver: zodResolver(createProjectSchema, undefined, {
+      raw: true,
+    }) as Resolver<CreateProjectInput>,
   });
-
-  const { updateProject, isPending } = useUpdateProject({
-    onSuccess: onClose,
-  });
-
-  function handleSubmit() {
-    const result = form.validate();
-    if (result.hasErrors) return;
-
-    updateProject({
-      id: project.id,
-      payload: toCreateProjectPayload(form.values),
-    });
-  }
-
+  const { updateProject, isPending } = useUpdateProject({ onSuccess: onClose });
   return (
-    <Stack>
+    <form
+      onSubmit={form.handleSubmit((values) =>
+        updateProject({
+          id: project.id,
+          payload: toCreateProjectPayload(values),
+        }),
+      )}
+      className="space-y-6"
+    >
       <ProjectForm
         form={form}
         logoPreviewUrl={project.logoUrl ?? undefined}
         bannerPreviewUrl={project.bannerImageUrl ?? undefined}
       />
-      <Divider label="Categoria" labelPosition="left" />
-      <ProjectCategories form={form} />
-      <Flex justify="flex-end" gap="sm" mt="md">
-        <Button variant="default" onClick={onClose} disabled={isPending}>
+      <div className="border-t pt-5">
+        <ProjectCategories form={form} />
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+          disabled={isPending}
+        >
           Cancelar
         </Button>
-        <Button onClick={handleSubmit} loading={isPending}>
-          Guardar alterações
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "A guardar..." : "Guardar alterações"}
         </Button>
-      </Flex>
-    </Stack>
+      </div>
+    </form>
   );
 }

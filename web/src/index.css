@@ -1,0 +1,226 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@fontsource-variable/inter";
+
+.leaflet-container {
+  font-family: var(--font-sans);
+}
+
+.project-map.leaflet-container {
+  background: var(--muted);
+}
+
+.dark .project-map-tile {
+  filter: invert(1) hue-rotate(180deg) brightness(0.75) saturate(0.65);
+}
+
+.project-map .leaflet-bar a,
+.project-map .leaflet-control-attribution,
+.project-map .leaflet-tooltip {
+  background: var(--popover);
+  color: var(--popover-foreground);
+  border-color: var(--border);
+}
+
+.project-map .leaflet-bar a:hover {
+  background: var(--accent);
+}
+
+.project-map .leaflet-control-attribution a {
+  color: var(--primary);
+}
+
+.project-map .leaflet-tooltip-top::before {
+  border-top-color: var(--popover);
+}
+
+.project-map-marker-shell {
+  background: transparent;
+  border: 0;
+}
+
+.project-map-marker {
+  position: relative;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  overflow: visible;
+  border: 2px solid var(--background);
+  border-radius: 11px;
+  background: var(--card);
+  color: var(--muted-foreground);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.24);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.project-map-marker:hover,
+.project-map-marker.is-selected {
+  z-index: 10;
+  transform: scale(1.08);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.3), 0 0 0 3px color-mix(in oklch, var(--primary) 55%, transparent);
+}
+
+.project-map-marker img {
+  width: 100%;
+  height: 100%;
+  border-radius: 9px;
+  object-fit: cover;
+}
+
+.project-map-marker svg {
+  width: 21px;
+  height: 21px;
+}
+
+.project-map-marker b {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border: 2px solid var(--background);
+  border-radius: 999px;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 11px;
+  line-height: 18px;
+  text-align: center;
+}
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "Inter Variable", sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  color-scheme: light;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.5 0.134 242.749);
+  --primary-foreground: oklch(0.977 0.013 236.62);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.45rem;
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.685 0.169 237.323);
+  --primary-foreground: oklch(0.293 0.066 243.157);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  html.hub-dialog-scroll-locked {
+    scrollbar-gutter: auto !important;
+    overflow: hidden !important;
+  }
+  html.hub-dialog-scroll-locked body {
+    position: fixed !important;
+    top: calc(-1 * var(--hub-locked-scroll-y, 0px)) !important;
+    left: 0 !important;
+    width: calc(100vw - var(--hub-scrollbar-width, 0px)) !important;
+    height: 100dvh !important;
+    overflow: hidden !important;
+  }
+
+  html.hub-map-fullscreen {
+    overflow: hidden;
+    scrollbar-gutter: auto;
+  }
+
+  html.hub-map-fullscreen body {
+    overflow: hidden;
+  }
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply bg-background font-sans;
+    scrollbar-gutter: stable;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+.prose-project {
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+.prose-project p {
+  margin-block: 0.8em;
+}
+.prose-project ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+.prose-project ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+.prose-project a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.prose-project h2,
+.prose-project h3 {
+  font-weight: 600;
+  margin-block: 1em 0.5em;
+}

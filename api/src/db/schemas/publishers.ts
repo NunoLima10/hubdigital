@@ -5,6 +5,7 @@ import {
   profileQuestionValues,
 } from "@/utils/constants";
 import { InferInsertModel } from "drizzle-orm";
+import type { AbroadCountry } from "@hubdigital/shared";
 import { pgEnum, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { timestamps } from "./timestamps";
 import { users } from "./auth";
@@ -43,6 +44,7 @@ export const publishers = pgTable("publishers", {
   profileResponse: profileResponseEnum("profile_response").notNull(),
   objectiveResponse: objectiveResponseEnum("objective_response").notNull(),
   locationResponse: locationResponseEnum("location_response").notNull(),
+  diasporaCountry: varchar("diaspora_country", { length: 5 }).$type<AbroadCountry>(),
   foundUsByResponse: foundUsByResponseEnum("found_us_by_response").notNull(),
   // A maker staff has vouched for: their publishes skip the review queue while
   // `moderation.auto_approve_trusted` is on.

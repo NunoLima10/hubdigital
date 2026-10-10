@@ -1,21 +1,41 @@
-import { Burger, Collapse, Flex, Stack } from "@mantine/core";
-import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { Profile } from "../profile/profile";
+import { Menu } from "lucide-react";
+import { useRouterState } from "@tanstack/react-router";
+import { useState } from "react";
 import { DashboardNav } from "../navbar/navbar";
 
 export function SideBar() {
-  const [opened, handlers] = useDisclosure(false);
-  const smallScreen = useMediaQuery("(max-width: 88em)");
+  const [open, setOpen] = useState(false);
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+  const pageTitle = pathname.startsWith("/dashboard/metrics")
+    ? "Desempenho"
+    : pathname.startsWith("/dashboard/favorites")
+      ? "Favoritos"
+      : pathname.startsWith("/dashboard/preferences")
+        ? "Preferências"
+    : pathname.startsWith("/dashboard/profile")
+      ? "Perfil público"
+      : pathname.startsWith("/dashboard/submit")
+        ? "Submeter projeto"
+        : "Lançamentos";
 
   return (
-    <Stack>
-      <Flex gap={"md"} justify={"space-between"} align={"center"}>
-        <Profile />
-        {smallScreen && <Burger opened={!opened} onClick={handlers.toggle} />}
-      </Flex>
-      <Collapse in={!opened || !smallScreen}>
+    <div className="rounded-lg border p-4 lg:sticky lg:top-6">
+      <div className="flex items-center justify-between lg:hidden">
+        <h1 className="text-xl font-semibold">{pageTitle}</h1>
+        <button
+          className="rounded p-2 hover:bg-muted lg:hidden"
+          aria-label="Alternar navegação"
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        >
+          <Menu className="size-4" />
+        </button>
+      </div>
+      <div className={`${open ? "block" : "hidden"} lg:block`}>
         <DashboardNav />
-      </Collapse>
-    </Stack>
+      </div>
+    </div>
   );
 }

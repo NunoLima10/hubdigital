@@ -1,5 +1,4 @@
-import { notifications } from "@mantine/notifications";
-import { IconCheck, IconX } from "@tabler/icons-react";
+import { toast } from "sonner";
 import { MutationCache, QueryClient, QueryKey } from "@tanstack/react-query";
 
 declare module "@tanstack/react-query" {
@@ -22,23 +21,13 @@ export function createQueryClient() {
     mutationCache: new MutationCache({
       onSuccess: (_data, _variables, _context, mutation) => {
         if (mutation.meta?.successMessage) {
-          notifications.show({
-            title: "Tudo certo!",
-            message: mutation.meta?.successMessage,
-            icon: <IconCheck />,
-            color: "teal",
-          });
+          toast.success(mutation.meta.successMessage);
         }
       },
 
       onError: (_error, _variables, _context, mutation) => {
         if (mutation.meta?.errorMessage) {
-          notifications.show({
-            title: "Algo Correu mal!",
-            message: mutation.meta?.errorMessage,
-            icon: <IconX />,
-            color: "red",
-          });
+          toast.error(mutation.meta.errorMessage);
         }
       },
 

@@ -1,5 +1,5 @@
-import { Button, Flex, Stack, Tooltip } from "@mantine/core";
-import { PropsWithChildren } from "react";
+import { Button } from "@/components/ui/button";
+import type { PropsWithChildren } from "react";
 import { useSubmitForm } from "../../../hooks/use-submit-form";
 
 export function StepLayout({ children }: PropsWithChildren) {
@@ -14,40 +14,29 @@ export function StepLayout({ children }: PropsWithChildren) {
     isPending,
   } = useSubmitForm();
   return (
-    <Stack mih={400} gap={"xs"} mt={"lg"}>
-      {children}
-      <Flex justify={"flex-end"} gap={"sm"} mt="auto">
+    <div className="flex min-h-96 flex-col gap-6">
+      <div className="flex-1">{children}</div>
+      <div className="flex flex-wrap justify-end gap-2">
         {!isFist && (
-          <Button onClick={previous} variant="default" disabled={isPending}>
+          <Button variant="outline" disabled={isPending} onClick={previous}>
             Voltar
           </Button>
         )}
-        {!isLast && (
-          <Tooltip
-            label="Preencha os campos obrigatórios para continuar"
-            withArrow
-            disabled={canProceed}
-          >
-            <Button onClick={next} disabled={!canProceed}>
-              Proximo
-            </Button>
-          </Tooltip>
-        )}
-        {isLast && (
+        {!isLast ? (
+          <Button disabled={!canProceed} onClick={next}>
+            Próximo
+          </Button>
+        ) : (
           <>
-            <Button
-              onClick={saveDraft}
-              variant="default"
-              disabled={isPending}
-            >
+            <Button variant="outline" disabled={isPending} onClick={saveDraft}>
               Guardar rascunho
             </Button>
-            <Button onClick={publish} loading={isPending}>
-              Publicar Projeto
+            <Button disabled={isPending} onClick={publish}>
+              {isPending ? "A guardar..." : "Publicar projeto"}
             </Button>
           </>
         )}
-      </Flex>
-    </Stack>
+      </div>
+    </div>
   );
 }

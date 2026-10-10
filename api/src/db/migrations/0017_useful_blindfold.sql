@@ -1,0 +1,1 @@
+ALTER TABLE "publishers" ADD COLUMN "diaspora_country" varchar(5);

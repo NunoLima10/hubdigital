@@ -4,8 +4,10 @@ import { FastifyInstance } from "fastify";
 import { makersController } from "./makers-controllers";
 import {
   getMakerRouteSchema,
+  getMakerPreferencesRouteSchema,
   getMyHandleRouteSchema,
   updateMakerRouteSchema,
+  updateMakerPreferencesRouteSchema,
 } from "./makers-schemas";
 
 export async function makersRoutes(server: FastifyInstance) {
@@ -20,6 +22,18 @@ export async function makersRoutes(server: FastifyInstance) {
     schema: updateMakerRouteSchema,
     preHandler: requirePublisher,
     handler: makersController.updateMakerHandler,
+  });
+
+  server.get("/me/preferences", {
+    schema: getMakerPreferencesRouteSchema,
+    preHandler: requirePublisher,
+    handler: makersController.getPreferencesHandler,
+  });
+
+  server.patch("/me/preferences", {
+    schema: updateMakerPreferencesRouteSchema,
+    preHandler: requirePublisher,
+    handler: makersController.updatePreferencesHandler,
   });
 
   server.get("/:handle", {

@@ -1,87 +1,72 @@
-import { Anchor, Button, PasswordInput, Text, TextInput } from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { notifications } from "@mantine/notifications";
-import { IconX } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { zodResolver } from "mantine-form-zod-resolver";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import {
   type EmailSignUpCredentials,
   emailSignUpSchema,
 } from "../../schemas/auth-schema";
 import { useEmailSignUp } from "../../hooks/use-email-sign-up";
 import { AuthCard } from "../auth-card/auth-card";
+import { AuthDivider } from "../auth-divider/auth-divider";
+import { GoogleSignInButton } from "../google-sign-in-button/google-sign-in-button";
 
 export function SignUpForm() {
   const navigate = useNavigate();
-
+  const form = useForm<EmailSignUpCredentials>({
+    resolver: zodResolver(emailSignUpSchema),
+    defaultValues: { email: "", name: "", password: "", confirmPassword: "" },
+  });
   const { emailSignUp, isPending } = useEmailSignUp({
-    onSuccess() {
-      navigate({ to: "/dashboard/releases" });
-    },
-    onError(message) {
-      notifications.show({
-        title: "Algo correu mal!",
-        message,
-        color: "red",
-        icon: <IconX />,
-      });
+    onSuccess: () => navigate({ to: "/dashboard/releases" }),
+    onError: (message) => {
+      toast.error(message);
       form.resetField("password");
       form.resetField("confirmPassword");
     },
   });
-
-  const form = useForm<EmailSignUpCredentials>({
-    initialValues: {
-      email: "",
-      name: "",
-      password: "",
-      confirmPassword: "",
-    },
-    validate: zodResolver(emailSignUpSchema),
-  });
-
   return (
     <AuthCard
       title="Criar uma conta"
-      subtitle="Registe-se para partilhar os seus projetos"
+      subtitle="Regista-te para partilhar os teus projetos"
     >
-      <form onSubmit={form.onSubmit((values) => emailSignUp(values))}>
-        <TextInput
-          label="Nome"
-          required
-          {...form.getInputProps("name")}
-          key={form.key("name")}
-        />
-        <TextInput
-          label="Email"
-          required
-          mt="md"
-          {...form.getInputProps("email")}
-          key={form.key("email")}
-        />
-        <PasswordInput
-          label="Password"
-          required
-          mt="md"
-          {...form.getInputProps("password")}
-          key={form.key("password")}
-        />
-        <PasswordInput
-          label="Confirmar password"
-          required
-          mt="md"
-          {...form.getInputProps("confirmPassword")}
-          key={form.key("confirmPassword")}
-        />
-        <Button loading={isPending} fullWidth mt="md" type="submit">
-          Criar conta
+      <div className="mb-4 space-y-4">
+        <GoogleSignInButton />
+        <AuthDivider />
+      </div>
+      <form
+        onSubmit={form.handleSubmit((values) => emailSignUp(values))}
+        className="space-y-4"
+      >
+        {(
+          [
+            ["name", "Nome", "text"],
+            ["email", "Email", "email"],
+            ["password", "Password", "password"],
+            ["confirmPassword", "Confirmar password", "password"],
+          ] as const
+        ).map(([name, label, type]) => (
+          <label key={name} className="block space-y-1.5 text-sm font-medium">
+            {label}
+            <Input type={type} required {...form.register(name)} />
+            {form.formState.errors[name] && (
+              <span className="text-xs text-destructive">
+                {form.formState.errors[name]?.message}
+              </span>
+            )}
+          </label>
+        ))}
+        <Button type="submit" disabled={isPending} className="w-full">
+          {isPending ? "A criar..." : "Criar conta"}
         </Button>
-        <Text ta="center" c="dimmed" size="sm" mt="xs">
-          Já tem uma conta?{" "}
-          <Anchor component={Link} to="/sign-in" size="sm">
+        <p className="text-center text-sm text-muted-foreground">
+          Já tens conta?{" "}
+          <Link to="/sign-in" className="text-primary hover:underline">
             Iniciar sessão
-          </Anchor>
-        </Text>
+          </Link>
+        </p>
       </form>
     </AuthCard>
   );

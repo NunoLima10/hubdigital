@@ -1,145 +1,102 @@
-import { useMaker, useMyHandle, useUpdateMaker } from "../../hooks/use-maker";
+import { Button } from "@/components/ui/button";
+import { useDelayedLoading } from "@/hooks/use-delayed-loading";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { makerProfileUpdateSchema } from "@hubdigital/shared";
-import {
-  Anchor,
-  Button,
-  Flex,
-  Group,
-  Skeleton,
-  Stack,
-  Text,
-  TextInput,
-  Textarea,
-  Title,
-} from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { zodResolver } from "mantine-form-zod-resolver";
-import { Link } from "@tanstack/react-router";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
+import { useForm, type Resolver } from "react-hook-form";
+import { useMaker, useMyHandle, useUpdateMaker } from "../../hooks/use-maker";
 
-type ProfileFormValues = {
-  handle: string;
+type Values = {
   bio: string;
   websiteUrl: string;
   githubUrl: string;
   linkedinUrl: string;
 };
-
-const emptyValues: ProfileFormValues = {
-  handle: "",
+const empty: Values = {
   bio: "",
   websiteUrl: "",
   githubUrl: "",
   linkedinUrl: "",
 };
-
 export function ProfileForm() {
-  const { data: handle, isLoading: isLoadingHandle } = useMyHandle();
-  const { data: profile, isLoading: isLoadingProfile } = useMaker(
-    handle ?? undefined
+  const { data: handle, isLoading: loadingHandle } = useMyHandle();
+  const { data: profile, isLoading: loadingProfile } = useMaker(
+    handle ?? undefined,
   );
-
-  const form = useForm<ProfileFormValues>({
-    initialValues: emptyValues,
-    validate: zodResolver(makerProfileUpdateSchema),
+  const isLoading = loadingHandle || loadingProfile;
+  const showLoading = useDelayedLoading(isLoading);
+  const form = useForm<Values>({
+    defaultValues: empty,
+    resolver: zodResolver(makerProfileUpdateSchema) as Resolver<Values>,
   });
-
-  // The form is populated from the profile once it arrives rather than being
-  // remounted, so a slow response doesn't wipe what is already typed.
-  const { setValues } = form;
+  const { reset } = form;
   useEffect(() => {
-    if (!profile) return;
-
-    setValues({
-      handle: profile.handle ?? "",
-      bio: profile.bio,
-      websiteUrl: profile.websiteUrl ?? "",
-      githubUrl: profile.githubUrl ?? "",
-      linkedinUrl: profile.linkedinUrl ?? "",
-    });
-  }, [profile, setValues]);
-
+    if (profile)
+      reset({
+        bio: profile.bio,
+        websiteUrl: profile.websiteUrl ?? "",
+        githubUrl: profile.githubUrl ?? "",
+        linkedinUrl: profile.linkedinUrl ?? "",
+      });
+  }, [profile, reset]);
   const { updateMaker, isPending } = useUpdateMaker();
-
-  if (isLoadingHandle || isLoadingProfile) {
+  if (isLoading)
+    return showLoading ? (
+      <div className="space-y-3">
+        <div className="h-9 animate-pulse rounded bg-muted" />
+        <div className="h-24 animate-pulse rounded bg-muted" />
+      </div>
+    ) : null;
+  if (!handle)
     return (
-      <Stack gap="md">
-        <Skeleton h={36} />
-        <Skeleton h={80} />
-        <Skeleton h={36} />
-      </Stack>
-    );
-  }
-
-  if (!handle) {
-    return (
-      <Text c="dimmed" size="sm">
+      <p className="text-sm text-muted-foreground">
         Conclui o teu perfil de publicador para poderes editá-lo.
-      </Text>
+      </p>
     );
-  }
-
-  function handleSubmit(values: ProfileFormValues) {
-    updateMaker(values);
-  }
-
+  const fields = [
+    ["websiteUrl", "Website", "https://exemplo.cv"],
+    ["githubUrl", "GitHub", "https://github.com/utilizador"],
+    ["linkedinUrl", "LinkedIn", "https://linkedin.com/in/utilizador"],
+  ] as const;
   return (
-    <Stack gap="md" maw={560}>
-      <Group gap="xs" align="baseline">
-        <Title order={4}>Perfil público</Title>
-        {profile?.handle && (
-          <Anchor
-            renderRoot={(props) => (
-              <Link
-                to="/makers/$handle"
-                params={{ handle: profile.handle as string }}
-                {...props}
-              />
+    <div className="space-y-5">
+      <h1 className="hidden text-xl font-semibold lg:block">Perfil público</h1>
+      <form
+        onSubmit={form.handleSubmit((values) => updateMaker(values))}
+        className="space-y-4"
+      >
+        <label className="block space-y-1.5 text-sm font-medium">
+          Bio
+          <Textarea rows={3} {...form.register("bio")} />
+          {form.formState.errors.bio?.message && (
+            <span className="text-xs text-destructive">
+              {form.formState.errors.bio.message}
+            </span>
+          )}
+        </label>
+        {fields.map(([name, label, placeholder]) => (
+          <label key={name} className="block space-y-1.5 text-sm font-medium">
+            {label}
+            <Input
+              type="url"
+              placeholder={placeholder}
+              {...form.register(name)}
+            />
+            {form.formState.errors[name]?.message && (
+              <span className="text-xs text-destructive">
+                {form.formState.errors[name]?.message}
+              </span>
             )}
-            size="sm"
-          >
-            ver perfil
-          </Anchor>
-        )}
-      </Group>
-
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
-          <TextInput
-            label="Nome de utilizador"
-            description="É o endereço do teu perfil: /makers/o-teu-nome"
-            leftSection={<Text size="sm">@</Text>}
-            {...form.getInputProps("handle")}
-          />
-          <Textarea
-            label="Bio"
-            autosize
-            minRows={3}
-            maxRows={6}
-            {...form.getInputProps("bio")}
-          />
-          <TextInput
-            label="Website"
-            placeholder="https://exemplo.cv"
-            {...form.getInputProps("websiteUrl")}
-          />
-          <TextInput
-            label="GitHub"
-            placeholder="https://github.com/utilizador"
-            {...form.getInputProps("githubUrl")}
-          />
-          <TextInput
-            label="LinkedIn"
-            placeholder="https://linkedin.com/in/utilizador"
-            {...form.getInputProps("linkedinUrl")}
-          />
-          <Flex justify="flex-end">
-            <Button type="submit" loading={isPending}>
-              Guardar perfil
-            </Button>
-          </Flex>
-        </Stack>
+          </label>
+        ))}
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "A guardar..." : "Guardar perfil"}
+          </Button>
+        </div>
       </form>
-    </Stack>
+    </div>
   );
 }

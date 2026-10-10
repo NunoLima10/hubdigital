@@ -1,63 +1,44 @@
-import { Badge, Paper, Stack, Text } from "@mantine/core";
-import { IconArrowDownRight, IconArrowUpRight } from "@tabler/icons-react";
-import { ReactNode } from "react";
-import { Delta, formatCount } from "../../utils/format";
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
+import type { ReactNode } from "react";
+import { type Delta, formatCount } from "../../utils/format";
 
-type StatCardProps = {
+export function StatCard({
+  label,
+  icon,
+  value,
+  delta,
+}: {
   label: string;
   icon: ReactNode;
   value: number;
   delta: Delta;
-};
-
-export function StatCard({ label, icon, value, delta }: StatCardProps) {
+}) {
   return (
-    <Paper withBorder p="md" radius="md">
-      <Stack gap={6}>
-        <Text size="sm" c="dimmed" style={{ display: "flex", gap: 6 }}>
-          {icon}
-          {label}
-        </Text>
-        <Text fz={28} fw={700} lh={1}>
-          {formatCount(value)}
-        </Text>
-        <DeltaBadge delta={delta} />
-      </Stack>
-    </Paper>
-  );
-}
-
-function DeltaBadge({ delta }: { delta: Delta }) {
-  // Keeps the card height stable when there is nothing to compare against.
-  if (delta.kind === "none") {
-    return (
-      <Text size="xs" c="dimmed">
-        Sem dados anteriores
-      </Text>
-    );
-  }
-
-  if (delta.kind === "new") {
-    return (
-      <Badge variant="light" color="teal" w="fit-content">
-        Novo
-      </Badge>
-    );
-  }
-
-  const up = delta.percent >= 0;
-
-  return (
-    <Badge
-      variant="light"
-      color={up ? "teal" : "red"}
-      w="fit-content"
-      leftSection={
-        up ? <IconArrowUpRight size={12} /> : <IconArrowDownRight size={12} />
-      }
-    >
-      {up ? "+" : ""}
-      {delta.percent}%
-    </Badge>
+    <div className="space-y-2 rounded-lg border bg-card p-4">
+      <p className="flex items-center gap-2 text-sm text-muted-foreground">
+        {icon}
+        {label}
+      </p>
+      <p className="text-2xl font-bold tabular-nums">{formatCount(value)}</p>
+      {delta.kind === "none" ? (
+        <p className="text-xs text-muted-foreground">Sem dados anteriores</p>
+      ) : delta.kind === "new" ? (
+        <span className="inline-flex rounded bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+          Novo
+        </span>
+      ) : (
+        <span
+          className={`inline-flex items-center gap-0.5 rounded px-2 py-0.5 text-xs font-medium ${delta.percent >= 0 ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" : "bg-destructive/10 text-destructive"}`}
+        >
+          {delta.percent >= 0 ? (
+            <ArrowUpRight className="size-3" />
+          ) : (
+            <ArrowDownRight className="size-3" />
+          )}
+          {delta.percent >= 0 ? "+" : ""}
+          {delta.percent}%
+        </span>
+      )}
+    </div>
   );
 }

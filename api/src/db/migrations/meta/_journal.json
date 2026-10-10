@@ -113,6 +113,20 @@
       "when": 1789953699131,
       "tag": "0015_fat_azazel",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791145362694,
+      "tag": "0016_numerous_valkyrie",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791149763261,
+      "tag": "0017_useful_blindfold",
+      "breakpoints": true
     }
   ]
 }

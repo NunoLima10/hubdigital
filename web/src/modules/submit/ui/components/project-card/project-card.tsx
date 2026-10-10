@@ -1,45 +1,37 @@
 import { ProjectIcon } from "@/components/project-icon/project-icon";
-import { Badge, Flex, Stack, Text } from "@mantine/core";
-import classes from "./project-card.module.css";
-
-type ProjectCardProps = {
-  iconUrl?: string;
-  websiteUrl: string;
-  name: string;
-  description: string;
-  badges?: string[];
-};
-
+import { Badge } from "@/components/ui/badge";
 export function ProjectCard({
   name,
   iconUrl,
   websiteUrl,
   description,
   badges = [],
-}: ProjectCardProps) {
+}: {
+  name: string;
+  iconUrl?: string;
+  websiteUrl: string;
+  description: string;
+  badges?: string[];
+}) {
   return (
-    <Flex gap={"xs"}>
-      <ProjectIcon iconUrl={iconUrl} className={classes.icon} size={70} />
-      <Stack gap={"none"}>
-        <Text
-          className={classes.titleLink}
-          lh={"sm"}
-          fw={500}
-          component="a"
+    <div className="flex gap-3 rounded-lg border p-4">
+      <ProjectIcon iconUrl={iconUrl} className="size-14" />
+      <div>
+        <a
           href={websiteUrl}
           target="_blank"
+          rel="noreferrer"
+          className="font-semibold hover:underline"
         >
           {name}
-        </Text>
-        <Text size="sm">{description}</Text>
-        <Flex gap={"xs"} visibleFrom="xs">
+        </a>
+        <p className="text-sm text-muted-foreground">{description}</p>
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {badges.map((badge) => (
-            <Badge key={badge} variant="dot" size="sm">
-              {badge}
-            </Badge>
+            <Badge key={badge}>{badge}</Badge>
           ))}
-        </Flex>
-      </Stack>
-    </Flex>
+        </div>
+      </div>
+    </div>
   );
 }

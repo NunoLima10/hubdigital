@@ -17,10 +17,14 @@ import {
   GetProjectRequest,
   ListMyProjectsReply,
   ListMyProjectsRequest,
+  ListFavoriteProjectsReply,
+  ListFavoriteProjectsRequest,
   ListProjectsReply,
   ListProjectsRequest,
   ToggleUpvoteReply,
   ToggleUpvoteRequest,
+  ToggleFavoriteReply,
+  ToggleFavoriteRequest,
   UpdateProjectReply,
   UpdateProjectRequest,
 } from "./projects-schemas";
@@ -83,6 +87,22 @@ async function listMyProjectsHandler(
     publisher.id,
     req.query,
     req.user?.id
+  );
+
+  return reply.status(200).send({
+    data,
+    meta: { limit: req.query.limit, offset: req.query.offset, total },
+  });
+}
+
+async function listFavoriteProjectsHandler(
+  req: ListFavoriteProjectsRequest,
+  reply: ListFavoriteProjectsReply,
+) {
+  const { data, total } = await ProjectsService.listFavoriteProjects(
+    req.db,
+    req.user!.id,
+    req.query,
   );
 
   return reply.status(200).send({
@@ -233,14 +253,31 @@ async function toggleUpvoteHandler(
   });
 }
 
+async function toggleFavoriteHandler(
+  req: ToggleFavoriteRequest,
+  reply: ToggleFavoriteReply,
+) {
+  const result = await ProjectsService.toggleFavorite(
+    req.db,
+    req.params.id,
+    req.user!.id,
+  );
+
+  if (!result) throw new NotFoundError();
+
+  return reply.status(200).send({ data: result });
+}
+
 export const projectsController = {
   createProjectHandler,
   updateProjectHandler,
   listMyProjectsHandler,
+  listFavoriteProjectsHandler,
   listProjectsHandler,
   leaderboardHandler,
   getProjectHandler,
   publishProjectHandler,
   deleteProjectHandler,
   toggleUpvoteHandler,
+  toggleFavoriteHandler,
 };

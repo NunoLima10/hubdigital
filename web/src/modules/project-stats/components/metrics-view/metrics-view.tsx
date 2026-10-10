@@ -1,116 +1,159 @@
+import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import {
-  Flex,
-  Skeleton,
-  SegmentedControl,
-  SimpleGrid,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
-import {
-  IconEye,
-  IconExternalLink,
-  IconHeart,
-  IconMessageCircle,
-} from "@tabler/icons-react";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { StatsRange } from "@hubdigital/shared";
+import { BarChart3, Eye, ExternalLink, Heart, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useMyProjectStats } from "../../hooks/use-my-project-stats";
+import { useProjectStats } from "../../hooks/use-project-stats";
 import { computeDelta } from "../../utils/format";
-import { ProjectStatsList } from "../project-stats-list/project-stats-list";
 import { StatCard } from "../stat-card/stat-card";
 import { TrafficChart } from "../traffic-chart/traffic-chart";
 
-const rangeOptions: { value: StatsRange; label: string }[] = [
+const ranges: { value: StatsRange; label: string }[] = [
   { value: "7d", label: "7 dias" },
   { value: "30d", label: "30 dias" },
   { value: "90d", label: "90 dias" },
 ];
-
 export function MetricsView() {
   const [range, setRange] = useState<StatsRange>("30d");
+  const [projectFilter, setProjectFilter] = useState("all");
   const { data, isLoading, isError } = useMyProjectStats(range);
+  const selectedProjectId =
+    projectFilter === "all" ? undefined : Number(projectFilter);
+  const {
+    data: selectedProjectStats,
+    isLoading: isProjectLoading,
+    isError: isProjectError,
+  } = useProjectStats(selectedProjectId, range);
+  const stats = selectedProjectId === undefined ? data : selectedProjectStats;
+  const showLoading = useDelayedLoading(
+    isLoading || (selectedProjectId !== undefined && isProjectLoading),
+  );
+  const hasError = isError || isProjectError;
+  const projectOptions = [
+    { value: "all", label: "Todos os projetos" },
+    ...(data?.projects.map((project) => ({
+      value: String(project.id),
+      label: project.name,
+    })) ?? []),
+  ];
 
   return (
-    <Stack p="md" gap="lg">
-      <Flex align="center" justify="space-between" wrap="wrap" gap="sm">
-        <Title order={3}>Desempenho</Title>
-        <SegmentedControl
-          value={range}
-          onChange={(value) => setRange(value as StatsRange)}
-          data={rangeOptions}
-        />
-      </Flex>
-
-      {isLoading && <MetricsSkeleton />}
-
-      {isError && (
-        <Stack align="center" py="xl">
-          <Text c="dimmed">
-            Não foi possível carregar as métricas. Tenta novamente mais tarde.
-          </Text>
-        </Stack>
-      )}
-
-      {data && data.projects.length === 0 && (
-        <Stack align="center" py="xl">
-          <Text c="dimmed">
-            Ainda não tens projetos. Publica um para começares a ver métricas.
-          </Text>
-        </Stack>
-      )}
-
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="hidden text-xl font-semibold lg:block">Desempenho</h1>
+        <div
+          role="group"
+          aria-label="Período"
+          className="flex rounded-md border p-1"
+        >
+          {ranges.map(({ value, label }) => (
+            <button
+              key={value}
+              aria-pressed={range === value}
+              className={`rounded px-3 py-1.5 text-sm ${range === value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+              onClick={() => setRange(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
       {data && data.projects.length > 0 && (
+        <div className="flex flex-col gap-2 sm:max-w-xs">
+          <label className="text-sm font-medium" htmlFor="project-metrics-filter">
+            Projeto
+          </label>
+          <Select
+            items={projectOptions}
+            value={projectFilter}
+            onValueChange={(value) => setProjectFilter(value ?? "all")}
+          >
+            <SelectTrigger
+              id="project-metrics-filter"
+              className="w-full rounded-lg bg-card"
+            >
+              <BarChart3 className="size-4 text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent
+              align="start"
+              alignItemWithTrigger={false}
+              className="rounded-lg p-1 ring-1 ring-border"
+            >
+              {projectOptions.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  className="rounded-md"
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground sm:hidden">
+            Escolhe um projeto para ver os totais e a evolução no gráfico.
+          </p>
+        </div>
+      )}
+      {showLoading && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            {[1, 2, 3, 4].map((n) => (
+              <div key={n} className="h-28 animate-pulse rounded-lg bg-muted" />
+            ))}
+          </div>
+          <div className="h-72 animate-pulse rounded-lg bg-muted" />
+        </div>
+      )}
+      {hasError && (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Não foi possível carregar as métricas. Tenta novamente mais tarde.
+        </p>
+      )}
+      {data && data.projects.length === 0 && (
+        <p className="py-8 text-center text-sm text-muted-foreground">
+          Ainda não tens projetos. Publica um para começares a ver métricas.
+        </p>
+      )}
+      {data && data.projects.length > 0 && stats && !hasError && (
         <>
-          <SimpleGrid cols={{ base: 2, md: 4 }} spacing="sm">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <StatCard
               label="Visualizações"
-              icon={<IconEye size={16} />}
-              value={data.totals.views}
-              delta={computeDelta(data.totals.views, data.previous.views)}
+              icon={<Eye className="size-4" />}
+              value={stats.totals.views}
+              delta={computeDelta(stats.totals.views, stats.previous.views)}
             />
             <StatCard
               label="Visitas ao site"
-              icon={<IconExternalLink size={16} />}
-              value={data.totals.visits}
-              delta={computeDelta(data.totals.visits, data.previous.visits)}
+              icon={<ExternalLink className="size-4" />}
+              value={stats.totals.visits}
+              delta={computeDelta(stats.totals.visits, stats.previous.visits)}
             />
             <StatCard
               label="Votos"
-              icon={<IconHeart size={16} />}
-              value={data.totals.upvotes}
-              delta={computeDelta(data.totals.upvotes, data.previous.upvotes)}
+              icon={<Heart className="size-4" />}
+              value={stats.totals.upvotes}
+              delta={computeDelta(stats.totals.upvotes, stats.previous.upvotes)}
             />
             <StatCard
               label="Comentários"
-              icon={<IconMessageCircle size={16} />}
-              value={data.totals.comments}
-              delta={computeDelta(data.totals.comments, data.previous.comments)}
+              icon={<MessageCircle className="size-4" />}
+              value={stats.totals.comments}
+              delta={computeDelta(stats.totals.comments, stats.previous.comments)}
             />
-          </SimpleGrid>
-
-          <TrafficChart series={data.series} />
-
-          <Stack gap="xs">
-            <Text fw={600}>Por projeto</Text>
-            <ProjectStatsList projects={data.projects} />
-          </Stack>
+          </div>
+          <TrafficChart series={stats.series} />
         </>
       )}
-    </Stack>
-  );
-}
-
-function MetricsSkeleton() {
-  return (
-    <Stack gap="lg">
-      <SimpleGrid cols={{ base: 2, md: 4 }} spacing="sm">
-        <Skeleton h={110} radius="md" />
-        <Skeleton h={110} radius="md" />
-        <Skeleton h={110} radius="md" />
-        <Skeleton h={110} radius="md" />
-      </SimpleGrid>
-      <Skeleton h={320} radius="md" />
-    </Stack>
+    </div>
   );
 }

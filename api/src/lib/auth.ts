@@ -17,6 +17,12 @@ const authConfig = {
     minPasswordLength: 8,
     maxPasswordLength: 128,
   },
+  socialProviders: {
+    google: {
+      clientId: config.GOOGLE_CLIENT_ID,
+      clientSecret: config.GOOGLE_CLIENT_SECRET,
+    },
+  },
   plugins: [
     adminPlugin({
       defaultRole: "user",
