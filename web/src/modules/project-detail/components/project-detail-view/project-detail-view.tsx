@@ -1,4 +1,5 @@
 import { ProjectBanner } from "@/components/project-banner/project-banner";
+import { projectViewTransitionName } from "@/lib/project-view-transition";
 import { Button } from "@/components/ui/button";
 import {
   ProjectSummary,
@@ -61,7 +62,9 @@ export function ProjectDetailView({ project }: { project: Project }) {
     <div className="space-y-6">
       <ModerationNotice project={project} />
       <ProjectSummary
+        viewTransitionName={projectViewTransitionName(project.id)}
         iconUrl={project.logoUrl}
+        iconClassName="size-16 sm:size-20"
         description={project.shortDescription}
         topics={[
           ...(project.category ? [project.category.name] : []),

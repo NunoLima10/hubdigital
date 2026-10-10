@@ -1,5 +1,5 @@
 import { Header } from "@/components/header/header";
-import { useDelayedLoading } from "@/hooks/use-delayed-loading";
+import { ProjectDetailSkeleton, ProjectDetailSidebarSkeleton } from "@/modules/project-detail/components/project-detail-view/project-detail-skeleton";
 import { Page } from "@/layouts/page";
 import { Comments } from "@/modules/comments";
 import { commentsQueryOptions } from "@/modules/comments/hooks/use-comments";
@@ -22,37 +22,57 @@ export const Route = createFileRoute("/projects/$slug")({
     ]);
   },
   component: ProjectPage,
+  pendingComponent: ProjectPendingPage,
 });
+
+function ProjectPendingPage() {
+  const { slug } = Route.useParams();
+  return (
+    <Page
+      viewTransition
+      header={<Header />}
+      rightSection={<ProjectDetailSidebarSkeleton />}
+    >
+      <div className="space-y-7">
+        <Link
+          to="/"
+          viewTransition
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="size-4" />
+          Voltar aos projetos
+        </Link>
+        <ProjectDetailSkeleton slug={slug} />
+      </div>
+    </Page>
+  );
+}
 
 function ProjectPage() {
   const { slug } = Route.useParams();
   const { data, isLoading, isError } = useProject(slug);
-  const showLoading = useDelayedLoading(isLoading);
   return (
     <Page
+      viewTransition
       header={<Header />}
       rightSection={
         data ? (
           <div className="hidden lg:block">
             <ProjectDetailSidebar project={data} />
           </div>
-        ) : undefined
+        ) : isLoading ? <ProjectDetailSidebarSkeleton /> : undefined
       }
     >
       <div className="space-y-7">
         <Link
           to="/"
+          viewTransition
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
           Voltar aos projetos
         </Link>
-        {showLoading && (
-          <div className="space-y-4" aria-label="A carregar projeto">
-            <div className="h-16 w-72 animate-pulse rounded bg-muted" />
-            <div className="aspect-video animate-pulse rounded-lg bg-muted" />
-          </div>
-        )}
+        {isLoading && <ProjectDetailSkeleton slug={slug} />}
         {isError && (
           <p className="text-sm text-muted-foreground">
             Não foi possível carregar este projeto.

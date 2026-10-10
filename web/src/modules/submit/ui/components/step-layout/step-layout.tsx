@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import type { PropsWithChildren } from "react";
+import { ViewTransition, type PropsWithChildren } from "react";
 import { useSubmitForm } from "../../../hooks/use-submit-form";
 
 export function StepLayout({ children }: PropsWithChildren) {
@@ -15,7 +15,16 @@ export function StepLayout({ children }: PropsWithChildren) {
   } = useSubmitForm();
   return (
     <div className="flex min-h-96 flex-col gap-6">
-      <div className="flex-1">{children}</div>
+      <ViewTransition
+        default="none"
+        update={{
+          default: "none",
+          "submit-forward": "submit-forward",
+          "submit-backward": "submit-backward",
+        }}
+      >
+        <div className="flex-1">{children}</div>
+      </ViewTransition>
       <div className="flex flex-wrap justify-end gap-2">
         {!isFist && (
           <Button variant="outline" disabled={isPending} onClick={previous}>

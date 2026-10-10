@@ -13,6 +13,8 @@ type ProjectSummaryProps = {
   actions?: ReactNode;
   className?: string;
   actionsClassName?: string;
+  iconClassName?: string;
+  viewTransitionName?: string;
 };
 
 export function ProjectSummary({
@@ -23,12 +25,17 @@ export function ProjectSummary({
   actions,
   className,
   actionsClassName,
+  iconClassName,
+  viewTransitionName,
 }: ProjectSummaryProps) {
   return (
-    <div className={cn("flex items-center gap-3 sm:gap-4", className)}>
+    <div
+      className={cn("flex items-center gap-3 sm:gap-4", className)}
+      style={viewTransitionName ? { viewTransitionName } : undefined}
+    >
       <ProjectIcon
         iconUrl={iconUrl ?? undefined}
-        className="size-12 shrink-0 rounded-lg sm:size-14"
+        className={cn("size-12 shrink-0 rounded-lg sm:size-14", iconClassName)}
       />
       <div className="min-w-0 flex-1">
         {title}
