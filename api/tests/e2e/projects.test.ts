@@ -17,6 +17,8 @@ import "../setup-env";
 import { setupDB, teardownDB } from "../../src/db";
 import {
   categories,
+  fileUploads,
+  projectImages,
   projectUpvotes,
   projects,
   publishers,
@@ -52,6 +54,7 @@ const validProjectPayload = {
   projectStage: "mvp",
   audienceStage: "general_public",
   location: { country: "cv", island: "CV2" },
+  galleryImageKeys: ["project_gallery/test-gallery.png"],
 } as const;
 
 /** A row shaped like a live project; override whatever the test cares about. */
@@ -116,6 +119,12 @@ describe("Projects module (e2e)", () => {
       name: "Test User",
       email: `test-${currentUserId}@example.com`,
       role: "user",
+    });
+    await db.insert(fileUploads).values({
+      key: validProjectPayload.galleryImageKeys[0],
+      userId: currentUserId,
+      type: "project_gallery",
+      contentType: "image/png",
     });
 
     const [category] = await db
@@ -241,10 +250,22 @@ describe("Projects module (e2e)", () => {
       expect(first.statusCode).toBe(201);
       expect(first.json().data.slug).toBe("hub-digital");
 
+      const secondGalleryKey = "project_gallery/second-gallery.png";
+      await db.insert(fileUploads).values({
+        key: secondGalleryKey,
+        userId: currentUserId,
+        type: "project_gallery",
+        contentType: "image/png",
+      });
+
       const second = await server.inject({
         method: "POST",
         url: "/v1/projects",
-        payload: { ...validProjectPayload, categoryId },
+        payload: {
+          ...validProjectPayload,
+          categoryId,
+          galleryImageKeys: [secondGalleryKey],
+        },
       });
       expect(second.statusCode).toBe(201);
       expect(second.json().data.slug).not.toBe("hub-digital");
@@ -283,7 +304,13 @@ describe("Projects module (e2e)", () => {
       });
 
       const logoKey = "project_logo/abc-123-logo.png";
-      const bannerKey = "project_banner/abc-123-banner.png";
+      const galleryKey = "project_gallery/abc-123-gallery.png";
+      await db.insert(fileUploads).values({
+        key: galleryKey,
+        userId: currentUserId,
+        type: "project_gallery",
+        contentType: "image/png",
+      });
 
       const createResponse = await server.inject({
         method: "POST",
@@ -292,7 +319,8 @@ describe("Projects module (e2e)", () => {
           ...validProjectPayload,
           categoryId,
           logoUrl: logoKey,
-          bannerImageUrl: bannerKey,
+          galleryImageKeys: [galleryKey],
+          youtubeVideoUrl: "https://youtu.be/dQw4w9WgXcQ",
         },
       });
 
@@ -302,7 +330,11 @@ describe("Projects module (e2e)", () => {
       // Stored as the raw object key...
       const [record] = await db.query.projects.findMany();
       expect(record.logoUrl).toBe(logoKey);
-      expect(record.bannerImageUrl).toBe(bannerKey);
+      expect(record.youtubeVideoId).toBe("dQw4w9WgXcQ");
+      const images = await db.query.projectImages.findMany({
+        where: eq(projectImages.projectId, record.id),
+      });
+      expect(images.map((image) => image.storageKey)).toEqual([galleryKey]);
 
       // ...and handed out as a resolved public url.
       const detailResponse = await server.inject({
@@ -313,9 +345,10 @@ describe("Projects module (e2e)", () => {
       expect(detailResponse.json().data.logoUrl).toBe(
         `https://assets.test.hubdigital.cv/${logoKey}`
       );
-      expect(detailResponse.json().data.bannerImageUrl).toBe(
-        `https://assets.test.hubdigital.cv/${bannerKey}`
-      );
+      expect(detailResponse.json().data.galleryImageUrls).toEqual([
+        `https://assets.test.hubdigital.cv/${galleryKey}`,
+      ]);
+      expect(detailResponse.json().data.youtubeVideoId).toBe("dQw4w9WgXcQ");
     });
 
     it("rejects an image field that is not an upload key", async () => {

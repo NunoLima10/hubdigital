@@ -127,6 +127,13 @@
       "when": 1791149763261,
       "tag": "0017_useful_blindfold",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1791701470643,
+      "tag": "0018_gigantic_strong_guy",
+      "breakpoints": true
     }
   ]
 }

@@ -31,6 +31,7 @@ export const createProjectSchema = projectBodySchema.extend({
     .url("Informe um link válido")
     .optional()
     .or(z.literal("")),
+  youtubeVideoUrl: projectBodySchema.shape.youtubeVideoUrl.or(z.literal("")),
   categoryId: z
     .number({ invalid_type_error: "Selecione uma categoria" })
     .int()
@@ -49,7 +50,8 @@ export function toCreateProjectPayload(
     githubUrl,
     description,
     logoUrl,
-    bannerImageUrl,
+    galleryImageKeys,
+    youtubeVideoUrl,
     location,
     ...rest
   } = values;
@@ -64,7 +66,8 @@ export function toCreateProjectPayload(
     // Passed through untouched: undefined keeps the saved image on a PATCH,
     // null clears it, a key sets a new one.
     logoUrl,
-    bannerImageUrl,
+    galleryImageKeys,
+    youtubeVideoUrl: youtubeVideoUrl || null,
   } as CreateProjectPayload;
 }
 

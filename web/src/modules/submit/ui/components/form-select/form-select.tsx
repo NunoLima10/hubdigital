@@ -15,6 +15,7 @@ export function FormSelect({
   onValueChange,
   disabled = false,
   invalid = false,
+  required = false,
 }: {
   value: string;
   options: readonly FormSelectOption[];
@@ -22,6 +23,7 @@ export function FormSelect({
   onValueChange: (value: string) => void;
   disabled?: boolean;
   invalid?: boolean;
+  required?: boolean;
 }) {
   return (
     <Select
@@ -33,6 +35,7 @@ export function FormSelect({
       <SelectTrigger
         className="w-full rounded-md bg-background"
         aria-invalid={invalid || undefined}
+        aria-required={required || undefined}
       >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

@@ -1,4 +1,6 @@
 import { toAssetUrl } from "@/utils/asset-url";
+import { ProjectGallery } from "@/components/project-gallery/project-gallery";
+import { getYoutubeVideoId } from "@hubdigital/shared";
 import { useSubmitForm } from "../../../hooks/use-submit-form";
 import { useCategories } from "../../../hooks/use-categories";
 import {
@@ -13,7 +15,13 @@ import { formatLocationFormValue } from "../../../utils/location";
 import { CategoriesDisplay } from "../../components/categories-diplay/categories-display";
 import { ProjectCard } from "../../components/project-card/project-card";
 
-export function ProjectReview() {
+export function ProjectReview({
+  logoPreviewUrl,
+  galleryPreviewUrls,
+}: {
+  logoPreviewUrl?: string;
+  galleryPreviewUrls?: Record<string, string>;
+}) {
   const { form } = useSubmitForm();
   const values = form.watch();
   const { data: categories } = useCategories();
@@ -29,8 +37,15 @@ export function ProjectReview() {
         name={values.name || "Nome do projeto"}
         description={values.shortDescription || "Pequena descrição do projeto"}
         websiteUrl={values.websiteUrl || "#"}
-        iconUrl={toAssetUrl(values.logoUrl)}
+        iconUrl={logoPreviewUrl ?? toAssetUrl(values.logoUrl)}
         badges={badges}
+      />
+      <ProjectGallery
+        imageUrls={values.galleryImageKeys
+          .map((key) => galleryPreviewUrls?.[key] ?? toAssetUrl(key))
+          .filter((url): url is string => Boolean(url))}
+        youtubeVideoId={values.youtubeVideoUrl ? getYoutubeVideoId(values.youtubeVideoUrl) : null}
+        projectName={values.name || "Projeto"}
       />
       <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <CategoriesDisplay

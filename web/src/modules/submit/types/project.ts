@@ -20,7 +20,8 @@ export type CreateProjectInput = {
   websiteUrl: string;
   githubUrl?: string;
   logoUrl?: string | null;
-  bannerImageUrl?: string | null;
+  galleryImageKeys: string[];
+  youtubeVideoUrl?: string | null;
   pricing: (typeof pricingValues)[number] | "";
   platform: (typeof platformValues)[number][];
   businessModel: (typeof businessModelValues)[number] | "";

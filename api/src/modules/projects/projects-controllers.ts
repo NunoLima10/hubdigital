@@ -47,6 +47,7 @@ async function createProjectHandler(
   const project = await ProjectsService.createProject(req.db, {
     ...req.body,
     publisherId: publisher.id,
+    userId: req.user!.id,
   });
 
   return reply.status(201).send({
@@ -64,7 +65,7 @@ async function updateProjectHandler(
     req.db,
     req.params.id,
     publisher.id,
-    req.body
+    { ...req.body, userId: req.user!.id }
   );
 
   if (!project) {

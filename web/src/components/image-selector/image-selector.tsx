@@ -1,4 +1,5 @@
 import { useUpload } from "@/hooks/use-upload";
+import { RequiredIndicator } from "@/components/required-indicator/required-indicator";
 import { useImagePreview } from "@/modules/submit/hooks/use-image-preview";
 import { formatBytes } from "@/utils/format-bytes";
 import type { FileUploadType } from "@hubdigital/shared";
@@ -12,6 +13,7 @@ type Props = {
   value?: string | null;
   previewUrl?: string;
   onChange: (key: string | null) => void;
+  onPreviewChange?: (file: File | null) => void;
   recomandations?: string;
   actionLabel?: string;
   required?: boolean;
@@ -23,6 +25,7 @@ export function ImageSelector({
   value,
   previewUrl,
   onChange,
+  onPreviewChange,
   recomandations,
   actionLabel = "Carregar imagem",
   required,
@@ -44,9 +47,11 @@ export function ImageSelector({
     setFile(selected);
     try {
       onChange(await upload(selected, type));
+      onPreviewChange?.(selected);
     } catch {
       setFile(null);
       onChange(null);
+      onPreviewChange?.(null);
       setUploadError("Não foi possível carregar a imagem. Tenta novamente.");
     }
   }
@@ -56,7 +61,7 @@ export function ImageSelector({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <label className="text-sm font-medium">
           {label}
-          {required && " *"}
+          {required && <RequiredIndicator />}
         </label>
         <span className="text-xs text-muted-foreground">{recomandations}</span>
       </div>
@@ -107,6 +112,7 @@ export function ImageSelector({
               setFile(null);
               setUploadError(undefined);
               onChange(null);
+              onPreviewChange?.(null);
             }}
           >
             <Trash2 className="size-4" />

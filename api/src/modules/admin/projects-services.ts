@@ -1,5 +1,5 @@
 import { DB } from "@/db";
-import { comments, projects, publishers } from "@/db/schemas";
+import { comments, projectImages, projects, publishers } from "@/db/schemas";
 import { errorLogger } from "@/utils/error-logger";
 import { withLocation } from "@/utils/location";
 import { toPublicUrl } from "@/utils/public-url";
@@ -29,6 +29,7 @@ const projectWith = {
   upvotes: { columns: { userId: true } },
   comments: liveCommentIds,
   publisher: { with: { user: true } },
+  images: { orderBy: asc(projectImages.position) },
 } as const;
 
 type ProjectRow = Awaited<
@@ -41,12 +42,13 @@ function queryProjects(db: DB, args: Parameters<DB["query"]["projects"]["findMan
 
 /** The admin view: nothing is filtered out, and moderation state is explicit. */
 function serializeAdminProject(project: ProjectRow) {
-  const { upvotes, comments: projectComments, publisher, ...rest } = project;
+  const { upvotes, comments: projectComments, publisher, images, ...rest } = project;
 
   return {
     ...withLocation(rest),
     logoUrl: toPublicUrl(project.logoUrl),
-    bannerImageUrl: toPublicUrl(project.bannerImageUrl),
+    galleryImageKeys: images.map((image) => image.storageKey),
+    galleryImageUrls: images.map((image) => toPublicUrl(image.storageKey)),
     upvoteCount: upvotes.length,
     commentCount: projectComments.length,
     publisher: publisher

@@ -48,7 +48,7 @@ export const projects = pgTable(
     description: text("description"),
     websiteUrl: text("website_url").notNull(),
     logoUrl: text("logo_url"),
-    bannerImageUrl: text("banner_image_url"),
+    youtubeVideoId: varchar("youtube_video_id", { length: 11 }),
     githubUrl: text("github_url"),
     pricing: pricingEnum("pricing").notNull(),
     platform: platformEnum("platform").array().notNull(),

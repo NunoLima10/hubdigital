@@ -23,7 +23,10 @@ function toValues(project: Project): CreateProjectInput {
     websiteUrl: project.websiteUrl,
     githubUrl: project.githubUrl ?? "",
     logoUrl: undefined,
-    bannerImageUrl: undefined,
+    galleryImageKeys: project.galleryImageKeys,
+    youtubeVideoUrl: project.youtubeVideoId
+      ? `https://www.youtube.com/watch?v=${project.youtubeVideoId}`
+      : "",
     pricing: project.pricing,
     platform: project.platform,
     businessModel: project.businessModel,
@@ -83,7 +86,7 @@ function EditProjectForm({
       <ProjectForm
         form={form}
         logoPreviewUrl={project.logoUrl ?? undefined}
-        bannerPreviewUrl={project.bannerImageUrl ?? undefined}
+        galleryPreviewUrls={project.galleryImageUrls}
       />
       <div className="border-t pt-5">
         <ProjectCategories form={form} />
