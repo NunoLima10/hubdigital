@@ -1,4 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
+import { RequiredIndicator } from "@/components/required-indicator/required-indicator";
 import { useCategories } from "../../../hooks/use-categories";
 import {
   accessOptions,
@@ -42,11 +43,13 @@ export function ProjectCategories({
         {fields.map(({ name, label, options }) => (
           <label key={name} className="block space-y-1.5 text-sm font-medium">
             {label}
+            <RequiredIndicator />
             <FormSelect
               value={values[name]}
               options={options}
               placeholder="Seleciona uma opção"
               invalid={Boolean(form.formState.errors[name])}
+              required
               onValueChange={(value) =>
                 form.setValue(name, value as never, {
                   shouldValidate: true,
@@ -64,6 +67,7 @@ export function ProjectCategories({
       <fieldset>
         <legend className="mb-2 text-sm font-medium">
           Plataformas suportadas
+          <RequiredIndicator />
         </legend>
         <div className="flex flex-wrap gap-3">
           {platformOptions.map((option) => (
@@ -100,6 +104,7 @@ export function ProjectCategories({
       </fieldset>
       <label className="block space-y-1.5 text-sm font-medium">
         Qual categoria melhor descreve o teu projeto?
+        <RequiredIndicator />
         <FormSelect
           disabled={isLoading}
           value={String(values.categoryId)}
@@ -111,6 +116,7 @@ export function ProjectCategories({
             isLoading ? "A carregar categorias..." : "Seleciona uma categoria"
           }
           invalid={Boolean(form.formState.errors.categoryId)}
+          required
           onValueChange={(value) =>
             form.setValue(
               "categoryId",

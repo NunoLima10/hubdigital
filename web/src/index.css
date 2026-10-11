@@ -61,9 +61,12 @@
   box-shadow: 0 6px 18px rgb(0 0 0 / 0.3), 0 0 0 3px color-mix(in oklch, var(--primary) 55%, transparent);
 }
 
-.project-map-marker img {
+.project-map.leaflet-container .leaflet-marker-pane .project-map-marker > img {
+  display: block;
   width: 100%;
   height: 100%;
+  max-width: 100% !important;
+  max-height: 100% !important;
   border-radius: 9px;
   object-fit: cover;
 }

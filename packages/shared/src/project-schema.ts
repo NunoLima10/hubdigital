@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fileUploadTypeValues } from "./file-upload";
 import { locationSchema } from "./location-schema";
 import { projectStatusValues } from "./project-status";
+import { youtubeVideoUrlSchema } from "./youtube";
 import {
   accessValues,
   audienceValues,
@@ -19,6 +20,13 @@ const uploadKeySchema = z
   .regex(
     new RegExp(`^(${fileUploadTypeValues.join("|")})/[^/\\\\]+$`),
     "Imagem inválida. Carregue o ficheiro novamente."
+  );
+
+const galleryUploadKeySchema = z
+  .string()
+  .regex(
+    /^project_gallery\/[^/\\]+$/,
+    "Imagem da galeria inválida. Carregue o ficheiro novamente.",
   );
 
 export const categorySummarySchema = z.object({
@@ -43,7 +51,14 @@ export const projectBodySchema = z.object({
   githubUrl: z.string().url().optional(),
   // nullish: omitted means "leave as is" on PATCH, null means "remove the image".
   logoUrl: uploadKeySchema.nullish(),
-  bannerImageUrl: uploadKeySchema.nullish(),
+  galleryImageKeys: z
+    .array(galleryUploadKeySchema)
+    .max(10, "Pode adicionar no máximo 10 imagens.")
+    .refine((values) => new Set(values).size === values.length, {
+      message: "A mesma imagem não pode aparecer mais do que uma vez.",
+    })
+    .default([]),
+  youtubeVideoUrl: youtubeVideoUrlSchema.nullish(),
   pricing: z.enum(pricingValues),
   platform: z.array(z.enum(platformValues)).min(1),
   businessModel: z.enum(businessModelValues),
@@ -63,7 +78,9 @@ export const projectSchema = z.object({
   description: z.string().nullable(),
   websiteUrl: z.string(),
   logoUrl: z.string().nullable(),
-  bannerImageUrl: z.string().nullable(),
+  galleryImageKeys: z.array(z.string()),
+  galleryImageUrls: z.array(z.string()),
+  youtubeVideoId: z.string().nullable(),
   githubUrl: z.string().nullable(),
   pricing: z.enum(pricingValues),
   platform: z.array(z.enum(platformValues)),

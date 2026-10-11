@@ -1,15 +1,16 @@
 import { DB } from "@/db";
 import {
   comments,
+  fileUploads,
   projectFavorites,
+  projectImages,
   projects,
   projectUpvotes,
   publishers,
   users,
 } from "@/db/schemas";
-import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
+import { BadRequestError } from "@/utils/custom-errors";
 import { errorLogger } from "@/utils/error-logger";
-import { getPostgresError } from "@/utils/postgres-error";
 import {
   LocationColumns,
   locationToColumns,
@@ -18,10 +19,11 @@ import {
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
 import { WeekRange } from "@/utils/week";
-import { ListSort, ProjectLocation } from "@hubdigital/shared";
+import { getYoutubeVideoId, ListSort, ProjectLocation } from "@hubdigital/shared";
 import {
   SQL,
   and,
+  asc,
   arrayOverlaps,
   count,
   desc,
@@ -45,6 +47,7 @@ const liveCommentIds = {
 
 type CreateProjectInput = {
   publisherId: number;
+  userId: string;
   name: string;
   shortDescription: string;
   description?: string;
@@ -58,25 +61,42 @@ type CreateProjectInput = {
   audienceStage: (typeof projects.$inferInsert)["audienceStage"];
   categoryId: number;
   logoUrl?: string | null;
-  bannerImageUrl?: string | null;
+  galleryImageKeys: string[];
+  youtubeVideoUrl?: string | null;
   location: ProjectLocation;
 };
 
 type UpdateProjectInput = Partial<Omit<CreateProjectInput, "publisherId">>;
 
 /** The API takes a nested location; the table stores it flat. */
-function toRowValues<T extends { location?: ProjectLocation }>({
+function toRowValues<
+  T extends {
+    location?: ProjectLocation;
+    galleryImageKeys?: string[];
+    youtubeVideoUrl?: string | null;
+    userId?: string;
+  },
+>({
   location,
+  galleryImageKeys: _galleryImageKeys,
+  youtubeVideoUrl,
+  userId: _userId,
   ...input
 }: T) {
-  return { ...input, ...(location ? locationToColumns(location) : {}) };
+  return {
+    ...input,
+    ...(youtubeVideoUrl !== undefined
+      ? { youtubeVideoId: youtubeVideoUrl ? getYoutubeVideoId(youtubeVideoUrl) : null }
+      : {}),
+    ...(location ? locationToColumns(location) : {}),
+  };
 }
 
 type SerializableProject = LocationColumns & {
   upvotes: { userId: string }[];
   comments: { id: number }[];
   logoUrl?: string | null;
-  bannerImageUrl?: string | null;
+  images: { storageKey: string }[];
 };
 
 /**
@@ -93,7 +113,8 @@ function serializeProject<T extends SerializableProject>(
   return {
     ...withLocation(rest),
     logoUrl: toPublicUrl(project.logoUrl),
-    bannerImageUrl: toPublicUrl(project.bannerImageUrl),
+    galleryImageKeys: project.images.map((image) => image.storageKey),
+    galleryImageUrls: project.images.map((image) => toPublicUrl(image.storageKey)),
     upvoteCount: upvotes.length,
     hasUpvoted: userId ? upvotes.some((upvote) => upvote.userId === userId) : false,
     commentCount: projectComments.length,
@@ -141,31 +162,54 @@ async function findPublisherByUserId(db: DB, userId: string) {
   });
 }
 
-async function insertProject(db: DB, input: CreateProjectInput, slug: string) {
-  const [result] = await db
-    .insert(projects)
-    .values({ ...toRowValues(input), slug })
-    .returning({ id: projects.id, slug: projects.slug });
+async function assertGalleryUploads(db: DB, userId: string, keys: string[]) {
+  if (keys.length === 0) return;
 
-  return result;
+  const owned = await db.query.fileUploads.findMany({
+    where: and(
+      eq(fileUploads.userId, userId),
+      eq(fileUploads.type, "project_gallery"),
+      inArray(fileUploads.key, keys),
+    ),
+    columns: { key: true },
+  });
+
+  if (owned.length !== keys.length) {
+    throw new BadRequestError("Uma ou mais imagens da galeria são inválidas.");
+  }
 }
 
 async function createProject(db: DB, input: CreateProjectInput) {
   const base = slugify(input.name) || "projeto";
+  await assertGalleryUploads(db, input.userId, input.galleryImageKeys);
 
-  try {
-    return await insertProject(db, input, base);
-  } catch (error) {
-    if (getPostgresError(error)?.code === PG_ERR_UNIQUE_VIOLATION) {
-      return await insertProject(
-        db,
-        input,
-        `${base}-${randomUUID().slice(0, 6)}`
+  return db.transaction(async (tx) => {
+    const row = toRowValues(input);
+    let [result] = await tx
+      .insert(projects)
+      .values({ ...row, slug: base })
+      .onConflictDoNothing({ target: projects.slug })
+      .returning({ id: projects.id, slug: projects.slug });
+
+    if (!result) {
+      [result] = await tx
+        .insert(projects)
+        .values({ ...row, slug: `${base}-${randomUUID().slice(0, 6)}` })
+        .returning({ id: projects.id, slug: projects.slug });
+    }
+
+    if (input.galleryImageKeys.length > 0) {
+      await tx.insert(projectImages).values(
+        input.galleryImageKeys.map((storageKey, position) => ({
+          projectId: result.id,
+          storageKey,
+          position,
+        })),
       );
     }
 
-    throw error;
-  }
+    return result;
+  });
 }
 
 async function updateProject(
@@ -174,19 +218,40 @@ async function updateProject(
   publisherId: number,
   input: UpdateProjectInput
 ) {
-  const [result] = await db
-    .update(projects)
-    .set({ ...toRowValues(input), updatedAt: new Date().toISOString() })
-    .where(
-      and(
-        eq(projects.id, id),
-        eq(projects.publisherId, publisherId),
-        isNull(projects.deletedAt)
-      )
-    )
-    .returning({ id: projects.id, slug: projects.slug });
+  if (input.galleryImageKeys) {
+    await assertGalleryUploads(db, input.userId!, input.galleryImageKeys);
+  }
 
-  return result;
+  return db.transaction(async (tx) => {
+    const [result] = await tx
+      .update(projects)
+      .set({ ...toRowValues(input), updatedAt: new Date().toISOString() })
+      .where(
+        and(
+          eq(projects.id, id),
+          eq(projects.publisherId, publisherId),
+          isNull(projects.deletedAt),
+        ),
+      )
+      .returning({ id: projects.id, slug: projects.slug });
+
+    if (!result) return undefined;
+
+    if (input.galleryImageKeys !== undefined) {
+      await tx.delete(projectImages).where(eq(projectImages.projectId, id));
+      if (input.galleryImageKeys.length > 0) {
+        await tx.insert(projectImages).values(
+          input.galleryImageKeys.map((storageKey, position) => ({
+            projectId: id,
+            storageKey,
+            position,
+          })),
+        );
+      }
+    }
+
+    return result;
+  });
 }
 
 /** Drafts included — this is the maker's own dashboard. Deleted rows are not. */
@@ -208,6 +273,7 @@ async function listMyProjects(
         category: true,
         upvotes: true,
         comments: liveCommentIds,
+        images: { orderBy: asc(projectImages.position) },
         // Needed only to report an account-level hide back to its owner.
         publisher: { with: { user: true } },
       },
@@ -331,7 +397,12 @@ async function listProjects(
   if (sort === "upvotes") {
     const all = await db.query.projects.findMany({
       where,
-      with: { category: true, upvotes: true, comments: liveCommentIds },
+      with: {
+        category: true,
+        upvotes: true,
+        comments: liveCommentIds,
+        images: { orderBy: asc(projectImages.position) },
+      },
     });
 
     const ranked = all
@@ -347,7 +418,12 @@ async function listProjects(
 
   const data = await db.query.projects.findMany({
     where,
-    with: { category: true, upvotes: true, comments: liveCommentIds },
+    with: {
+      category: true,
+      upvotes: true,
+      comments: liveCommentIds,
+      images: { orderBy: asc(projectImages.position) },
+    },
     orderBy: [desc(projects.launchedAt), desc(projects.createdAt)],
     limit,
     offset,
@@ -372,7 +448,12 @@ async function listFavoriteProjects(
 
   const visible = await db.query.projects.findMany({
     where: and(inArray(projects.id, projectIds), publicProjectFilter(null, {})),
-    with: { category: true, upvotes: true, comments: liveCommentIds },
+    with: {
+      category: true,
+      upvotes: true,
+      comments: liveCommentIds,
+      images: { orderBy: asc(projectImages.position) },
+    },
   });
   const byId = new Map(visible.map((project) => [project.id, project]));
   const ordered = projectIds
@@ -395,6 +476,7 @@ async function getProjectBySlug(db: DB, slug: string, userId?: string) {
       publisher: { with: { user: true } },
       upvotes: true,
       comments: liveCommentIds,
+      images: { orderBy: asc(projectImages.position) },
     },
   });
 

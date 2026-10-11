@@ -60,7 +60,6 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
     return {
       ...withLocation(rest),
       logoUrl: toPublicUrl(project.logoUrl),
-      bannerImageUrl: toPublicUrl(project.bannerImageUrl),
       upvoteCount: upvotes.length,
       hasUpvoted: viewerId
         ? upvotes.some((upvote) => upvote.userId === viewerId)

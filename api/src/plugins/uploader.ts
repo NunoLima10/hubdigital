@@ -24,6 +24,17 @@ const uploadBodySchema = z.object({
     errorMap: () => ({ message: "Tipo de ficheiro não permitido." }),
   }),
   type: z.enum(fileUploadTypeValues),
+}).superRefine((value, context) => {
+  if (
+    value.type === "project_gallery" &&
+    !["image/png", "image/jpeg", "image/webp"].includes(value.contentType)
+  ) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["contentType"],
+      message: "A galeria aceita apenas imagens PNG, JPG ou WebP.",
+    });
+  }
 });
 
 const uploadRouteSchema = {

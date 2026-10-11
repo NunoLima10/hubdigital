@@ -11,4 +11,5 @@ export * from "./project-options";
 export * from "./project-schema";
 export * from "./project-stats";
 export * from "./project-status";
+export * from "./youtube";
 export * from "./roles";

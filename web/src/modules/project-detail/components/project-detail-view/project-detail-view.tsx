@@ -1,4 +1,4 @@
-import { ProjectBanner } from "@/components/project-banner/project-banner";
+import { ProjectGallery } from "@/components/project-gallery/project-gallery";
 import { projectViewTransitionName } from "@/lib/project-view-transition";
 import { Button } from "@/components/ui/button";
 import {
@@ -87,7 +87,11 @@ export function ProjectDetailView({ project }: { project: Project }) {
           />
         }
       />
-      <ProjectBanner bannerUrl={project.bannerImageUrl} />
+      <ProjectGallery
+        imageUrls={project.galleryImageUrls}
+        youtubeVideoId={project.youtubeVideoId}
+        projectName={project.name}
+      />
       <section aria-labelledby="about-project-title">
         <h2 id="about-project-title" className="text-lg font-semibold">
           Sobre o projeto

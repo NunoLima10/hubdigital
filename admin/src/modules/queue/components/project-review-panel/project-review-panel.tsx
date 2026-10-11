@@ -22,14 +22,37 @@ import { IconExternalLink } from "@tabler/icons-react";
 export function ProjectReviewPanel({ project }: { project: AdminProject }) {
   return (
     <Stack gap="md">
-      {project.bannerImageUrl && (
-        <Image
-          src={project.bannerImageUrl}
-          alt=""
-          h={160}
-          fit="cover"
-          radius="md"
-        />
+      {project.youtubeVideoId && (
+        <div style={{ aspectRatio: "16 / 9" }}>
+          <iframe
+            src={`https://www.youtube-nocookie.com/embed/${project.youtubeVideoId}`}
+            title={`Trailer de ${project.name}`}
+            style={{ width: "100%", height: "100%", border: 0, borderRadius: "var(--mantine-radius-md)" }}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          />
+        </div>
+      )}
+
+      {project.galleryImageUrls.length > 0 && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "var(--mantine-spacing-xs)",
+          }}
+        >
+          {project.galleryImageUrls.map((url, index) => (
+            <Image
+              key={url}
+              src={url}
+              alt={`${project.name}, imagem ${index + 1}`}
+              style={{ aspectRatio: "16 / 9" }}
+              fit="cover"
+              radius="md"
+            />
+          ))}
+        </div>
       )}
 
       <Group gap="md" wrap="nowrap" align="flex-start">

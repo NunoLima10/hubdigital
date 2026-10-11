@@ -1,4 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
+import { RequiredIndicator } from "@/components/required-indicator/required-indicator";
 import {
   countryOptions,
   islandOptions,
@@ -22,11 +23,13 @@ export function LocationFields({
         className={`block space-y-1.5 text-sm font-medium ${inCapeVerde ? "" : "sm:col-span-3"}`}
       >
         País de origem
+        <RequiredIndicator />
         <FormSelect
           value={location.country}
           options={countryOptions}
           placeholder="Seleciona o país"
           invalid={Boolean(form.formState.errors.location)}
+          required
           onValueChange={(value) =>
             form.setValue(
               "location",
@@ -46,11 +49,13 @@ export function LocationFields({
         <>
           <label className="block space-y-1.5 text-sm font-medium">
             Ilha
+            <RequiredIndicator />
             <FormSelect
               value={location.island}
               options={islandOptions}
               placeholder="Seleciona a ilha"
               invalid={Boolean(form.formState.errors.location)}
+              required
               onValueChange={(value) =>
                 form.setValue(
                   "location",
