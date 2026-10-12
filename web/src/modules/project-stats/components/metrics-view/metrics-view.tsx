@@ -57,7 +57,7 @@ export function MetricsView() {
             <button
               key={value}
               aria-pressed={range === value}
-              className={`rounded px-3 py-1.5 text-sm ${range === value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}
+              className={`rounded px-3 py-1.5 text-sm ${range === value ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted"}`}
               onClick={() => setRange(value)}
             >
               {label}

@@ -162,7 +162,7 @@ export function GalleryImageSelector({
         <label
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => drop(event)}
-          className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/30 px-4 text-center hover:border-primary hover:bg-primary/5 ${isUploading ? "pointer-events-none opacity-60" : ""}`}
+          className={`flex min-h-28 cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/30 px-4 text-center hover:border-primary hover:bg-primary-soft ${isUploading ? "pointer-events-none opacity-60" : ""}`}
         >
           <Upload className="size-5 text-muted-foreground" />
           <span className="text-sm font-medium">Escolher ou largar imagens</span>

@@ -12,7 +12,7 @@ export function AnnouncementBanner() {
   return (
     <div
       role="status"
-      className="flex items-center justify-center gap-2 bg-primary/10 px-4 py-2 text-center text-sm text-primary"
+      className="flex items-center justify-center gap-2 bg-primary-soft px-4 py-2 text-center text-sm text-primary"
     >
       <Megaphone className="size-4" />
       {text}

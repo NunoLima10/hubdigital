@@ -63,7 +63,7 @@ export function FormStepper() {
         {labels.map((label, index) => (
           <li
             key={label}
-            className={`flex-1 rounded-md border px-3 py-2 text-center text-xs sm:text-sm ${active === index ? "border-primary bg-primary/5 font-semibold text-primary" : index < active ? "border-primary/30" : "text-muted-foreground"}`}
+            className={`flex-1 rounded-md border px-3 py-2 text-center text-xs sm:text-sm ${active === index ? "border-primary bg-primary-soft font-semibold text-primary" : index < active ? "border-primary/30" : "text-muted-foreground"}`}
           >
             {index + 1}. {label}
           </li>

@@ -20,7 +20,7 @@ export function HomeSidebar() {
     <div className="space-y-7">
       <section aria-labelledby="site-stats-title">
         <h2 id="site-stats-title" className="mb-3 text-sm font-semibold">
-          HubDigital em números
+          Hub Digital em números
         </h2>
         <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
           {stats.map(({ label, value, icon: Icon }) => (
@@ -28,7 +28,7 @@ export function HomeSidebar() {
               key={label}
               className="flex flex-col items-start gap-1 rounded-lg border bg-card px-3 py-3 lg:flex-row lg:items-center lg:gap-3 lg:px-4"
             >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary lg:size-9">
+              <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary-soft text-primary lg:size-9">
                 <Icon className="size-4" />
               </span>
               <div>

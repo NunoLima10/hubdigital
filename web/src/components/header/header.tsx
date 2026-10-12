@@ -1,3 +1,4 @@
+import { BrandLogo } from "@/components/brand-logo/brand-logo";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { MobileBottomNav } from "./mobile-bottom-nav";
@@ -85,12 +86,10 @@ export function Header({
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-0 px-4 md:gap-4 md:px-6">
         <Link
           to="/"
-          className="mr-auto flex shrink-0 items-center gap-2 rounded font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-ring"
+          aria-label="Hub Digital, página inicial"
+          className="mr-auto shrink-0 rounded focus-visible:outline-2 focus-visible:outline-ring"
         >
-          <span className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-            H
-          </span>
-          HubDigital
+          <BrandLogo />
         </Link>
         {!isDashboard && (
         <Link
@@ -133,7 +132,7 @@ export function Header({
             title={session ? session.user.name : "Entrar"}
             className={session
               ? "inline-flex size-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-ring md:hidden"
-              : "inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/85 focus-visible:outline-2 focus-visible:outline-ring md:hidden"}
+              : "inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-foreground px-3 text-sm font-medium text-background hover:bg-foreground/85 focus-visible:outline-2 focus-visible:outline-ring md:hidden"}
           >
             {session ? avatar : "Entrar"}
           </Link>
@@ -157,7 +156,7 @@ export function Header({
         {!hasAuthenticatedActions && (
           <Link
             to="/sign-up"
-            className="hidden h-11 shrink-0 items-center gap-2 md:inline-flex rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/85"
+            className="hidden h-11 shrink-0 items-center gap-2 md:inline-flex rounded-md bg-foreground px-3 text-sm font-medium text-background hover:bg-foreground/85"
           >
             <UserRound className="size-4" />
             Criar conta

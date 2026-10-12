@@ -43,7 +43,7 @@ export function ReleasesList() {
         aria-labelledby="first-launch-title"
         className="flex min-h-[320px] flex-col items-center justify-center px-3 py-10 text-center sm:min-h-[380px] sm:px-6"
       >
-        <div aria-hidden="true" className="mb-5 flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div aria-hidden="true" className="mb-5 flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary">
           <Rocket className="size-6" />
         </div>
         <h2 id="first-launch-title" className="max-w-sm text-xl font-semibold tracking-tight sm:text-2xl">

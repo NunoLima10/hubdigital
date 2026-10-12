@@ -104,6 +104,7 @@
   --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -128,8 +129,11 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.5 0.134 242.749);
-  --primary-foreground: oklch(0.977 0.013 236.62);
+  /* Brand cobalt: links, selection and accents only. Buttons stay monochrome
+     (bg-foreground / text-background) for the black-and-white brand look. */
+  --primary: #024bff;
+  --primary-foreground: #ffffff;
+  --primary-soft: #ecf2fe;
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.97 0 0);
@@ -139,7 +143,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --ring: #024bff;
   --radius: 0.45rem;
 }
 
@@ -151,8 +155,10 @@
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.685 0.169 237.323);
-  --primary-foreground: oklch(0.293 0.066 243.157);
+  /* Lifted cobalt so links stay readable on the near-black background. */
+  --primary: #4d7fff;
+  --primary-foreground: #ffffff;
+  --primary-soft: color-mix(in oklch, #4d7fff 16%, transparent);
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -162,7 +168,7 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: #4d7fff;
 }
 
 @layer base {

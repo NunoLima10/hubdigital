@@ -60,7 +60,7 @@ export function QuestionStepper() {
     <div className="mx-auto w-full max-w-2xl space-y-7 rounded-xl border bg-card p-5 sm:p-8">
       <div>
         <p className="text-xs font-semibold uppercase tracking-wide text-primary">
-          Começar no HubDigital
+          Começar no Hub Digital
         </p>
         <h1 className="mt-1 text-2xl font-semibold">
           {step === 4 ? "Seja bem-vindo!" : question.title}
@@ -91,7 +91,7 @@ export function QuestionStepper() {
           ).map((response) => (
             <label
               key={response.value}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm hover:bg-muted/50 ${answers[keys[step]] === response.value ? "border-primary bg-primary/5" : ""}`}
+              className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm hover:bg-muted/50 ${answers[keys[step]] === response.value ? "border-primary bg-primary-soft" : ""}`}
             >
               <input
                 type="radio"
@@ -130,7 +130,7 @@ export function QuestionStepper() {
               {diasporaCountryValues.map((country) => (
                 <label
                   key={country}
-                  className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm hover:bg-muted/50 ${diasporaCountry === country ? "border-primary bg-primary/5" : ""}`}
+                  className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm hover:bg-muted/50 ${diasporaCountry === country ? "border-primary bg-primary-soft" : ""}`}
                 >
                   <input
                     type="radio"
@@ -167,7 +167,7 @@ export function QuestionStepper() {
           </Button>
         ) : (
           <Button disabled={isPending} onClick={submit}>
-            {isPending ? "A guardar..." : "Entrar no HubDigital"}
+            {isPending ? "A guardar..." : "Entrar no Hub Digital"}
           </Button>
         )}
       </div>

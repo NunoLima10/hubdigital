@@ -34,7 +34,7 @@ function RouteComponent() {
         <div>
           <h2 id="preferences-title" className="font-semibold">Preferências</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Atualiza as respostas que deste ao entrar no HubDigital.
+            Atualiza as respostas que deste ao entrar no Hub Digital.
           </p>
         </div>
         <PreferencesForm />

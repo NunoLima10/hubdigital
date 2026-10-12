@@ -49,7 +49,7 @@ export function ProjectSearch({ onClose }: { onClose: () => void }) {
                 <button
                   type="button"
                   key={value}
-                  className={`inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${period === value ? "border-primary/40 bg-primary/10 text-primary" : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+                  className={`inline-flex h-7 items-center rounded-md border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${period === value ? "border-primary/40 bg-primary-soft text-primary" : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"}`}
                   aria-pressed={period === value}
                   onClick={() => setPeriod(value)}
                 >

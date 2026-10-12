@@ -10,7 +10,7 @@ export function Hearder() {
       {hasProjects && (
         <Link
           to="/dashboard/submit"
-          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85 focus-visible:outline-2 focus-visible:outline-ring md:h-9 md:w-auto"
+          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 text-sm font-medium text-background hover:bg-foreground/85 focus-visible:outline-2 focus-visible:outline-ring md:h-9 md:w-auto"
         >
           <Rocket className="size-4" />
           Publicar projeto

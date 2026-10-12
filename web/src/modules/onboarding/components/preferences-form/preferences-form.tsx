@@ -73,7 +73,7 @@ export function PreferencesForm() {
                 ).map((response) => (
                   <label
                     key={response.value}
-                    className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-sm hover:bg-muted/50 ${answers[key] === response.value ? "border-primary bg-primary/5" : ""}`}
+                    className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-sm hover:bg-muted/50 ${answers[key] === response.value ? "border-primary bg-primary-soft" : ""}`}
                   >
                     <input
                       type="radio"
@@ -125,7 +125,7 @@ export function PreferencesForm() {
                     {diasporaCountryValues.map((country) => (
                       <label
                         key={country}
-                        className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-sm hover:bg-muted/50 ${answers.diasporaCountry === country ? "border-primary bg-primary/5" : ""}`}
+                        className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-sm hover:bg-muted/50 ${answers.diasporaCountry === country ? "border-primary bg-primary-soft" : ""}`}
                       >
                         <input
                           type="radio"

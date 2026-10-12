@@ -70,7 +70,7 @@ export function ProjectMapView() {
               <Link
                 to="/projects/$slug"
                 params={{ slug: activeProject.slug }}
-                className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-2 text-sm font-medium text-primary hover:bg-primary/10 sm:px-3"
+                className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-2 text-sm font-medium text-primary hover:bg-primary-soft sm:px-3"
               >
                 <span className="hidden sm:inline">Ver projeto</span>
                 <span className="sm:hidden">Ver</span>

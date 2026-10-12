@@ -100,7 +100,7 @@ export function DescriptionEditor({
             aria-label={label}
             aria-pressed={active}
             onClick={run}
-            className={`rounded p-2 hover:bg-muted ${active ? "bg-primary/10 text-primary" : ""}`}
+            className={`rounded p-2 hover:bg-muted ${active ? "bg-primary-soft text-primary" : ""}`}
           >
             <Icon className="size-4" />
           </button>

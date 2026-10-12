@@ -49,7 +49,7 @@ export function SignInForm() {
 
   return (
     <AuthCard
-      title="HubDigital"
+      title="Hub Digital"
       subtitle="Acesso restrito à equipa."
       badge={
         <Badge color="red" variant="light">

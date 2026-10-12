@@ -31,7 +31,7 @@ export function MobileBottomNav() {
             aria-current={section === destination ? "page" : undefined}
             activeOptions={{ exact: true }}
             activeProps={{ "aria-current": section === destination ? "page" : undefined }}
-            className={`flex min-w-0 flex-col items-center justify-center gap-1 text-xs font-medium focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring ${section === destination ? "bg-primary/5 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
+            className={`flex min-w-0 flex-col items-center justify-center gap-1 text-xs font-medium focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring ${section === destination ? "bg-primary-soft text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"}`}
           >
             <Icon aria-hidden="true" className="size-5" />
             {label}

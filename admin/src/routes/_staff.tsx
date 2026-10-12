@@ -62,7 +62,8 @@ function StaffLayout() {
           <Group gap="sm">
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
             <Group gap="xs">
-              <Title order={4}>HubDigital</Title>
+              <img src="/favicon.svg" alt="" width={26} height={26} />
+              <Title order={4}>Hub Digital</Title>
               <Badge color="red" variant="light">
                 ADMIN
               </Badge>
@@ -122,7 +123,7 @@ function NoAccess() {
           <Title order={4}>Sem permissão</Title>
           <Text size="sm" c="dimmed" ta="center">
             Você não possui permissão para aceder a este recurso. Esta área é
-            restrita à equipa do HubDigital.
+            restrita à equipa do Hub Digital.
           </Text>
           <Button
             variant="light"
