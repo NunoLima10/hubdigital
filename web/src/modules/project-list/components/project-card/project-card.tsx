@@ -10,9 +10,9 @@ import {
   selectProjectViewTransition,
   useProjectViewTransition,
 } from "@/lib/project-view-transition";
-import { useState, type MouseEvent } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import { MessageSquare } from "lucide-react";
-import { Heart } from "lucide-react";
+import { FavoriteHeart, type FavoriteHeartHandle } from "@/components/favorite-heart/favorite-heart";
 import { Button } from "@/components/ui/button";
 import type { Project } from "../../types/project";
 
@@ -52,6 +52,7 @@ export function ProjectCard({
   const [sourcePathname] = useState(pathname);
   const selected = useProjectViewTransition();
   const source = `${sourcePathname}:${transitionScope}:${id}`;
+  const heart = useRef<FavoriteHeartHandle>(null);
 
   function select(event: MouseEvent<HTMLAnchorElement>) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -72,7 +73,7 @@ export function ProjectCard({
             viewTransition
             params={{ slug }}
             onClick={select}
-            className="font-semibold leading-6 after:absolute after:inset-0 after:rounded-lg hover:text-primary hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-ring focus-visible:after:outline-2 focus-visible:after:outline-ring"
+            className="font-semibold leading-6 after:absolute after:inset-0 after:rounded-lg group-hover:text-primary group-hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-ring focus-visible:after:outline-2 focus-visible:after:outline-ring"
           >
             {rank !== undefined && `${rank}. `}
             {title}
@@ -84,12 +85,19 @@ export function ProjectCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="size-[52px] flex-col gap-0 p-0 text-xs"
+                className={cn(
+                  "size-[52px] flex-col gap-0 overflow-visible p-0 text-xs disabled:opacity-100",
+                  favorited && "border-red-500/60",
+                )}
                 disabled={isFavoritePending}
                 aria-label={favorited ? `Remover ${title} dos favoritos` : `Guardar ${title} nos favoritos`}
-                onClick={onFavorite}
+                aria-pressed={favorited}
+                onClick={() => {
+                  heart.current?.arm();
+                  onFavorite();
+                }}
               >
-                <Heart className={favorited ? "fill-current" : undefined} />
+                <FavoriteHeart ref={heart} active={Boolean(favorited)} />
               </Button>
             )}
             <Link

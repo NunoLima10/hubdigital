@@ -1,13 +1,16 @@
 import { ReportButton } from "@/modules/reports/components/report-button/report-button";
 import type { Comment, CommentReply } from "@hubdigital/shared";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { prefersReducedMotion, replay } from "@/lib/motion";
+import { useLayoutEffect, useRef, useState } from "react";
 import { relativeTime } from "../../utils/relative-time";
 import { CommentComposer } from "../comment-composer/comment-composer";
 
 type Props = {
   comment: Comment | CommentReply;
   isReply?: boolean;
+  /** The user's own just-posted comment: slides in with a brief highlight. */
+  isNew?: boolean;
   onReply?: (parentId: number, body: string) => void;
   onEdit: (id: number, body: string) => void;
   onDelete: (id: number) => void;
@@ -17,6 +20,7 @@ type Props = {
 export function CommentItem({
   comment,
   isReply = false,
+  isNew = false,
   onReply,
   onEdit,
   onDelete,
@@ -24,10 +28,25 @@ export function CommentItem({
   isPending,
 }: Props) {
   const [mode, setMode] = useState<"view" | "edit" | "reply">("view");
+  const article = useRef<HTMLElement>(null);
+  useLayoutEffect(() => {
+    if (!isNew || !article.current) return;
+    article.current.scrollIntoView({ block: "nearest", behavior: prefersReducedMotion() ? "auto" : "smooth" });
+    if (prefersReducedMotion()) return;
+    replay(
+      article.current,
+      [
+        { opacity: 0, transform: "translateY(-8px)", backgroundColor: "var(--muted)" },
+        { opacity: 1, transform: "translateY(0)", backgroundColor: "var(--muted)", offset: 0.3 },
+        { opacity: 1, transform: "translateY(0)", backgroundColor: "transparent" },
+      ],
+      { duration: 1600, easing: "ease-out" },
+    );
+  }, [isNew]);
   const linkClass =
     "text-xs text-muted-foreground hover:text-foreground hover:underline";
   return (
-    <article className="flex gap-3">
+    <article ref={article} className="-m-2 flex gap-3 rounded-lg p-2">
       <span
         className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-xs font-semibold ${isReply ? "size-7" : "size-9"}`}
       >

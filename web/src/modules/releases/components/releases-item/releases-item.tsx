@@ -1,7 +1,11 @@
 import { ProjectSummary } from "@/components/project-summary/project-summary";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { SparkBurst, type SparkBurstHandle } from "@/components/spark-burst/spark-burst";
+import { useToggleAnimation } from "@/hooks/use-toggle-animation";
+import { POP_KEYFRAMES, prefersReducedMotion, replay } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import { takeLaunchCelebration } from "@/modules/releases/utils/launch-celebration";
 import { ModerationNotice } from "@/modules/releases/components/moderation-notice/moderation-notice";
 import type { Project } from "@/modules/submit/types/project";
 import { Menu } from "@base-ui/react/menu";
@@ -14,6 +18,7 @@ import {
   Rocket,
   Trash2,
 } from "lucide-react";
+import { useCallback, useEffect, useRef } from "react";
 
 type Props = {
   project: Project;
@@ -50,8 +55,35 @@ export function ReleasesItem({
     project.status === "draft" || project.status === "rejected";
   const hasPublicPage = project.status === "published" && !project.hidden;
 
+  // Launch moment: the status badge pops with sparks and the card glows,
+  // whether the project was published here or from the submit form.
+  const launched = project.status === "pending" || project.status === "published";
+  const card = useRef<HTMLElement>(null);
+  const badge = useRef<HTMLSpanElement>(null);
+  const sparks = useRef<SparkBurstHandle>(null);
+  const celebrate = useCallback(() => {
+    card.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    replay(badge.current, POP_KEYFRAMES, { duration: 500, easing: "ease-out" });
+    sparks.current?.burst();
+    replay(
+      card.current,
+      [
+        { boxShadow: "0 0 0 4px color-mix(in oklch, var(--primary) 35%, transparent)" },
+        { boxShadow: "0 0 0 4px transparent" },
+      ],
+      { duration: 1400, easing: "ease-out" },
+    );
+  }, []);
+  const armLaunch = useToggleAnimation(launched, { onActivate: celebrate });
+  useEffect(() => {
+    if (!takeLaunchCelebration(project.id)) return;
+    // The list may still show the cached draft; then wait for the refetch.
+    if (!launched) armLaunch();
+    else if (!prefersReducedMotion()) celebrate();
+  }, [project.id, launched, armLaunch, celebrate]);
+
   return (
-    <article className="rounded-lg border bg-card p-3 sm:p-5">
+    <article ref={card} className="rounded-lg border bg-card p-3 sm:p-5">
       <ProjectSummary
         iconUrl={project.logoUrl}
         className="flex-wrap items-start sm:flex-nowrap sm:items-center"
@@ -69,15 +101,19 @@ export function ReleasesItem({
             ) : (
               <h2 className="font-semibold">{project.name}</h2>
             )}
-            <Badge
-              className={
-                project.hidden
-                  ? "bg-destructive/10 text-destructive"
-                  : statusClasses[project.status]
-              }
-            >
-              {project.hidden ? "Oculto" : statusLabels[project.status]}
-            </Badge>
+            <span ref={badge} className="inline-flex">
+              <Badge
+                className={cn(
+                  "relative overflow-visible",
+                  project.hidden
+                    ? "bg-destructive/10 text-destructive"
+                    : statusClasses[project.status],
+                )}
+              >
+                {project.hidden ? "Oculto" : statusLabels[project.status]}
+                <SparkBurst ref={sparks} count={10} distance={34} delay={100} />
+              </Badge>
+            </span>
           </div>
         }
         description={project.shortDescription}
@@ -88,7 +124,10 @@ export function ReleasesItem({
               <Button
                 size="sm"
                 disabled={isPublishing}
-                onClick={() => onPublish(project)}
+                onClick={() => {
+                  armLaunch();
+                  onPublish(project);
+                }}
               >
                 <Rocket />
                 {isPublishing

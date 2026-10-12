@@ -64,7 +64,8 @@ function ProjectPage() {
         ) : isLoading ? <ProjectDetailSidebarSkeleton /> : undefined
       }
     >
-      <div className="space-y-7">
+      {/* Extra room so the last comment does not sit against the bottom edge. */}
+      <div className="space-y-7 pb-12 md:pb-16">
         <Link
           to="/"
           viewTransition

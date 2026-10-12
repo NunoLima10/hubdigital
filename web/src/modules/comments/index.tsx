@@ -1,6 +1,9 @@
 import { LoginButton } from "@/components/login-button/login-button";
+import { RollingNumber } from "@/components/rolling-number/rolling-number";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { authClient } from "@/lib/auth-client";
+import type { CommentBody } from "@hubdigital/shared";
+import { useState } from "react";
 import { CommentComposer } from "./components/comment-composer/comment-composer";
 import { CommentItem } from "./components/comment-item/comment-item";
 import {
@@ -18,6 +21,10 @@ export function Comments({ slug }: { slug: string }) {
   const { updateComment, isPending: isUpdating } = useUpdateComment(slug);
   const { deleteComment, isPending: isDeleting } = useDeleteComment(slug);
   const isPending = isCreating || isUpdating || isDeleting;
+  // The comment the user just posted, so it can slide in once it arrives.
+  const [freshId, setFreshId] = useState<number | null>(null);
+  const post = (payload: CommentBody) =>
+    createComment(payload, { onSuccess: (response) => setFreshId(response.data.id) });
   const total =
     data?.reduce((count, comment) => count + 1 + comment.replies.length, 0) ??
     0;
@@ -29,12 +36,12 @@ export function Comments({ slug }: { slug: string }) {
       <h2 id="comments-title" className="text-lg font-semibold">
         Comentários{" "}
         <span className="text-sm font-normal text-muted-foreground">
-          {total || ""}
+          {total > 0 && <RollingNumber value={total} />}
         </span>
       </h2>
       {session ? (
         <CommentComposer
-          onSubmit={(body) => createComment({ body })}
+          onSubmit={(body) => post({ body })}
           isPending={isCreating}
         />
       ) : (
@@ -64,9 +71,10 @@ export function Comments({ slug }: { slug: string }) {
           <div key={comment.id} className="space-y-4">
             <CommentItem
               comment={comment}
+              isNew={comment.id === freshId}
               canReply={Boolean(session)}
               isPending={isPending}
-              onReply={(parentId, body) => createComment({ body, parentId })}
+              onReply={(parentId, body) => post({ body, parentId })}
               onEdit={(id, body) => updateComment({ id, body })}
               onDelete={deleteComment}
             />
@@ -76,6 +84,7 @@ export function Comments({ slug }: { slug: string }) {
                   <CommentItem
                     key={reply.id}
                     comment={reply}
+                    isNew={reply.id === freshId}
                     isReply
                     canReply={false}
                     isPending={isPending}

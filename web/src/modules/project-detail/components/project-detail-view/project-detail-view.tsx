@@ -26,8 +26,11 @@ import {
 } from "@/modules/submit/options";
 import type { Project } from "@/modules/submit/types/project";
 import { formatLocation } from "@hubdigital/shared";
-import { ExternalLink, Github, Heart, Share2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { FavoriteHeart, type FavoriteHeartHandle } from "@/components/favorite-heart/favorite-heart";
+import { cn } from "@/lib/utils";
+import { Check, ExternalLink, Github, Share2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { ProjectAuthorRow } from "../project-author/project-author";
 
 function MetadataRow({
@@ -120,12 +123,7 @@ export function ProjectDetailSidebar({ project }: { project: Project }) {
   const { data: favorites } = useFavorites(Boolean(session));
   const { toggleFavorite, pendingProjectId } = useToggleFavorite();
   const favorited = favorites?.data.some((item) => item.id === project.id) ?? false;
-
-  function share() {
-    if (navigator.share)
-      void navigator.share({ title: project.name, url: location.href });
-    else void navigator.clipboard.writeText(location.href);
-  }
+  const heart = useRef<FavoriteHeartHandle>(null);
   return (
     <div className="space-y-6">
       <section>
@@ -191,22 +189,65 @@ export function ProjectDetailSidebar({ project }: { project: Project }) {
           variant="outline"
           className="w-full"
           disabled={pendingProjectId === project.id}
-          onClick={() => toggleFavorite(project.id)}
+          aria-pressed={favorited}
+          onClick={() => {
+            heart.current?.arm();
+            toggleFavorite(project.id);
+          }}
         >
-          <Heart className={favorited ? "fill-current" : undefined} />
+          <FavoriteHeart ref={heart} active={favorited} />
           {favorited ? "Remover dos favoritos" : "Guardar nos favoritos"}
         </Button>
       )}
       <div className="flex gap-2">
-        <button
-          onClick={share}
-          className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md border text-sm hover:bg-muted"
-        >
-          <Share2 className="size-4" />
-          Partilhar
-        </button>
+        <ShareLinkButton title={project.name} />
         <ReportButton targetType="project" targetId={project.id} size="sm" />
       </div>
     </div>
+  );
+}
+
+// Phones get the native share sheet; everywhere else the link is copied and
+// the icon briefly turns into a check, which is quicker than a share dialog.
+function ShareLinkButton({ title }: { title: string }) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timeout = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timeout);
+  }, [copied]);
+
+  async function share() {
+    const url = location.href;
+    if (navigator.share && window.matchMedia("(pointer: coarse)").matches) {
+      try {
+        await navigator.share({ title, url });
+      } catch {
+        // Closing the share sheet rejects too; nothing to report.
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      toast.success("Link copiado para a área de transferência.");
+    } catch {
+      toast.error("Não foi possível copiar o link.");
+    }
+  }
+
+  const iconClass = "absolute inset-0 size-4 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.3,1.4,0.5,1)] motion-reduce:transition-none";
+  return (
+    <button
+      onClick={share}
+      className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md border text-sm hover:bg-muted"
+    >
+      <span aria-hidden="true" className="relative size-4">
+        <Share2 className={cn(iconClass, copied && "scale-50 -rotate-45 opacity-0")} />
+        <Check className={cn(iconClass, "text-primary", !copied && "scale-50 rotate-45 opacity-0")} />
+      </span>
+      <span aria-live="polite">{copied ? "Link copiado" : "Partilhar"}</span>
+    </button>
   );
 }
