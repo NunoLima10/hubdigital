@@ -2,7 +2,7 @@ import { LoginButton } from "@/components/login-button/login-button";
 import { RollingNumber } from "@/components/rolling-number/rolling-number";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { authClient } from "@/lib/auth-client";
-import type { CommentBody } from "@hubdigital/shared";
+import type { Comment, CommentBody } from "@hubdigital/shared";
 import { useState } from "react";
 import { CommentComposer } from "./components/comment-composer/comment-composer";
 import { CommentItem } from "./components/comment-item/comment-item";
@@ -68,35 +68,81 @@ export function Comments({ slug }: { slug: string }) {
       )}
       <div className="space-y-6">
         {data?.map((comment) => (
-          <div key={comment.id} className="space-y-4">
-            <CommentItem
-              comment={comment}
-              isNew={comment.id === freshId}
-              canReply={Boolean(session)}
-              isPending={isPending}
-              onReply={(parentId, body) => post({ body, parentId })}
-              onEdit={(id, body) => updateComment({ id, body })}
-              onDelete={deleteComment}
-            />
-            {comment.replies.length > 0 && (
-              <div className="space-y-4 pl-8 sm:pl-12">
-                {comment.replies.map((reply) => (
-                  <CommentItem
-                    key={reply.id}
-                    comment={reply}
-                    isNew={reply.id === freshId}
-                    isReply
-                    canReply={false}
-                    isPending={isPending}
-                    onEdit={(id, body) => updateComment({ id, body })}
-                    onDelete={deleteComment}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <CommentThreadView
+            key={comment.id}
+            comment={comment}
+            freshId={freshId}
+            canReply={Boolean(session)}
+            isPending={isPending}
+            onReply={(parentId, body) => post({ body, parentId })}
+            onEdit={(id, body) => updateComment({ id, body })}
+            onDelete={deleteComment}
+          />
         ))}
       </div>
     </section>
+  );
+}
+
+function CommentThreadView({
+  comment,
+  freshId,
+  canReply,
+  isPending,
+  onReply,
+  onEdit,
+  onDelete,
+}: {
+  comment: Comment;
+  freshId: number | null;
+  canReply: boolean;
+  isPending: boolean;
+  onReply: (parentId: number, body: string) => void;
+  onEdit: (id: number, body: string) => void;
+  onDelete: (id: number) => void;
+}) {
+  const replies = comment.replies;
+  return (
+    <div>
+      <CommentItem
+        comment={comment}
+        isNew={comment.id === freshId}
+        hasReplies={replies.length > 0}
+        canReply={canReply}
+        isPending={isPending}
+        onReply={onReply}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+      {replies.length > 0 && (
+        // pl-12 puts reply avatars under the parent's text column; the
+        // connectors sit on the parent avatar's centre line (36px avatar / 2).
+        <ul className="pl-12">
+          {replies.map((reply, index) => (
+            <li key={reply.id} className="relative pt-4">
+              {index < replies.length - 1 && (
+                <span
+                  aria-hidden
+                  className="absolute -left-[30.5px] top-0 bottom-0 w-px bg-border"
+                />
+              )}
+              <span
+                aria-hidden
+                className="absolute -left-[30.5px] top-0 h-[30px] w-[30.5px] rounded-bl-xl border-b border-l border-border"
+              />
+              <CommentItem
+                comment={reply}
+                isNew={reply.id === freshId}
+                isReply
+                canReply={false}
+                isPending={isPending}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }

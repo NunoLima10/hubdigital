@@ -2,8 +2,9 @@ import { ReportButton } from "@/modules/reports/components/report-button/report-
 import type { Comment, CommentReply } from "@hubdigital/shared";
 import { Link } from "@tanstack/react-router";
 import { prefersReducedMotion, replay } from "@/lib/motion";
+import { Flag, MessageCircle, Pencil, Trash2 } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
-import { relativeTime } from "../../utils/relative-time";
+import { fullDate, relativeTime } from "../../utils/relative-time";
 import { CommentComposer } from "../comment-composer/comment-composer";
 
 type Props = {
@@ -11,6 +12,8 @@ type Props = {
   isReply?: boolean;
   /** The user's own just-posted comment: slides in with a brief highlight. */
   isNew?: boolean;
+  /** Draws a line down from the avatar into the replies below. */
+  hasReplies?: boolean;
   onReply?: (parentId: number, body: string) => void;
   onEdit: (id: number, body: string) => void;
   onDelete: (id: number) => void;
@@ -21,6 +24,7 @@ export function CommentItem({
   comment,
   isReply = false,
   isNew = false,
+  hasReplies = false,
   onReply,
   onEdit,
   onDelete,
@@ -43,25 +47,33 @@ export function CommentItem({
       { duration: 1600, easing: "ease-out" },
     );
   }, [isNew]);
-  const linkClass =
-    "text-xs text-muted-foreground hover:text-foreground hover:underline";
+  const actionClass =
+    "inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline";
   return (
-    <article ref={article} className="-m-2 flex gap-3 rounded-lg p-2">
-      <span
-        className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-xs font-semibold ${isReply ? "size-7" : "size-9"}`}
-      >
-        {comment.author?.image ? (
-          <img
-            src={comment.author.image}
-            alt=""
-            className="size-full object-cover"
-          />
-        ) : (
-          (comment.author?.name?.[0]?.toUpperCase() ?? "?")
-        )}
-      </span>
+    <article
+      ref={article}
+      id={`comment-${comment.id}`}
+      className="-m-2 flex gap-3 rounded-lg p-2"
+    >
+      <div className="flex shrink-0 flex-col items-center">
+        <span
+          className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-xs font-semibold ${isReply ? "size-7" : "size-9"}`}
+        >
+          {comment.author?.image ? (
+            <img
+              src={comment.author.image}
+              alt=""
+              className="size-full object-cover"
+            />
+          ) : (
+            (comment.author?.name?.[0]?.toUpperCase() ?? "?")
+          )}
+        </span>
+        {/* Carries on into the reply connectors drawn by the thread list. */}
+        {hasReplies && <span aria-hidden className="mt-1 w-px flex-1 bg-border" />}
+      </div>
       <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
           {comment.author?.handle ? (
             <Link
               to="/makers/$handle"
@@ -73,11 +85,21 @@ export function CommentItem({
           ) : (
             <strong>{comment.author?.name ?? "Utilizador removido"}</strong>
           )}
-          <span className="text-xs text-muted-foreground">
+          <span aria-hidden className="text-xs text-muted-foreground">·</span>
+          <time
+            dateTime={comment.createdAt}
+            title={fullDate(comment.createdAt)}
+            className="text-xs text-muted-foreground"
+          >
             {relativeTime(comment.createdAt)}
-          </span>
+          </time>
           {comment.updatedAt !== comment.createdAt && !comment.isDeleted && (
-            <span className="text-xs text-muted-foreground">(editado)</span>
+            <span
+              title={`Editado ${fullDate(comment.updatedAt)}`}
+              className="text-xs text-muted-foreground"
+            >
+              (editado)
+            </span>
           )}
         </div>
         {mode === "edit" ? (
@@ -94,33 +116,40 @@ export function CommentItem({
           />
         ) : (
           <p
-            className={`whitespace-pre-wrap text-sm leading-6 ${comment.isDeleted ? "italic text-muted-foreground" : ""}`}
+            className={`whitespace-pre-wrap break-words text-sm leading-6 ${comment.isDeleted ? "italic text-muted-foreground" : ""}`}
           >
             {comment.body}
           </p>
         )}
         {mode === "view" && !comment.isDeleted && (
-          <div className="flex items-center gap-4 pt-1">
-            {canReply && !isReply && onReply && (
-              <button className={linkClass} onClick={() => setMode("reply")}>
-                Responder
-              </button>
-            )}
-            {comment.isOwn ? (
-              <>
-                <button className={linkClass} onClick={() => setMode("edit")}>
-                  Editar
-                </button>
-                <button
-                  className="text-xs text-destructive hover:underline"
-                  onClick={() => onDelete(comment.id)}
-                >
-                  Remover
-                </button>
-              </>
-            ) : (
-              <ReportButton targetType="comment" targetId={comment.id} />
-            )}
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+                {canReply && !isReply && onReply && (
+                  <button className={actionClass} onClick={() => setMode("reply")}>
+                    <MessageCircle className="size-3.5" />
+                    Responder
+                  </button>
+                )}
+                {comment.isOwn ? (
+                  <>
+                    <button className={actionClass} onClick={() => setMode("edit")}>
+                      <Pencil className="size-3.5" />
+                      Editar
+                    </button>
+                    <button
+                      className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive hover:underline"
+                      onClick={() => onDelete(comment.id)}
+                    >
+                      <Trash2 className="size-3.5" />
+                      Remover
+                    </button>
+                  </>
+                ) : (
+                  <ReportButton
+                    targetType="comment"
+                    targetId={comment.id}
+                    icon={<Flag className="size-3.5" />}
+                  />
+                )}
           </div>
         )}
         {mode === "reply" && onReply && (

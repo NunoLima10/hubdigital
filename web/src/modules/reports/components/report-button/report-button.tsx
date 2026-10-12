@@ -8,7 +8,7 @@ import {
   type ReportReason,
   type ReportTarget,
 } from "@hubdigital/shared";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useCreateReport } from "../../hooks/use-create-report";
 
 export function ReportButton({
@@ -16,11 +16,14 @@ export function ReportButton({
   targetId,
   label = "Reportar",
   size = "xs",
+  icon,
 }: {
   targetType: ReportTarget;
   targetId: number | string;
   label?: string;
   size?: "xs" | "sm";
+  /** Optional leading icon, for action rows that pair icons with labels. */
+  icon?: ReactNode;
 }) {
   const { data: session } = authClient.useSession();
   const [open, setOpen] = useState(false);
@@ -38,9 +41,10 @@ export function ReportButton({
     <>
       <button
         type="button"
-        className={`${size === "sm" ? "text-sm" : "text-xs"} text-muted-foreground hover:underline`}
+        className={`${size === "sm" ? "text-sm" : "text-xs"} inline-flex items-center gap-1 text-muted-foreground hover:underline`}
         onClick={() => setOpen(true)}
       >
+        {icon}
         {label}
       </button>
       <Dialog

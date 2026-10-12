@@ -26,3 +26,13 @@ export function relativeTime(iso: string) {
     year: "numeric",
   });
 }
+
+const fullFormatter = new Intl.DateTimeFormat("pt", {
+  dateStyle: "long",
+  timeStyle: "short",
+});
+
+/** "12 de outubro de 2026, 14:05" — the exact moment, for tooltips. */
+export function fullDate(iso: string) {
+  return fullFormatter.format(new Date(iso));
+}
