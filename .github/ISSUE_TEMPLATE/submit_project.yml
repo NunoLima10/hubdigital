@@ -1,0 +1,99 @@
+name: Submeter projeto
+description: Adicione um site, app ou plataforma feito em Cabo Verde ao HubDigital
+title: "[Projeto] "
+labels: ["novo projeto"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por contribuir! Um maintainer revê o pedido e adiciona o projeto ao diretório.
+        Prefere fazer o PR? Veja [como adicionar um projeto](https://github.com/NunoLima10/hubdigital/blob/main/CONTRIBUTING.md#-adicionar-um-projeto-ao-diretório).
+  - type: input
+    id: name
+    attributes:
+      label: Nome
+      placeholder: NhaFarma
+    validations:
+      required: true
+  - type: input
+    id: website
+    attributes:
+      label: Website
+      placeholder: https://www.nhafarma.cv/
+    validations:
+      required: true
+  - type: input
+    id: tagline
+    attributes:
+      label: Descrição curta (até 120 caracteres)
+      placeholder: Encontre farmácias de serviço em Cabo Verde.
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Categoria
+      options:
+        - Comunicação
+        - Comércio
+        - Desenvolvimento
+        - Educação
+        - Finanças
+        - Governo
+        - Informação
+        - Mobilidade
+        - Saúde
+        - Turismo
+        - Outros
+    validations:
+      required: true
+  - type: dropdown
+    id: island
+    attributes:
+      label: Ilha
+      options:
+        - Santiago
+        - São Vicente
+        - Santo Antão
+        - São Nicolau
+        - Sal
+        - Boa Vista
+        - Maio
+        - Fogo
+        - Brava
+        - Diáspora
+  - type: input
+    id: tags
+    attributes:
+      label: Tags (separadas por vírgula, até 5)
+      placeholder: SaaS, B2C
+  - type: input
+    id: founded
+    attributes:
+      label: Ano de fundação
+      placeholder: "2024"
+  - type: textarea
+    id: makers
+    attributes:
+      label: Makers
+      description: Nome e link (LinkedIn, site pessoal…) de quem criou o projeto, um por linha.
+  - type: input
+    id: github
+    attributes:
+      label: Repositório (se for open source)
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição longa (opcional)
+  - type: textarea
+    id: logo
+    attributes:
+      label: Logo
+      description: Arraste para aqui uma imagem quadrada (mín. 128×128).
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmação
+      options:
+        - label: O projeto foi criado em Cabo Verde ou por cabo-verdianos e está acessível publicamente.
+          required: true

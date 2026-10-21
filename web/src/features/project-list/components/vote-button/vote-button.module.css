@@ -1,0 +1,44 @@
+.label {
+  line-height: 0;
+}
+
+.section {
+  margin: rem(2px);
+}
+
+.inner {
+  @media (max-width: $mantine-breakpoint-xs) {
+    flex-direction: column-reverse;
+    transform: translate(-10%);
+  }
+}
+
+.root {
+  flex-shrink: 0;
+  width: rem(95px);
+  border: 3px solid transparent;
+  border-radius: var(--mantine-radius-lg);
+
+  @media (max-width: $mantine-breakpoint-xs) {
+    width: 55px;
+    height: 55px;
+  }
+
+  &:not([data-variant="light"]) {
+    @mixin dark {
+      background-color: var(--mantine-color-dark-8);
+    }
+
+    @mixin light {
+      background-color: var(--mantine-color-dark-2);
+    }
+  }
+}
+
+.icon {
+  transform: translate(0, -10%);
+
+  @media (max-width: $mantine-breakpoint-xs) {
+    transform: translate(0, 20%);
+  }
+}

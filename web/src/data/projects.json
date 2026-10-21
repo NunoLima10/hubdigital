@@ -1,0 +1,78 @@
+[
+  {
+    "slug": "notifika",
+    "name": "Notifika",
+    "tagline": "Conectamos empresas a clientes, tornando a comunicação direta mais eficiente em tempo real.",
+    "website": "https://notifika.cv/",
+    "iconUrl": "/logos/notifika.webp",
+    "category": "Comunicação",
+    "tags": ["SaaS", "B2B"],
+    "status": "offline",
+    "addedAt": "2025-04-11",
+    "upCount": 0
+  },
+  {
+    "slug": "nhafarma",
+    "name": "NhaFarma",
+    "tagline": "Encontre farmácias de serviço em Cabo Verde, com praticidade e eficiência.",
+    "website": "https://www.nhafarma.cv/",
+    "iconUrl": "/logos/nhafarmacia.webp",
+    "category": "Saúde",
+    "tags": ["Informação", "B2C"],
+    "addedAt": "2025-04-11",
+    "upCount": 10
+  },
+  {
+    "slug": "calendario-cv",
+    "name": "Calendario.cv",
+    "tagline": "Calendário online de Cabo Verde.",
+    "website": "https://www.calendario.cv/",
+    "iconUrl": "/logos/calendarios.webp",
+    "category": "Informação",
+    "tags": ["B2C"],
+    "status": "offline",
+    "addedAt": "2025-04-11",
+    "upCount": 100
+  },
+  {
+    "slug": "chuva-less",
+    "name": "Chuva Less",
+    "tagline": "O Less automatiza a criação, o gerenciamento e a implantação da sua infraestrutura de nuvem.",
+    "website": "https://less.chuva.io/",
+    "iconUrl": "/logos/less.webp",
+    "category": "Desenvolvimento",
+    "tags": ["Cloud", "B2B"],
+    "addedAt": "2025-04-11",
+    "upCount": 1000
+  },
+  {
+    "slug": "kriolish",
+    "name": "Kriolish",
+    "tagline": "Aprenda a escrever e a falar o crioulo cabo-verdiano.",
+    "website": "https://kriolish.com/",
+    "category": "Educação",
+    "tags": ["Língua", "B2C"],
+    "addedAt": "2026-10-21",
+    "upCount": 0
+  },
+  {
+    "slug": "faxi",
+    "name": "Faxi",
+    "tagline": "Super app de pagamentos: carregamentos, faturas, bilhetes e mais.",
+    "website": "https://faxi.online/",
+    "category": "Finanças",
+    "tags": ["Pagamentos", "B2C"],
+    "addedAt": "2026-10-21",
+    "upCount": 0
+  },
+  {
+    "slug": "vinti4",
+    "name": "Vinti4",
+    "tagline": "A rede de pagamentos eletrónicos de Cabo Verde.",
+    "website": "https://www.vinti4.cv/",
+    "category": "Finanças",
+    "tags": ["Pagamentos", "B2C", "B2B"],
+    "addedAt": "2026-10-21",
+    "upCount": 0
+  }
+]
