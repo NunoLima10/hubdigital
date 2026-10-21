@@ -1,17 +1,14 @@
+import { projectLinkHref, projectLinkKindLabels } from "@hubdigital/shared";
 import { ProjectStatusBadge } from "@/components/status-badge/status-badge";
 import { relativeTime } from "@/utils/relative-time";
-import { formatLocation, type AdminProject } from "@hubdigital/shared";
 import {
-  Anchor,
-  Badge,
-  Card,
-  Divider,
-  Group,
-  Image,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+  countryLabels,
+  localConnectionLabels,
+  helpWantedLabels,
+  formatLocation,
+  type AdminProject,
+} from "@hubdigital/shared";
+import { Anchor, Badge, Card, Divider, Group, Image, Stack, Text, Title } from "@mantine/core";
 import { IconExternalLink } from "@tabler/icons-react";
 
 /**
@@ -27,7 +24,12 @@ export function ProjectReviewPanel({ project }: { project: AdminProject }) {
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${project.youtubeVideoId}`}
             title={`Trailer de ${project.name}`}
-            style={{ width: "100%", height: "100%", border: 0, borderRadius: "var(--mantine-radius-md)" }}
+            style={{
+              width: "100%",
+              height: "100%",
+              border: 0,
+              borderRadius: "var(--mantine-radius-md)",
+            }}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           />
@@ -56,9 +58,7 @@ export function ProjectReviewPanel({ project }: { project: AdminProject }) {
       )}
 
       <Group gap="md" wrap="nowrap" align="flex-start">
-        {project.logoUrl && (
-          <Image src={project.logoUrl} alt="" w={56} h={56} radius="md" />
-        )}
+        {project.logoUrl && <Image src={project.logoUrl} alt="" w={56} h={56} radius="md" />}
         <Stack gap={4}>
           <Group gap="xs">
             <Title order={4}>{project.name}</Title>
@@ -67,28 +67,74 @@ export function ProjectReviewPanel({ project }: { project: AdminProject }) {
           <Text size="sm" c="dimmed">
             {project.shortDescription}
           </Text>
-          <Anchor href={project.websiteUrl} target="_blank" size="sm">
-            <Group gap={4}>
-              {project.websiteUrl}
-              <IconExternalLink size={14} />
-            </Group>
-          </Anchor>
+          {project.links.map((link) => {
+            const href = projectLinkHref(link);
+            return href ? (
+              <Anchor key={link.id} href={href} target="_blank" rel="noopener noreferrer" size="sm">
+                {link.isPrimary ? "Principal: " : ""}
+                {link.label || projectLinkKindLabels[link.kind]} <IconExternalLink size={14} />
+              </Anchor>
+            ) : (
+              <Text key={link.id} size="xs" c="dimmed">
+                Destino por completar
+              </Text>
+            );
+          })}
         </Stack>
       </Group>
 
       <Group gap="xs">
-        {project.category && (
-          <Badge variant="light">{project.category.name}</Badge>
-        )}
-        {project.location && (
-          <Badge variant="outline">{formatLocation(project.location)}</Badge>
-        )}
-        {project.githubUrl && (
-          <Anchor href={project.githubUrl} target="_blank" size="xs">
-            GitHub
-          </Anchor>
-        )}
+        {project.category && <Badge variant="light">{project.category.name} · Principal</Badge>}
+        {project.secondaryCategories.map((category) => (
+          <Badge key={category.id} variant="outline">
+            {category.name}
+          </Badge>
+        ))}
+        {project.location && <Badge variant="outline">{formatLocation(project.location)}</Badge>}
       </Group>
+
+      <Stack gap="xs">
+        {project.languages.length > 0 && (
+          <Text size="sm">Línguas: {project.languages.join(", ")}</Text>
+        )}
+        {project.teamDescription && <Text size="sm">Equipa: {project.teamDescription}</Text>}
+        {project.helpWanted.length > 0 && (
+          <Text size="sm">
+            Procura ajuda: {project.helpWanted.map((value) => helpWantedLabels[value]).join(", ")}
+          </Text>
+        )}
+        {project.helpDescription && <Text size="sm">{project.helpDescription}</Text>}
+        {project.additionalLocations.map((location, index) => (
+          <Text key={index} size="sm">
+            Outra base: {formatLocation(location)}
+          </Text>
+        ))}
+        {project.teamMode === "distributed" && <Text size="sm">Equipa distribuída</Text>}
+        {project.serviceArea && (
+          <Text size="sm">
+            Pode ser usado:{" "}
+            {project.serviceArea.scope === "worldwide"
+              ? "Em todo o mundo"
+              : project.serviceArea.countries.map((code) => countryLabels[code]).join(", ")}
+          </Text>
+        )}
+        {project.localConnections.length > 0 && (
+          <Text size="sm">
+            Ligação a Cabo Verde:{" "}
+            {project.localConnections.map((code) => localConnectionLabels[code]).join(", ")}
+          </Text>
+        )}
+        {[project.location, ...project.additionalLocations].map(
+          (location, index) =>
+            location?.publicPin && (
+              <Text key={index} size="xs" c="dimmed">
+                {formatLocation(location)}: {location.publicPin.latitude},{" "}
+                {location.publicPin.longitude} (
+                {location.publicPin.precision === "exact" ? "local público exato" : "aproximado"})
+              </Text>
+            ),
+        )}
+      </Stack>
 
       {project.description && (
         <>

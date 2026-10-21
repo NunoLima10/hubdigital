@@ -29,6 +29,7 @@ export function AdminNav() {
           title="Fila de revisão"
           icon={<IconClipboardCheck size={18} />}
         />
+        <NavLink to="/community-review" title="Anúncios e alterações" icon={<IconClipboardCheck size={18} />} />
         <NavLink
           to="/projects"
           title="Projetos"

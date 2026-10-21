@@ -15,6 +15,7 @@ import { Route as StaffIndexRouteImport } from './routes/_staff/index'
 import { Route as StaffAuditRouteImport } from './routes/_staff/audit'
 import { Route as StaffCategoriesRouteImport } from './routes/_staff/categories'
 import { Route as StaffCommentsRouteImport } from './routes/_staff/comments'
+import { Route as StaffCommunityReviewRouteImport } from './routes/_staff/community-review'
 import { Route as StaffQueueRouteImport } from './routes/_staff/queue'
 import { Route as StaffReportsRouteImport } from './routes/_staff/reports'
 import { Route as StaffSettingsRouteImport } from './routes/_staff/settings'
@@ -50,6 +51,11 @@ const StaffCategoriesRoute = StaffCategoriesRouteImport.update({
 const StaffCommentsRoute = StaffCommentsRouteImport.update({
   id: '/comments',
   path: '/comments',
+  getParentRoute: () => StaffRoute,
+} as any)
+const StaffCommunityReviewRoute = StaffCommunityReviewRouteImport.update({
+  id: '/community-review',
+  path: '/community-review',
   getParentRoute: () => StaffRoute,
 } as any)
 const StaffQueueRoute = StaffQueueRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/audit': typeof StaffAuditRoute
   '/categories': typeof StaffCategoriesRoute
   '/comments': typeof StaffCommentsRoute
+  '/community-review': typeof StaffCommunityReviewRoute
   '/queue': typeof StaffQueueRoute
   '/reports': typeof StaffReportsRoute
   '/settings': typeof StaffSettingsRoute
@@ -107,6 +114,7 @@ export interface FileRoutesByTo {
   '/audit': typeof StaffAuditRoute
   '/categories': typeof StaffCategoriesRoute
   '/comments': typeof StaffCommentsRoute
+  '/community-review': typeof StaffCommunityReviewRoute
   '/queue': typeof StaffQueueRoute
   '/reports': typeof StaffReportsRoute
   '/settings': typeof StaffSettingsRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   '/_staff/audit': typeof StaffAuditRoute
   '/_staff/categories': typeof StaffCategoriesRoute
   '/_staff/comments': typeof StaffCommentsRoute
+  '/_staff/community-review': typeof StaffCommunityReviewRoute
   '/_staff/queue': typeof StaffQueueRoute
   '/_staff/reports': typeof StaffReportsRoute
   '/_staff/settings': typeof StaffSettingsRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/categories'
     | '/comments'
+    | '/community-review'
     | '/queue'
     | '/reports'
     | '/settings'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/audit'
     | '/categories'
     | '/comments'
+    | '/community-review'
     | '/queue'
     | '/reports'
     | '/settings'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/_staff/audit'
     | '/_staff/categories'
     | '/_staff/comments'
+    | '/_staff/community-review'
     | '/_staff/queue'
     | '/_staff/reports'
     | '/_staff/settings'
@@ -227,6 +239,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StaffCommentsRouteImport
       parentRoute: typeof StaffRoute
     }
+    '/_staff/community-review': {
+      id: '/_staff/community-review'
+      path: '/community-review'
+      fullPath: '/community-review'
+      preLoaderRoute: typeof StaffCommunityReviewRouteImport
+      parentRoute: typeof StaffRoute
+    }
     '/_staff/queue': {
       id: '/_staff/queue'
       path: '/queue'
@@ -283,6 +302,7 @@ interface StaffRouteChildren {
   StaffAuditRoute: typeof StaffAuditRoute
   StaffCategoriesRoute: typeof StaffCategoriesRoute
   StaffCommentsRoute: typeof StaffCommentsRoute
+  StaffCommunityReviewRoute: typeof StaffCommunityReviewRoute
   StaffQueueRoute: typeof StaffQueueRoute
   StaffReportsRoute: typeof StaffReportsRoute
   StaffSettingsRoute: typeof StaffSettingsRoute
@@ -297,6 +317,7 @@ const StaffRouteChildren: StaffRouteChildren = {
   StaffAuditRoute: StaffAuditRoute,
   StaffCategoriesRoute: StaffCategoriesRoute,
   StaffCommentsRoute: StaffCommentsRoute,
+  StaffCommunityReviewRoute: StaffCommunityReviewRoute,
   StaffQueueRoute: StaffQueueRoute,
   StaffReportsRoute: StaffReportsRoute,
   StaffSettingsRoute: StaffSettingsRoute,
