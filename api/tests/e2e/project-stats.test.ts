@@ -1,3 +1,4 @@
+import { projectLinks, projectLinkClicks } from "@/db/schemas";
 import {
   afterAll,
   afterEach,
@@ -56,13 +57,12 @@ function projectFixture(
   return {
     name: "Meu Projeto",
     shortDescription: "Uma plataforma para descobrir projetos digitais de CV",
-    websiteUrl: "https://hubdigital.cv",
     pricing: "free",
     platform: ["web"],
     businessModel: "b2c",
-    access: "public_beta",
-    projectStage: "mvp",
-    audienceStage: "general_public",
+    availability: "not_available",
+    projectStage: "prototype",
+    audiences: ["general_public"],
     country: "cv",
     island: "CV2",
     status: "published",
@@ -575,4 +575,36 @@ describe("Project stats module (e2e)", () => {
       })
     ).toHaveLength(0);
   });
+  describe("destination clicks",()=>{
+    it("records repeated clicks separately per link and surface, while excluding owners and bots",async()=>{
+      const projectId=await createProject("destinations");
+      const [link]=await db.insert(projectLinks).values({projectId,kind:"website",url:"https://example.com/#demo",position:0,isPrimary:true,referralAttribution:true}).returning();
+      signInAs(visitorId);
+      for(let i=0;i<2;i++)expect((await server.inject({method:"POST",url:`/v1/projects/links/${link.id}/click?surface=detail`,headers:{"user-agent":BROWSER_UA}})).statusCode).toBe(204);
+      signInAs(ownerId);
+      await server.inject({method:"POST",url:`/v1/projects/links/${link.id}/click`,headers:{"user-agent":BROWSER_UA}});
+      signInAs(null);
+      await server.inject({method:"POST",url:`/v1/projects/links/${link.id}/click`,headers:{"user-agent":"Googlebot"}});
+      signInAs(ownerId);
+      const stats=await server.inject({method:"GET",url:`/v1/projects/${projectId}/link-stats?range=7d`});
+      expect(stats.statusCode).toBe(200);expect(stats.json().data.links).toMatchObject([{linkId:link.id,clicks:2,detail:2}]);
+      expect(stats.json().data.links[0]).not.toHaveProperty("url");
+      signInAs(visitorId);expect((await server.inject({method:"GET",url:`/v1/projects/${projectId}/link-stats`})).statusCode).toBe(403);
+      await db.insert(publishers).values({userId:visitorId,bio:"Viewer",profileResponse:"founder",objectiveResponse:"launch-product",locationResponse:"CV2",foundUsByResponse:"social-media"});
+      expect((await server.inject({method:"GET",url:`/v1/projects/${projectId}/link-stats`})).statusCode).toBe(404);
+    });
+    it("redirects only stored public destinations and preserves paths/fragments and existing queries",async()=>{
+      const projectId=await createProject("redirects");
+      const [plain,signed]=await db.insert(projectLinks).values([{projectId,kind:"website",url:"https://example.com/try#demo",position:0,referralAttribution:true},{projectId,kind:"website",url:"https://example.com/try?signature=secret#demo",position:1,referralAttribution:true}]).returning();
+      signInAs(null);
+      const response=await server.inject({method:"GET",url:`/v1/projects/go/${plain.id}`,headers:{"user-agent":BROWSER_UA,purpose:"prefetch"}});
+      expect(response.statusCode).toBe(302);expect(response.headers.location).toBe("https://example.com/try?utm_source=hubdigital&utm_medium=referral#demo");expect(response.headers["cache-control"]).toBe("no-store");
+      const untouched=await server.inject({method:"GET",url:`/v1/projects/go/${signed.id}`,headers:{"user-agent":BROWSER_UA,purpose:"prefetch"}});expect(untouched.headers.location).toBe(signed.url);
+      expect(await db.select().from(projectLinkClicks)).toHaveLength(0);
+      expect((await server.inject({method:"GET",url:`/v1/projects/go/${plain.id}?url=https://evil.example`})).statusCode).toBe(400);
+      await db.update(projects).set({status:"draft"}).where(eq(projects.id,projectId));
+      expect((await server.inject({method:"GET",url:`/v1/projects/go/${plain.id}`})).statusCode).toBe(404);
+    });
+  });
+
 });

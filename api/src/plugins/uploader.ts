@@ -5,12 +5,18 @@ import { errorResponseSchema, routeErrorResponses } from "@/shared/schemas";
 import {
   ServiceUnavailableError,
   UnauthorizedAccessError,
+  BadRequestError,
+  NotFoundError,
 } from "@/utils/custom-errors";
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { fileUploads } from "@/db/schemas";
+import { and, eq } from "drizzle-orm";
+import { matchesImageSignature } from "@/utils/image-signature";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
   allowedUploadContentTypes,
   fileUploadTypeValues,
+  maxUploadBytes,
 } from "@hubdigital/shared";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import fastifyPlugin from "fastify-plugin";
@@ -20,6 +26,7 @@ import { z } from "zod";
 
 const uploadBodySchema = z.object({
   name: z.string().min(1).max(255),
+  byteSize: z.number().int().positive().max(maxUploadBytes),
   contentType: z.enum(allowedUploadContentTypes, {
     errorMap: () => ({ message: "Tipo de ficheiro não permitido." }),
   }),
@@ -45,6 +52,7 @@ const uploadRouteSchema = {
       data: z.object({
         uploadUrl: z.string(),
         fileKey: z.string(),
+        uploadId: z.number(),
       }),
     }),
     503: errorResponseSchema,
@@ -134,7 +142,7 @@ const uploaderPlugin = async (fastify: FastifyInstance) => {
         throw new ServiceUnavailableError();
       }
 
-      const { name, contentType, type } = req.body;
+      const { name, contentType, type, byteSize } = req.body;
       const fileKey = resolveFileKey(type, name);
 
       const uploadUrl = await getSignedUrl(
@@ -147,16 +155,49 @@ const uploaderPlugin = async (fastify: FastifyInstance) => {
         { expiresIn: config.UPLOADER_URL_EXPIRES_IN }
       );
 
-      await UploadsService.createFileUpload(req.db, {
+      const upload = await UploadsService.createFileUpload(req.db, {
         key: fileKey,
         type,
         contentType,
         userId: req.user.id,
+        byteSize,
       });
 
       return reply.status(201).send({
-        data: { uploadUrl, fileKey },
+        data: { uploadUrl, fileKey, uploadId: upload.id },
       });
+    },
+  });
+
+  fastify.post<{ Params: { id: number } }>("/v1/uploads/:id/complete", {
+    schema: {
+      tags: ["uploads"], params: z.object({ id: z.coerce.number().int().positive() }),
+      response: { 200: z.object({ data: z.object({ fileKey: z.string() }) }), 503: errorResponseSchema, ...routeErrorResponses },
+    },
+    preHandler: authenticate,
+    handler: async (req, reply) => {
+      const upload = await req.db.query.fileUploads.findFirst({
+        where: and(eq(fileUploads.id, req.params.id), eq(fileUploads.userId, req.user!.id)),
+      });
+      if (!upload) throw new NotFoundError();
+      if (!s3 || !storage) throw new ServiceUnavailableError();
+      try {
+        const metadata = await s3.send(new HeadObjectCommand({ Bucket: storage.bucket, Key: upload.key }));
+        if (!upload.byteSize || metadata.ContentLength !== upload.byteSize || metadata.ContentLength > maxUploadBytes || metadata.ContentType !== upload.contentType) {
+          throw new BadRequestError("O ficheiro carregado não corresponde à imagem escolhida.");
+        }
+        const object = await s3.send(new GetObjectCommand({ Bucket: storage.bucket, Key: upload.key, Range: "bytes=0-15" }));
+        const bytes = await object.Body?.transformToByteArray();
+        if (!bytes || !matchesImageSignature(bytes, upload.contentType!)) throw new BadRequestError("O ficheiro não é uma imagem PNG, JPG ou WebP válida.");
+      } catch (error) {
+        if (error instanceof BadRequestError) throw error;
+        req.log.warn({ err: error }, "Upload verification failed");
+        const status = (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
+        if (status === 404) throw new BadRequestError("A imagem ainda não terminou de carregar. Tenta novamente.");
+        throw new ServiceUnavailableError();
+      }
+      await req.db.update(fileUploads).set({ completedAt: new Date().toISOString() }).where(eq(fileUploads.id, upload.id));
+      return reply.send({ data: { fileKey: upload.key } });
     },
   });
 };

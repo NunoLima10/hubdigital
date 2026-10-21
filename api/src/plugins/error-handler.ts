@@ -8,6 +8,7 @@ import fastifyPlugin from "fastify-plugin";
 import { hasZodFastifySchemaValidationErrors } from "fastify-type-provider-zod";
 import { getPostgresError } from "@/utils/postgres-error";
 import { z } from "zod";
+import { ProjectPublicationError } from "@/utils/project-publication";
 
 
 export const errorResponseSchema = z.object({
@@ -21,6 +22,11 @@ export const errorResponseSchema = z.object({
 
 const customErrorHandler: FastifyPluginAsync = async (fastify) => {
   fastify.setErrorHandler((error: FastifyError, req, reply) => {
+    if (error instanceof ProjectPublicationError) {
+      return reply.code(400).send({
+        error: { message: error.message, code: error.code, issues: error.issues },
+      });
+    }
     if (hasZodFastifySchemaValidationErrors(error)) {
       logger.warn({ error }, `Zod validation error: ${error.message}`);
       return reply.code(400).send({

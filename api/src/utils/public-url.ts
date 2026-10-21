@@ -11,8 +11,11 @@ export function toPublicUrl(key: null | undefined): null;
 export function toPublicUrl(key: string | null | undefined): string | null;
 export function toPublicUrl(key: string | null | undefined) {
   if (!key) return null;
+  const seed = /^project_(?:logo|gallery)\/seed-airtable-(\d+)\.(png|jpg|jpeg|webp)$/.exec(key);
+  if (seed) return `/seed/airtable/${seed[1]}.${seed[2]}`;
 
   if (/^https?:\/\//i.test(key)) return key;
+  if (key.startsWith("/")) return key;
 
   const publicUrl = config.CLOUDFLARE_PUBLIC_URL?.replace(/\/+$/, "");
   const normalizedKey = key.replace(/^\/+/, "");

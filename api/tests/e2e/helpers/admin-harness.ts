@@ -4,6 +4,7 @@ import {
   moderationActions,
   projectUpvotes,
   projects,
+  projectLinks,
   publishers,
   reports,
   users,
@@ -85,13 +86,12 @@ export function projectFixture(
   return {
     name: "Meu Projeto",
     shortDescription: "Uma plataforma para descobrir projetos digitais de CV",
-    websiteUrl: "https://hubdigital.cv",
     pricing: "free",
     platform: ["web"],
     businessModel: "b2c",
-    access: "public_beta",
-    projectStage: "mvp",
-    audienceStage: "general_public",
+    availability: "public_beta",
+    projectStage: "prototype",
+    audiences: ["general_public"],
     country: "cv",
     island: "CV2",
     status: "published",
@@ -109,5 +109,6 @@ export async function insertProject(
     .values(projectFixture(overrides))
     .returning({ id: projects.id, slug: projects.slug });
 
+  await db.insert(projectLinks).values({ projectId: project.id, kind: "website", url: "https://hubdigital.cv", isPrimary: true, position: 0 });
   return project;
 }

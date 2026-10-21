@@ -1,3 +1,4 @@
+import { communityRoutes } from "./modules/community/community-routes";
 import { DB } from "@/db";
 import cookiesPlugin from "@/plugins/cookies";
 import corsPlugin from "@/plugins/cors";
@@ -85,6 +86,7 @@ export async function buildServer(db: DB) {
   await server.register(categoriesRoutes, { prefix: "/v1/categories" });
   // Registered at /v1 because it owns both /projects/:slug/comments and
   // /comments/:id.
+  await server.register(communityRoutes, {prefix:"/v1"});
   await server.register(commentsRoutes, { prefix: "/v1" });
   await server.register(makersRoutes, { prefix: "/v1/makers" });
   await server.register(reportsRoutes, { prefix: "/v1/reports" });

@@ -1,5 +1,6 @@
 export {
-  accessValues,
+  availabilityValues,
+  sourceModelValues,
   audienceValues,
   businessModelValues,
   countryValues,

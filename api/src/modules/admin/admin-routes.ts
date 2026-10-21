@@ -1,3 +1,12 @@
+import { toPublicUrl } from "@/utils/public-url";
+import { getYoutubeVideoId } from "@hubdigital/shared";
+import { z } from "zod";
+import { and, eq, desc, isNull, inArray } from "drizzle-orm";
+import { categories, projectAnnouncements, projectRevisions, projects } from "@/db/schemas";
+import { reviewAnnouncement, reviewRevision } from "@/modules/community/community-services";
+import { AdminProjectsService } from "./projects-services";
+import { withAudit } from "./audit-services";
+import { NotFoundError } from "@/utils/custom-errors";
 import { requireAdmin } from "@/hooks/has-role";
 import { FastifyInstance } from "fastify";
 import { adminController } from "./admin-controllers";
@@ -35,6 +44,96 @@ import {
  */
 export async function adminRoutes(server: FastifyInstance) {
   server.addHook("onRequest", requireAdmin);
+  server.get("/community-review", {
+    handler: async (req) => {
+      const announcements = await req.db
+        .select({ announcement: projectAnnouncements, name: projects.name })
+        .from(projectAnnouncements)
+        .innerJoin(projects, eq(projects.id, projectAnnouncements.projectId))
+        .where(and(eq(projectAnnouncements.status, "pending"), isNull(projects.deletedAt)))
+        .orderBy(projectAnnouncements.createdAt);
+      const revisions = await req.db.query.projectRevisions.findMany({
+        where: eq(projectRevisions.status, "pending"),
+        orderBy: desc(projectRevisions.createdAt),
+      });
+      return {
+        data: {
+          announcements,
+          revisions: await Promise.all(
+            revisions.map(async (revision) => {
+              const project = await AdminProjectsService.getProject(req.db, revision.projectId);
+              if (!project) return { ...revision, project: null, proposed: null };
+              const body = revision.body;
+              const ids = [body.categoryId, ...body.secondaryCategoryIds];
+              const selected = await req.db.query.categories.findMany({
+                where: inArray(categories.id, ids),
+              });
+              return {
+                ...revision,
+                project,
+                proposed: {
+                  ...project,
+                  ...body,
+                  description: body.description ?? null,
+                  logoUrl: toPublicUrl(body.logoUrl),
+                  galleryImageUrls: body.galleryImageKeys.map((key) => toPublicUrl(key)),
+                  youtubeVideoId: body.youtubeVideoUrl
+                    ? getYoutubeVideoId(body.youtubeVideoUrl)
+                    : null,
+                  links: body.links.map((link, index) => ({
+                    ...link,
+                    id: link.id ?? -(index + 1),
+                  })),
+                  category: selected.find((category) => category.id === body.categoryId),
+                  secondaryCategories: body.secondaryCategoryIds
+                    .map((id) => selected.find((category) => category.id === id))
+                    .filter(Boolean),
+                },
+              };
+            }),
+          ),
+        },
+      };
+    },
+  });
+  for (const kind of ["announcements", "revisions"] as const) {
+    server.post(`/community-review/${kind}/:id`, {
+      schema: {
+        params: z.object({ id: z.coerce.number().int().positive() }),
+        body: z
+          .object({ approve: z.boolean(), reason: z.string().trim().min(10).max(1000).optional() })
+          .superRefine((value, ctx) => {
+            if (!value.approve && !value.reason)
+              ctx.addIssue({
+                code: "custom",
+                path: ["reason"],
+                message: "Indica o motivo da rejeição.",
+              });
+          }),
+      },
+      handler: async (req) => {
+        const input = req.body as { approve: boolean; reason?: string };
+        const id = (req.params as { id: number }).id;
+        const result = await withAudit(
+          req.db,
+          { id: req.user!.id },
+          (tx) =>
+            kind === "announcements"
+              ? reviewAnnouncement(tx, id, req.user!.id, input.approve, input.reason)
+              : reviewRevision(tx, id, req.user!.id, input.approve, input.reason),
+          (result) => ({
+            action: input.approve ? "project.approve" : "project.reject",
+            targetType: "project",
+            targetId: result.projectId,
+            reason: input.reason,
+            metadata: { entity: kind, entityId: id },
+          }),
+        );
+        if (!result) throw new NotFoundError();
+        return { data: result };
+      },
+    });
+  }
 
   server.get("/stats", {
     schema: statsRouteSchema,

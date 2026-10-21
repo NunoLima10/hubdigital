@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { countryValues, islandValues, projectMapRecordSchema } from "@hubdigital/shared";
+import { ProjectsService } from "./projects-services";
 import { authenticate } from "@/hooks/autenticate";
 import { requirePublisher } from "@/hooks/require-publisher";
 import { FastifyInstance, FastifyRequest } from "fastify";
@@ -62,6 +65,30 @@ export async function projectsRoutes(server: FastifyInstance) {
     schema: listFavoriteProjectsRouteSchema,
     preHandler: authenticate,
     handler: projectsController.listFavoriteProjectsHandler,
+  });
+
+  server.get("/map", {
+    schema: {
+      tags: ["projects"],
+      querystring: z.object({
+        limit: z.coerce.number().int().min(1).max(200).default(200),
+        offset: z.coerce.number().int().min(0).default(0),
+        country: z.enum(countryValues).optional(),
+        island: z.enum(islandValues).optional(),
+        categoryId: z.coerce.number().int().positive().optional(),
+      }),
+      response: {
+        200: z.object({
+          data: z.array(projectMapRecordSchema),
+          meta: z.object({ total: z.number(), limit: z.number(), offset: z.number() }),
+        }),
+      },
+    },
+    handler: async (request) =>
+      ProjectsService.listMapProjects(
+        request.db,
+        request.query as { limit: number; offset: number },
+      ),
   });
 
   server.get("/:slug", {

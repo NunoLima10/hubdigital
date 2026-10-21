@@ -2,12 +2,14 @@ import { errorResponseSchema, routeErrorResponses } from "@/shared/schemas";
 import {
   WEEK_ID_PATTERN,
   islandValues,
+  countryValues,
   listPeriodValues,
   listSortValues,
   platformValues,
   pricingValues,
   projectStageValues,
-  projectBodySchema,
+  projectDraftSchema,
+  createProjectDraftSchema,
   projectMinimalSchema,
   projectSchema,
 } from "@hubdigital/shared";
@@ -16,7 +18,7 @@ import { z } from "zod";
 
 export const createProjectRouteSchema = {
   tags: ["projects"],
-  body: projectBodySchema,
+  body: createProjectDraftSchema,
   response: {
     201: z.object({
       data: z.object({
@@ -43,12 +45,13 @@ export const updateProjectRouteSchema = {
   params: z.object({
     id: z.coerce.number().int().positive(),
   }),
-  body: projectBodySchema.partial(),
+  body: projectDraftSchema.partial(),
   response: {
     200: z.object({
       data: z.object({
         id: z.number(),
         slug: z.string(),
+        pendingReview:z.boolean().optional(),
       }),
     }),
     403: errorResponseSchema,
@@ -86,10 +89,11 @@ const paginationQuerySchema = z.object({
 });
 
 const listProjectsQuerySchema = paginationQuerySchema.extend({
-  period: z.enum(listPeriodValues).default("this_week"),
+  period: z.enum(listPeriodValues).default("all"),
   sort: z.enum(listSortValues).default("upvotes"),
   q: z.string().trim().min(1).max(120).optional(),
   categoryId: z.coerce.number().int().positive().optional(),
+  country: z.enum(countryValues).optional(),
   island: z.enum(islandValues).optional(),
   pricing: z.enum(pricingValues).optional(),
   projectStage: z.enum(projectStageValues).optional(),

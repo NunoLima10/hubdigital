@@ -1,5 +1,5 @@
 import { projects } from "@/db/schemas";
-import type { MunicipalityCode, ProjectLocation } from "@hubdigital/shared";
+import type { DraftProjectLocation, MunicipalityCode, ProjectLocation } from "@hubdigital/shared";
 
 export type LocationColumns = Pick<
   typeof projects.$inferSelect,
@@ -16,14 +16,21 @@ export function locationFromColumns({
   island,
   municipality,
   zone,
-}: LocationColumns): ProjectLocation | null {
+  locationDetails = {},
+}: LocationColumns & {
+  locationDetails?: Pick<ProjectLocation, "locality" | "publicPin">;
+}): ProjectLocation | null {
   if (!country) return null;
-  if (country !== "cv") return { country };
-  if (!island) return null;
+  if (country !== "cv")
+    return {
+      country: country as ProjectLocation["country"],
+      ...locationDetails,
+    } as ProjectLocation;
 
   return {
     country,
-    island,
+    ...(island ? { island } : {}),
+    ...locationDetails,
     ...(municipality ? { municipality: municipality as MunicipalityCode } : {}),
     ...(zone ? { zone } : {}),
   };
@@ -34,9 +41,12 @@ export function locationFromColumns({
  * that moves a project from Santiago to Portugal clears the island instead of
  * leaving a stale one behind.
  */
-export function locationToColumns(location: ProjectLocation): LocationColumns {
+export function locationToColumns(location: DraftProjectLocation | null) {
+  if (!location)
+    return { country: null, island: null, municipality: null, zone: null, locationDetails: {} };
   if (location.country !== "cv") {
     return {
+      locationDetails: { locality: location.locality, publicPin: location.publicPin },
       country: location.country,
       island: null,
       municipality: null,
@@ -45,8 +55,9 @@ export function locationToColumns(location: ProjectLocation): LocationColumns {
   }
 
   return {
+    locationDetails: { locality: location.locality, publicPin: location.publicPin },
     country: "cv",
-    island: location.island,
+    island: location.island ?? null,
     municipality: location.municipality ?? null,
     zone: location.zone ?? null,
   };
@@ -58,10 +69,33 @@ export function locationToColumns(location: ProjectLocation): LocationColumns {
  * so the columns never leak into a response.
  */
 export function withLocation<T extends LocationColumns>(row: T) {
-  const { country, island, municipality, zone, ...rest } = row;
+  const {
+    country,
+    island,
+    municipality,
+    zone,
+    locationDetails = {},
+    ...rest
+  } = row as T & { locationDetails?: Pick<ProjectLocation, "locality" | "publicPin"> };
 
   return {
     ...rest,
-    location: locationFromColumns({ country, island, municipality, zone }),
+    location: locationFromColumns({ country, island, municipality, zone, locationDetails }),
+    ...("status" in row && row.status !== "published"
+      ? {
+          draftLocation:
+            country === "cv"
+              ? {
+                  country,
+                  ...locationDetails,
+                  ...(island ? { island } : {}),
+                  ...(municipality ? { municipality } : {}),
+                  ...(zone ? { zone } : {}),
+                }
+              : country
+                ? { country, ...locationDetails }
+                : null,
+        }
+      : {}),
   };
 }

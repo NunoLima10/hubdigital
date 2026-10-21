@@ -1,5 +1,5 @@
 import { DB } from "@/db";
-import { categories, projects } from "@/db/schemas";
+import { categories, projects, projectSecondaryCategories } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
 import { getPostgresError } from "@/utils/postgres-error";
@@ -7,9 +7,9 @@ import { ConflictError } from "@/utils/custom-errors";
 import { asc, count, eq } from "drizzle-orm";
 
 /**
- * Categories carry a project count because `projects.category_id` is
- * `onDelete: "restrict"` — a category in use cannot be removed, and the admin UI
- * has to say so before offering the option.
+ * Count primary and secondary memberships. Both foreign keys restrict deletion,
+ * and the deferred database constraint prevents counting one project twice for
+ * the same category. Deleted projects also count while they retain references.
  */
 async function listWithCounts(db: DB) {
   const rows = await db.query.categories.findMany({
@@ -21,7 +21,10 @@ async function listWithCounts(db: DB) {
     .from(projects)
     .groupBy(projects.categoryId);
 
+  const secondaryCounts = await db.select({ categoryId: projectSecondaryCategories.categoryId, total: count() }).from(projectSecondaryCategories).groupBy(projectSecondaryCategories.categoryId);
   const byId = new Map(counts.map((row) => [row.categoryId, row.total]));
+
+  for (const row of secondaryCounts) byId.set(row.categoryId, (byId.get(row.categoryId) ?? 0) + row.total);
 
   return rows.map((row) => ({
     id: row.id,

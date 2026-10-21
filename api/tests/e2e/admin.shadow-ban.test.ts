@@ -1,3 +1,6 @@
+import { projectAnnouncements } from "@/db/schemas";
+import { currentWeek } from "@/utils/week";
+import { randomUUID } from "node:crypto";
 import { setupDB, teardownDB } from "@/db";
 import { comments, projectUpvotes } from "@/db/schemas";
 import { buildServer } from "@/server";
@@ -149,7 +152,8 @@ describe("Admin shadow ban (e2e)", () => {
         categoryId,
         slug: "fora",
       });
-      await insertProject(db, { publisherId, categoryId, slug: "dentro" });
+      const visible=await insertProject(db, { publisherId, categoryId, slug: "dentro" });
+      await db.insert(projectAnnouncements).values([hidden,visible].map(project=>({projectId:project.id,kind:"presentation" as const,introduction:"Uma apresentação à comunidade",creationKey:randomUUID(),status:"published" as const,week:currentWeek().weekId,publishedAt:new Date().toISOString()})));
 
       signedInAs(adminId, "admin");
 

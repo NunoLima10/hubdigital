@@ -1,6 +1,9 @@
+import { serializeProjectCategories, secondaryCategoriesWith, projectCategoryFilter } from "@/utils/project-categories";
 import { DB } from "@/db";
 import { comments, projectImages, projects, publishers } from "@/db/schemas";
 import { errorLogger } from "@/utils/error-logger";
+import { serializeProjectLinks } from "@/utils/project-links";
+import { sanitizeProjectDescription } from "@/utils/project-content";
 import { withLocation } from "@/utils/location";
 import { toPublicUrl } from "@/utils/public-url";
 import { ProjectStatus } from "@hubdigital/shared";
@@ -25,7 +28,8 @@ const liveCommentIds = {
 } as const;
 
 const projectWith = {
-  category: true,
+  category: true, secondaryMemberships: secondaryCategoriesWith,
+  links: true,
   upvotes: { columns: { userId: true } },
   comments: liveCommentIds,
   publisher: { with: { user: true } },
@@ -42,10 +46,13 @@ function queryProjects(db: DB, args: Parameters<DB["query"]["projects"]["findMan
 
 /** The admin view: nothing is filtered out, and moderation state is explicit. */
 function serializeAdminProject(project: ProjectRow) {
-  const { upvotes, comments: projectComments, publisher, images, ...rest } = project;
+  const { upvotes, comments: projectComments, publisher, images, secondaryMemberships, ...rest } = project;
 
   return {
     ...withLocation(rest),
+    ...serializeProjectCategories(secondaryMemberships),
+    links: serializeProjectLinks(project.links),
+    description: sanitizeProjectDescription(project.description),
     logoUrl: toPublicUrl(project.logoUrl),
     galleryImageKeys: images.map((image) => image.storageKey),
     galleryImageUrls: images.map((image) => toPublicUrl(image.storageKey)),
@@ -102,7 +109,7 @@ function adminProjectFilter(filters: AdminProjectFilters) {
 
   if (filters.island) conditions.push(eq(projects.island, filters.island));
   if (filters.categoryId) {
-    conditions.push(eq(projects.categoryId, filters.categoryId));
+    conditions.push(projectCategoryFilter(filters.categoryId));
   }
   if (filters.publisherId) {
     conditions.push(eq(projects.publisherId, filters.publisherId));
@@ -176,7 +183,7 @@ async function approveProject(db: DB, id: number, reviewerId: string) {
 
   const existing = await db.query.projects.findFirst({
     where: and(eq(projects.id, id), isNull(projects.deletedAt)),
-    columns: { id: true, status: true, launchedAt: true, publishedAt: true },
+    columns: { id: true, status: true, availability: true, launchedAt: true, publishedAt: true },
   });
 
   if (!existing || existing.status !== "pending") return null;
@@ -186,7 +193,7 @@ async function approveProject(db: DB, id: number, reviewerId: string) {
     .set({
       status: "published",
       publishedAt: existing.publishedAt ?? now,
-      launchedAt: existing.launchedAt ?? now,
+      launchedAt: existing.launchedAt,
       reviewedAt: now,
       reviewedBy: reviewerId,
       rejectionReason: null,
