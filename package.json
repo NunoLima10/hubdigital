@@ -11,7 +11,9 @@
     "api:dev": "pnpm run --filter @hubdigital/api dev",
     "api:build": "pnpm run --filter @hubdigital/api build",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "projects:validate": "node scripts/validate-projects.mjs",
+    "projects:check-links": "node scripts/validate-projects.mjs --check-links"
   },
   "keywords": [],
   "author": "",

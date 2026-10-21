@@ -1,11 +1,11 @@
-import { Center } from "@mantine/core";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Landing } from "./pages/landing/landing";
-
+import { NotFound } from "./pages/not-found/not-found";
+import { ProjectPage } from "./pages/project/project";
 
 export const PathConstants = {
   root: "/",
-  route1: "route/1",
+  project: "/projeto/:slug",
 } as const;
 
 // interface ProtectedProps {
@@ -24,12 +24,8 @@ export function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route path={PathConstants.root} element={<Landing />} />
-        <Route
-          path={PathConstants.route1}
-          element={<Center>{PathConstants.route1}</Center>}
-        />
-
-        <Route path="*" element={<Center>Not Found</Center>} />
+        <Route path={PathConstants.project} element={<ProjectPage />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
