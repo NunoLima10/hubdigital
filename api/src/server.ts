@@ -26,6 +26,7 @@ import { adminRoutes } from "./modules/admin/admin-routes";
 import { makersRoutes } from "./modules/makers/makers-routes";
 import { reportsRoutes } from "./modules/reports/reports-routes";
 import { settingsRoutes } from "./modules/settings/settings-routes";
+import { shareImagesRoutes } from "./modules/share-images/share-images-routes";
 import { config } from "./config";
 import { sql } from "drizzle-orm";
 import betterAuth from "./plugins/better-auth";
@@ -105,6 +106,7 @@ export async function buildServer(db: DB) {
   await server.register(makersRoutes, { prefix: "/v1/makers" });
   await server.register(reportsRoutes, { prefix: "/v1/reports" });
   await server.register(settingsRoutes, { prefix: "/v1/settings" });
+  await server.register(shareImagesRoutes, { prefix: "/v1/share-images" });
   // Registered last, and behind its own role guard — see modules/admin/admin-routes.
   await server.register(adminRoutes, { prefix: "/v1/admin" });
 

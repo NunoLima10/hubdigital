@@ -12,6 +12,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file .env src/scripts/seeds.ts",
+    "og:site": "tsx src/scripts/generate-site-share-image.ts",
     "dbml:generate": "tsx src/db/dbml.ts",
     "better-auth:gen": "npx @better-auth/cli generate --output src/db/schemas/auth.ts --yes",
     "test": "vitest run",
@@ -43,7 +44,9 @@
     "@fastify/rate-limit": "^10.3.0",
     "@fastify/swagger": "^9.9.2",
     "@fastify/swagger-ui": "^5.2.6",
+    "@fontsource/inter": "^5.3.0",
     "@hubdigital/shared": "workspace:*",
+    "@resvg/resvg-js": "^2.6.2",
     "better-auth": "^1.7.7",
     "drizzle-orm": "^0.45.4",
     "drizzle-zod": "^0.7.1",
@@ -56,6 +59,7 @@
     "pino-pretty": "^13.2.0",
     "postgres": "^3.4.9",
     "sanitize-html": "^2.18.0",
+    "satori": "^0.63.2",
     "zennv": "^0.1.1",
     "zod": "^3.25.76"
   }
