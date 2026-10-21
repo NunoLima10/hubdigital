@@ -1,8 +1,8 @@
 import {
-  accessValues,
+  availabilityValues,
+  sourceModelValues,
   audienceValues,
   businessModelValues,
-  countryValues,
   islandValues,
   platformValues,
   pricingValues,
@@ -13,11 +13,13 @@ import { sql } from "drizzle-orm";
 import {
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   serial,
   text,
   timestamp,
+  uniqueIndex,
   varchar,
 } from "drizzle-orm/pg-core";
 import { users } from "./auth";
@@ -28,12 +30,12 @@ import { timestamps } from "./timestamps";
 export const pricingEnum = pgEnum("pricing", pricingValues);
 export const platformEnum = pgEnum("platform", platformValues);
 export const businessModelEnum = pgEnum("businessModel", businessModelValues);
-export const accessEnum = pgEnum("access", accessValues);
+export const availabilityEnum = pgEnum("availability", availabilityValues);
+export const sourceModelEnum = pgEnum("source_model", sourceModelValues);
 export const projectStageEnum = pgEnum("projectStage", projectStageValues);
-export const audienceStageEnum = pgEnum("audience", audienceValues);
+export const audienceEnum = pgEnum("audience", audienceValues);
 export const projectStatusEnum = pgEnum("project_status", projectStatusValues);
 export const islandEnum = pgEnum("island", islandValues);
-export const countryEnum = pgEnum("country", countryValues);
 
 export const projects = pgTable(
   "projects",
@@ -44,33 +46,49 @@ export const projects = pgTable(
       .references(() => publishers.id, { onDelete: "cascade" }),
     name: varchar("name").notNull(),
     slug: text("slug").notNull().unique(),
-    shortDescription: varchar("short_description").notNull(),
+    shortDescription: varchar("short_description").notNull().default(""),
     description: text("description"),
-    websiteUrl: text("website_url").notNull(),
+    rowVersion: integer("row_version").notNull().default(0),
+    creationKey: varchar("creation_key", { length: 36 }),
     logoUrl: text("logo_url"),
     youtubeVideoId: varchar("youtube_video_id", { length: 11 }),
-    githubUrl: text("github_url"),
-    pricing: pricingEnum("pricing").notNull(),
-    platform: platformEnum("platform").array().notNull(),
-    businessModel: businessModelEnum("businessModel").notNull(),
-    access: accessEnum("access").notNull(),
-    projectStage: projectStageEnum("projectStage").notNull(),
-    audienceStage: audienceStageEnum("audience").notNull(),
-    // Where the project is built from — the local answer to Product Hunt topics.
-    // Stored flat so each level can be indexed and filtered on, and assembled
-    // into the nested `location` shape at the API boundary (utils/location.ts).
-    //
-    // Nullable because projects that predate the field have no truthful value;
-    // new submissions are required to pick one. Inside Cabo Verde the island is
-    // required and municipality and zone refine it; abroad only the country is
-    // set. The levels are cross-checked by locationSchema, not by the database.
-    country: countryEnum("country"),
+    youtubeVideoUrl: text("youtube_video_url"),
+    pricing: pricingEnum("pricing"),
+    platform: platformEnum("platform").array().notNull().default([]),
+    businessModel: businessModelEnum("businessModel"),
+    availability: availabilityEnum("availability"),
+    sourceModel: sourceModelEnum("source_model"),
+    licenseId: varchar("license_id", { length: 80 }),
+    projectStage: projectStageEnum("projectStage"),
+    audiences: audienceEnum("audiences").array().notNull().default([]),
+    // Primary public team base. Optional details and up to four further bases
+    // keep distributed teams distinct from the countries the project serves.
+    country: varchar("country", { length: 2 }),
+    locationDetails: jsonb("location_details")
+      .$type<Pick<import("@hubdigital/shared").ProjectLocation, "locality" | "publicPin">>()
+      .notNull()
+      .default({}),
+    additionalLocations: jsonb("additional_locations")
+      .$type<import("@hubdigital/shared").ProjectLocation[]>()
+      .notNull()
+      .default([]),
+    teamMode: varchar("team_mode", { length: 16 }).$type<"local" | "distributed">(),
+    localConnections: jsonb("local_connections")
+      .$type<import("@hubdigital/shared").Project["localConnections"]>()
+      .notNull()
+      .default([]),
+    serviceArea: jsonb("service_area").$type<import("@hubdigital/shared").Project["serviceArea"]>(),
     island: islandEnum("island"),
     municipality: varchar("municipality", { length: 5 }),
     zone: varchar("zone", { length: 13 }),
-    categoryId: integer("category_id")
+    languages: jsonb("languages").$type<string[]>().notNull().default([]),
+    helpWanted: jsonb("help_wanted")
+      .$type<import("@hubdigital/shared").Project["helpWanted"]>()
       .notNull()
-      .references(() => categories.id, { onDelete: "restrict" }),
+      .default([]),
+    helpDescription: varchar("help_description", { length: 500 }),
+    teamDescription: varchar("team_description", { length: 500 }),
+    categoryId: integer("category_id").references(() => categories.id, { onDelete: "restrict" }),
 
     status: projectStatusEnum("status").notNull().default("draft"),
 
@@ -106,6 +124,7 @@ export const projects = pgTable(
     ...timestamps,
   },
   (table) => [
+    uniqueIndex("projects_publisher_creation_key_idx").on(table.publisherId, table.creationKey),
     index("projects_launched_at_idx").on(table.launchedAt.desc(), table.id),
     index("projects_status_idx").on(table.status),
     index("projects_country_idx").on(table.country),
@@ -115,5 +134,5 @@ export const projects = pgTable(
     index("projects_shadow_banned_idx")
       .on(table.shadowBannedAt)
       .where(sql`${table.shadowBannedAt} is not null`),
-  ]
+  ],
 );

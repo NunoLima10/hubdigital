@@ -5,6 +5,7 @@ import categories from "./categories";
 import admin from "./users/admin";
 import demoAdmin from "./users/demo-admin";
 import publishers from "./users/publishers";
+import airtableProjects from "./airtable-projects";
 
 export async function RundSeeding(db: DB) {
   logger.info("Seeding Started");
@@ -19,4 +20,7 @@ export async function RundSeeding(db: DB) {
   await admin(db);
 
   await categories(db);
+  if (config.isDev) {
+    await airtableProjects(db);
+  }
 }

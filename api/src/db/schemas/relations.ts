@@ -6,6 +6,8 @@ import { moderationActions } from "./moderation-actions";
 import { projectEvents } from "./project-events";
 import { projectFavorites } from "./project-favorites";
 import { projectImages } from "./project-images";
+import { projectSecondaryCategories } from "./project-secondary-categories";
+import { projectLinks } from "./project-links";
 import { projectUpvotes } from "./project-upvotes";
 import { projects } from "./projects";
 import { publishers } from "./publishers";
@@ -43,6 +45,17 @@ export const projectRelations = relations(projects, ({ one, many }) => ({
   events: many(projectEvents),
   favorites: many(projectFavorites),
   images: many(projectImages),
+  links: many(projectLinks),
+  secondaryMemberships: many(projectSecondaryCategories),
+}));
+
+export const projectSecondaryCategoryRelations = relations(projectSecondaryCategories, ({ one }) => ({
+  project: one(projects, { fields: [projectSecondaryCategories.projectId], references: [projects.id] }),
+  category: one(categories, { fields: [projectSecondaryCategories.categoryId], references: [categories.id] }),
+}));
+
+export const projectLinkRelations = relations(projectLinks, ({ one }) => ({
+  project: one(projects, { fields: [projectLinks.projectId], references: [projects.id] }),
 }));
 
 export const projectImageRelations = relations(projectImages, ({ one }) => ({
@@ -61,6 +74,7 @@ export const projectEventRelations = relations(projectEvents, ({ one }) => ({
 
 export const categoriesRelations = relations(categories, ({ many }) => ({
   projects: many(projects),
+  secondaryMemberships: many(projectSecondaryCategories),
 }));
 
 export const projectUpvoteRelations = relations(projectUpvotes, ({ one }) => ({
