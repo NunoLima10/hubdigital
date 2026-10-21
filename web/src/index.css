@@ -275,26 +275,27 @@
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+/* Steps differ in height: snap the group to the new size so the step only
+   slides sideways instead of morphing vertically. */
 ::view-transition-group(.submit-forward),
 ::view-transition-group(.submit-backward) {
-  animation-duration: 220ms;
-  animation-timing-function: ease-out;
+  animation: none;
 }
 
 ::view-transition-old(.submit-forward) {
-  animation: hub-step-out-forward 180ms ease-out both;
+  animation: hub-step-out-forward 200ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 ::view-transition-new(.submit-forward) {
-  animation: hub-step-in-forward 220ms ease-out both;
+  animation: hub-step-in-forward 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 ::view-transition-old(.submit-backward) {
-  animation: hub-step-out-backward 180ms ease-out both;
+  animation: hub-step-out-backward 200ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
 ::view-transition-new(.submit-backward) {
-  animation: hub-step-in-backward 220ms ease-out both;
+  animation: hub-step-in-backward 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes hub-content-out {
@@ -306,19 +307,19 @@
 }
 
 @keyframes hub-step-out-forward {
-  to { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 0; transform: translateX(-48px); }
 }
 
 @keyframes hub-step-in-forward {
-  from { opacity: 0; transform: translateX(16px); }
+  from { opacity: 0; transform: translateX(48px); }
 }
 
 @keyframes hub-step-out-backward {
-  to { opacity: 0; transform: translateX(16px); }
+  to { opacity: 0; transform: translateX(48px); }
 }
 
 @keyframes hub-step-in-backward {
-  from { opacity: 0; transform: translateX(-16px); }
+  from { opacity: 0; transform: translateX(-48px); }
 }
 
 /* Brand mark hover: the three strokes of the H split apart, the middle one
