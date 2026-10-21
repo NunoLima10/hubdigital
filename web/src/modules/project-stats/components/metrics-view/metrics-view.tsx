@@ -1,3 +1,4 @@
+import { DestinationMetrics } from "../destination-metrics";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import {
   Select,
@@ -123,6 +124,7 @@ export function MetricsView() {
           Ainda não tens projetos. Publica um para começares a ver métricas.
         </p>
       )}
+      {selectedProjectId !== undefined && <DestinationMetrics projectId={selectedProjectId} range={range} />}
       {data && data.projects.length > 0 && stats && !hasError && (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -133,7 +135,7 @@ export function MetricsView() {
               delta={computeDelta(stats.totals.views, stats.previous.views)}
             />
             <StatCard
-              label="Visitas ao site"
+              label="Cliques de saída"
               icon={<ExternalLink className="size-4" />}
               value={stats.totals.visits}
               delta={computeDelta(stats.totals.visits, stats.previous.visits)}

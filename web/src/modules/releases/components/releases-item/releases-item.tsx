@@ -1,3 +1,5 @@
+import { ProjectCommunityManager } from "@/modules/community/project-community-manager";
+import { primaryProjectLink, projectLinkHref, projectLinkActionLabel } from "@hubdigital/shared";
 import { ProjectSummary } from "@/components/project-summary/project-summary";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -51,6 +53,7 @@ export function ReleasesItem({
   isPublishing,
   isDeleting,
 }: Props) {
+  const primaryLink = primaryProjectLink(project.links);
   const canPublish =
     project.status === "draft" || project.status === "rejected";
   const hasPublicPage = project.status === "published" && !project.hidden;
@@ -84,6 +87,8 @@ export function ReleasesItem({
 
   return (
     <article ref={card} className="rounded-lg border bg-card p-3 sm:p-5">
+      {project.editReview?.status === "pending" && <p className="mb-3 text-sm text-muted-foreground">Alterações em revisão. A versão aprovada continua pública.</p>}
+      {project.editReview?.status === "rejected" && <p className="mb-3 text-sm text-destructive">Alterações rejeitadas: {project.editReview.reason}. Podes corrigir e reenviar.</p>}
       <ProjectSummary
         iconUrl={project.logoUrl}
         className="flex-wrap items-start sm:flex-nowrap sm:items-center"
@@ -117,7 +122,7 @@ export function ReleasesItem({
           </div>
         }
         description={project.shortDescription}
-        topics={project.category ? [project.category.name] : []}
+        topics={[...(project.category ? [project.category.name] : []), ...project.secondaryCategories.map((category) => category.name)]}
         actions={
           <>
             {canPublish && (
@@ -173,16 +178,16 @@ export function ReleasesItem({
               <Menu.Portal>
                 <Menu.Positioner sideOffset={6} align="end">
                   <Menu.Popup className="z-50 min-w-44 rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0">
-                    <Menu.LinkItem
-                      href={project.websiteUrl}
+                    {primaryLink && <Menu.LinkItem
+                      href={primaryLink ? projectLinkHref(primaryLink)! : undefined}
                       target="_blank"
                       rel="noreferrer"
                       closeOnClick
                       className="flex cursor-default items-center gap-2 rounded-md px-3 py-2 text-sm outline-none data-highlighted:bg-muted"
                     >
                       <ExternalLink className="size-4" />
-                      Abrir site
-                    </Menu.LinkItem>
+                      {primaryLink ? projectLinkActionLabel(primaryLink, project.availability) : "Abrir projeto"}
+                    </Menu.LinkItem>}
                     <Menu.Separator className="my-1 h-px bg-border" />
                     <Menu.Item
                       disabled={isDeleting}
@@ -200,6 +205,7 @@ export function ReleasesItem({
         }
       />
       <ModerationNotice project={project} />
+      {project.status === "published" && !project.hidden && <ProjectCommunityManager project={project} />}
     </article>
   );
 }

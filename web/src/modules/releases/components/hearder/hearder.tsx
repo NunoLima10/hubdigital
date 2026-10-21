@@ -6,7 +6,7 @@ export function Hearder() {
   const hasProjects = Boolean(data?.data.length);
   return (
     <div className={`${hasProjects ? "flex" : "hidden lg:flex"} flex-wrap items-center justify-end gap-3 lg:justify-between`}>
-      <h1 className="hidden text-xl font-semibold lg:block">Lançamentos</h1>
+      <h1 className="hidden text-xl font-semibold lg:block">Projetos</h1>
       {hasProjects && (
         <Link
           to="/dashboard/submit"

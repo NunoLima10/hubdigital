@@ -1,9 +1,10 @@
+import { MakerInvitations } from "@/modules/community/maker-invitations";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import type { Project } from "@/modules/submit/types/project";
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Rocket } from "lucide-react";
 import { useMyProjects } from "../../hooks/use-my-projects";
 import {
@@ -14,6 +15,7 @@ import { EditProjectModal } from "../edit-project-modal/edit-project-modal";
 import { ReleasesItem } from "../releases-item/releases-item";
 
 export function ReleasesList() {
+  const navigate = useNavigate();
   const { data, isLoading, isError } = useMyProjects();
   const showLoading = useDelayedLoading(isLoading);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -43,11 +45,12 @@ export function ReleasesList() {
         aria-labelledby="first-launch-title"
         className="flex min-h-[320px] flex-col items-center justify-center px-3 py-10 text-center sm:min-h-[380px] sm:px-6"
       >
+        <MakerInvitations />
         <div aria-hidden="true" className="mb-5 flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary">
           <Rocket className="size-6" />
         </div>
         <h2 id="first-launch-title" className="max-w-sm text-xl font-semibold tracking-tight sm:text-2xl">
-          O teu primeiro lançamento começa aqui
+          O teu primeiro projeto começa aqui
         </h2>
         <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
           Partilha o que estás a criar com a comunidade de Cabo Verde e recebe feedback para dar o próximo passo.
@@ -65,12 +68,15 @@ export function ReleasesList() {
     );
   return (
     <>
+      <MakerInvitations />
       <div className="space-y-3">
         {data.data.map((project) => (
           <ReleasesItem
             key={project.id}
             project={project}
-            onEdit={setEditingProject}
+              onEdit={(project) => project.status === "draft" || project.status === "rejected"
+                ? void navigate({ to: "/dashboard/submit", search: { draft: project.slug } })
+                : setEditingProject(project)}
             onPublish={() => publishProject(project.id)}
             onDelete={setDeletingProject}
             isPublishing={publishingId === project.id}

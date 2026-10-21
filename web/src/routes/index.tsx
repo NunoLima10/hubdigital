@@ -1,3 +1,4 @@
+import { Announcements } from "@/modules/community/project-community";
 import { Header } from "@/components/header/header";
 import { Page } from "@/layouts/page";
 import { ProjectList } from "@/modules/project-list";
@@ -6,25 +7,11 @@ import { AnnouncementBanner } from "@/modules/settings/components/announcement-b
 import { noop } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-const launchSections = [
-  { period: "this_week", title: "Esta semana", id: "this-week-title" },
-  { period: "this_month", title: "Este mês", id: "this-month-title" },
-  { period: "all", title: "Todos os lançamentos", id: "all-launches-title" },
-] as const;
+const launchSections = [{ period: "all", title: "Projetos", id: "all-launches-title" }] as const;
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
-    await Promise.all([
-      context.queryClient.query(
-        projectsQueryOptions({ period: "this_week" }),
-      ).catch(noop),
-      context.queryClient.query(
-        projectsQueryOptions({ period: "this_month" }),
-      ).catch(noop),
-      context.queryClient.query(
-        projectsQueryOptions({ period: "all" }),
-      ).catch(noop),
-    ]);
+    await context.queryClient.query(projectsQueryOptions({ period: "all" })).catch(noop);
   },
   component: Home,
 });
@@ -34,7 +21,9 @@ function LaunchSection({ period, title, id }: (typeof launchSections)[number]) {
   if (!isLoading && !isError && !data?.data.length) return null;
   return (
     <section aria-labelledby={id} className="space-y-3">
-      <h3 id={id} className="text-lg font-semibold">{title}</h3>
+      <h3 id={id} className="text-lg font-semibold">
+        {title}
+      </h3>
       <ProjectList period={period} />
     </section>
   );
@@ -43,14 +32,20 @@ function LaunchSection({ period, title, id }: (typeof launchSections)[number]) {
 function ActivityPlaceholder() {
   return (
     <section aria-labelledby="activity-title" className="hidden rounded-lg border p-5 lg:block">
-      <h2 id="activity-title" className="text-base font-semibold">Atividade da comunidade</h2>
+      <h2 id="activity-title" className="text-base font-semibold">
+        Atividade da comunidade
+      </h2>
       <p className="mt-1 text-sm text-muted-foreground">Gráfico em breve</p>
       <div aria-hidden="true" className="relative mt-6 h-48 rounded-md bg-muted/30">
         <div className="absolute inset-x-4 inset-y-5 flex flex-col justify-between">
-          {[0, 1, 2, 3].map((line) => <div key={line} className="border-t border-dashed border-border" />)}
+          {[0, 1, 2, 3].map((line) => (
+            <div key={line} className="border-t border-dashed border-border" />
+          ))}
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="rounded-md bg-background px-3 py-2 text-sm text-muted-foreground">Espaço reservado para o gráfico</span>
+          <span className="rounded-md bg-background px-3 py-2 text-sm text-muted-foreground">
+            Espaço reservado para o gráfico
+          </span>
         </div>
       </div>
     </section>
@@ -66,6 +61,7 @@ function Home() {
       rightSection={<ActivityPlaceholder />}
     >
       <div className="space-y-10">
+        <Announcements />
         {launchSections.map((section) => (
           <LaunchSection key={section.period} {...section} />
         ))}

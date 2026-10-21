@@ -22,12 +22,3 @@ export const caboVerdeBounds: [[number, number], [number, number]] = [
   [14.72, -25.42],
   [17.22, -22.55],
 ];
-
-/** Gives island-only records stable, nearby positions without pretending they are exact addresses. */
-export function projectPosition(island: Island, projectId: number): [number, number] {
-  const [lat, lng] = islandMapData[island].center;
-  const angle = ((projectId * 137.508) % 360) * (Math.PI / 180);
-  const ring = 0.012 + (projectId % 4) * 0.006;
-
-  return [lat + Math.sin(angle) * ring, lng + Math.cos(angle) * ring];
-}

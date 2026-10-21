@@ -1,7 +1,7 @@
 import { API } from "@/api/api";
 import { authClient } from "@/lib/auth-client";
 import { ProjectMinimal } from "@/modules/submit/types/project";
-import type { Island, ListPeriod, ListSort } from "@hubdigital/shared";
+import type { Island, ListPeriod, ListSort, ProjectPricing } from "@hubdigital/shared";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 
 export type ProjectsMeta = {
@@ -26,7 +26,7 @@ export type ProjectsQuery = {
   q?: string;
   island?: Island;
   categoryId?: number;
-  pricing?: "free" | "freemium" | "paid";
+  pricing?: ProjectPricing;
 };
 
 type ProjectsQueryKeyInput = ProjectsQuery & { userId?: string | null };
@@ -39,7 +39,7 @@ type ProjectsQueryKeyInput = ProjectsQuery & { userId?: string | null };
  * report that the new user has voted for nothing.
  */
 export function projectsQueryKey({
-  period = "this_week",
+  period = "all",
   sort = "upvotes",
   limit = 50,
   week,
@@ -81,7 +81,7 @@ async function fetchProjects(query: ProjectsQuery) {
   const response = await API.get<ProjectsResponse>("/projects", {
     params: {
       limit,
-      period: query.period ?? "this_week",
+      period: query.period ?? "all",
       sort: query.sort ?? "upvotes",
       // Axios omits undefined params, so unset filters simply do not appear.
       q: query.q,

@@ -22,7 +22,7 @@ export function TrafficChart({ series }: { series: ProjectStats["series"] }) {
   );
   return (
     <div className="rounded-lg border bg-card p-4">
-      <h2 className="mb-4 text-sm font-semibold">Visualizações e visitas</h2>
+      <h2 className="mb-4 text-sm font-semibold">Visualizações e cliques</h2>
       <div className="h-60 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
@@ -67,7 +67,7 @@ export function TrafficChart({ series }: { series: ProjectStats["series"] }) {
             <Area
               type="monotone"
               dataKey="visits"
-              name="Visitas"
+              name="Cliques de saída"
               stroke="#10b981"
               fill="#10b981"
               fillOpacity={0.1}

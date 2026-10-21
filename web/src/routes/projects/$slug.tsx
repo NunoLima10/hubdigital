@@ -1,6 +1,9 @@
 import { noop } from "@tanstack/react-query";
 import { Header } from "@/components/header/header";
-import { ProjectDetailSkeleton, ProjectDetailSidebarSkeleton } from "@/modules/project-detail/components/project-detail-view/project-detail-skeleton";
+import {
+  ProjectDetailSkeleton,
+  ProjectDetailSidebarSkeleton,
+} from "@/modules/project-detail/components/project-detail-view/project-detail-skeleton";
 import { Page } from "@/layouts/page";
 import { Comments } from "@/modules/comments";
 import { commentsQueryOptions } from "@/modules/comments/hooks/use-comments";
@@ -8,19 +11,31 @@ import {
   ProjectDetailSidebar,
   ProjectDetailView,
 } from "@/modules/project-detail/components/project-detail-view/project-detail-view";
-import {
-  projectQueryOptions,
-  useProject,
-} from "@/modules/project-detail/hooks/use-project";
+import { projectQueryOptions, useProject } from "@/modules/project-detail/hooks/use-project";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/projects/$slug")({
   loader: async ({ context, params }) => {
-    await Promise.all([
+    const [project] = await Promise.all([
       context.queryClient.query(projectQueryOptions(params.slug)).catch(noop),
       context.queryClient.query(commentsQueryOptions(params.slug)).catch(noop),
     ]);
+    return project;
+  },
+  head: ({ loaderData: project }) => {
+    if (!project || project.status !== "published")
+      return { meta: [{ title: "Projeto | Hub Digital" }] };
+    const image = project.galleryImageUrls[0] || project.logoUrl;
+    return {
+      meta: [
+        { title: `${project.name} | Hub Digital` },
+        { name: "description", content: project.shortDescription },
+        { property: "og:title", content: project.name },
+        { property: "og:description", content: project.shortDescription },
+        ...(image ? [{ property: "og:image", content: image }] : []),
+      ],
+    };
   },
   component: ProjectPage,
   pendingComponent: ProjectPendingPage,
@@ -29,11 +44,7 @@ export const Route = createFileRoute("/projects/$slug")({
 function ProjectPendingPage() {
   const { slug } = Route.useParams();
   return (
-    <Page
-      viewTransition
-      header={<Header />}
-      rightSection={<ProjectDetailSidebarSkeleton />}
-    >
+    <Page viewTransition header={<Header />} rightSection={<ProjectDetailSidebarSkeleton />}>
       <div className="space-y-7">
         <Link
           to="/"
@@ -61,7 +72,9 @@ function ProjectPage() {
           <div className="hidden lg:block">
             <ProjectDetailSidebar project={data} />
           </div>
-        ) : isLoading ? <ProjectDetailSidebarSkeleton /> : undefined
+        ) : isLoading ? (
+          <ProjectDetailSidebarSkeleton />
+        ) : undefined
       }
     >
       {/* Extra room so the last comment does not sit against the bottom edge. */}
@@ -76,9 +89,7 @@ function ProjectPage() {
         </Link>
         {isLoading && <ProjectDetailSkeleton slug={slug} />}
         {isError && (
-          <p className="text-sm text-muted-foreground">
-            Não foi possível carregar este projeto.
-          </p>
+          <p className="text-sm text-muted-foreground">Não foi possível carregar este projeto.</p>
         )}
         {data && (
           <>

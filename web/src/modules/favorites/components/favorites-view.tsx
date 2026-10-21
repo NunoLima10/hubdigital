@@ -1,5 +1,5 @@
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
-import { pricingLabels } from "@/modules/submit/options";
+import { pricingLabels, availabilityLabels, projectStageLabels } from "@/modules/submit/options";
 import { ProjectCard } from "@/modules/project-list/components/project-card/project-card";
 import { useFavorites, useToggleFavorite } from "../hooks/use-favorites";
 
@@ -40,10 +40,10 @@ export function FavoritesView() {
           slug={project.slug}
           title={project.name}
           description={project.shortDescription}
-          website={project.websiteUrl}
           iconUrl={project.logoUrl ?? undefined}
           topis={
-            [project.category?.name, pricingLabels[project.pricing]].filter(
+            [project.category?.name, (project.pricing ? pricingLabels[project.pricing] : undefined),
+                      (project.availability === "not_available" && project.projectStage ? projectStageLabels[project.projectStage] : project.availability ? availabilityLabels[project.availability] : undefined)].filter(
               Boolean,
             ) as string[]
           }

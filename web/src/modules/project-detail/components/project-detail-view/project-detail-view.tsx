@@ -1,3 +1,6 @@
+import { ProjectMakers, Announcements } from "@/modules/community/project-community";
+import { ProjectProfile } from "@/components/project-profile";
+import { ProjectDestinationActions } from "@/components/project-destination-actions";
 import { ProjectGallery } from "@/components/project-gallery/project-gallery";
 import { projectViewTransitionName } from "@/lib/project-view-transition";
 import { Button } from "@/components/ui/button";
@@ -15,9 +18,10 @@ import {
   useToggleFavorite,
 } from "@/modules/favorites/hooks/use-favorites";
 import { useTrackProjectView } from "@/modules/project-stats/hooks/use-track-project-view";
-import { trackProjectEvent } from "@/modules/project-stats/utils/track-project-event";
+import { trackDestinationClick } from "@/modules/project-stats/utils/track-project-event";
 import {
-  accessLabels,
+  availabilityLabels,
+  sourceModelLabels,
   audienceLabels,
   businessModelLabels,
   platformLabels,
@@ -25,10 +29,10 @@ import {
   projectStageLabels,
 } from "@/modules/submit/options";
 import type { Project } from "@/modules/submit/types/project";
-import { formatLocation } from "@hubdigital/shared";
+import { ProjectGeography } from "@/components/project-geography";
 import { FavoriteHeart, type FavoriteHeartHandle } from "@/components/favorite-heart/favorite-heart";
 import { cn } from "@/lib/utils";
-import { Check, ExternalLink, Github, Share2 } from "lucide-react";
+import { Check, Share2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ProjectAuthorRow } from "../project-author/project-author";
@@ -71,6 +75,7 @@ export function ProjectDetailView({ project }: { project: Project }) {
         description={project.shortDescription}
         topics={[
           ...(project.category ? [project.category.name] : []),
+          ...project.secondaryCategories.map((category) => category.name),
           ...project.platform.map((platform) => platformLabels[platform]),
         ]}
         title={
@@ -90,6 +95,7 @@ export function ProjectDetailView({ project }: { project: Project }) {
           />
         }
       />
+      <ProjectMakers projectId={project.id} />
       <ProjectGallery
         imageUrls={project.galleryImageUrls}
         youtubeVideoId={project.youtubeVideoId}
@@ -110,6 +116,7 @@ export function ProjectDetailView({ project }: { project: Project }) {
           </p>
         )}
       </section>
+      <Announcements projectId={project.id} />
       <SignInToVote
         opened={!session && voteAfterSignIn}
         onClose={() => setVoteAfterSignIn(false)}
@@ -132,58 +139,21 @@ export function ProjectDetailSidebar({ project }: { project: Project }) {
         </h2>
         <ProjectAuthorRow author={project.author} />
       </section>
-      <a
-        href={project.websiteUrl}
-        target="_blank"
-        rel="noreferrer"
-        onClick={() => trackProjectEvent(project.id, "visit")}
-        className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85"
-      >
-        <ExternalLink className="size-4" />
-        Visitar projeto
-      </a>
+      <ProjectDestinationActions links={project.links} availability={project.availability} onVisit={link => trackDestinationClick(link.id)} />
       <dl>
-        {project.launchedAt && (
-          <MetadataRow label="Lançamento">
-            {new Date(project.launchedAt).toLocaleDateString("pt-CV")}
-          </MetadataRow>
-        )}
-        <MetadataRow label="Categoria">
-          {project.category?.name ?? "—"}
-        </MetadataRow>
-        <MetadataRow label="Localização">
-          {project.location ? formatLocation(project.location) : "—"}
-        </MetadataRow>
-        <MetadataRow label="Preço">
-          {pricingLabels[project.pricing]}
-        </MetadataRow>
-        <MetadataRow label="Maturidade">
-          {projectStageLabels[project.projectStage]}
-        </MetadataRow>
-        <MetadataRow label="Público-alvo">
-          {audienceLabels[project.audienceStage]}
-        </MetadataRow>
-        <MetadataRow label="Modelo de negócio">
-          {businessModelLabels[project.businessModel]}
-        </MetadataRow>
-        <MetadataRow label="Acesso">{accessLabels[project.access]}</MetadataRow>
-        <MetadataRow label="Plataformas">
-          {project.platform
-            .map((platform) => platformLabels[platform])
-            .join(", ")}
-        </MetadataRow>
+        {project.publishedAt && <MetadataRow label="Publicado no Hub Digital">{new Date(project.publishedAt).toLocaleDateString("pt-CV")}</MetadataRow>}
+        <MetadataRow label="Categorias"><div className="space-y-1">{project.category && <p>{project.category.name} <span className="text-xs text-muted-foreground">(principal)</span></p>}{project.secondaryCategories.map((category) => <p key={category.id}>{category.name}</p>)}</div></MetadataRow>
+        <ProjectGeography project={project} />
+        <ProjectProfile project={project} />
+        {project.availability && <MetadataRow label="Disponibilidade">{availabilityLabels[project.availability]}</MetadataRow>}
+        {project.projectStage && <MetadataRow label="Fase">{projectStageLabels[project.projectStage]}</MetadataRow>}
+        {project.pricing && <MetadataRow label="Monetização">{pricingLabels[project.pricing]}</MetadataRow>}
+        {project.audiences.length > 0 && <MetadataRow label="Para quem">{project.audiences.map((audience) => audienceLabels[audience]).join(", ")}</MetadataRow>}
+        {project.businessModel && <MetadataRow label="Modelo de negócio">{businessModelLabels[project.businessModel]}</MetadataRow>}
+        {project.sourceModel && <MetadataRow label="Código-fonte">{sourceModelLabels[project.sourceModel]}</MetadataRow>}
+        {project.licenseId && <MetadataRow label="Licença">{project.licenseId}</MetadataRow>}
+        {project.platform.length > 0 && <MetadataRow label="Plataformas">{project.platform.map((platform) => platformLabels[platform]).join(", ")}</MetadataRow>}
       </dl>
-      {project.githubUrl && (
-        <a
-          href={project.githubUrl}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
-        >
-          <Github className="size-4" />
-          Ver código no GitHub
-        </a>
-      )}
       {session && (
         <Button
           variant="outline"

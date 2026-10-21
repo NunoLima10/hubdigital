@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/select";
 import { useCategories } from "@/modules/submit/hooks/use-categories";
 import { islandOptions, pricingOptions } from "@/modules/submit/options";
-import type { Island } from "@hubdigital/shared";
+import type { Island, ProjectPricing } from "@hubdigital/shared";
 import { Search } from "lucide-react";
 import { useEffect, useRef, useState, type RefObject } from "react";
 
@@ -16,7 +16,7 @@ export type ProjectFilterValues = {
   q?: string;
   island?: Island;
   categoryId?: number;
-  pricing?: "free" | "freemium" | "paid";
+  pricing?: ProjectPricing;
 };
 
 type FilterOption = { value: string; label: string };

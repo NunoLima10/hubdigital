@@ -1,6 +1,6 @@
 import { Header } from "@/components/header/header";
 import { ProjectMapView } from "@/modules/project-map/components/project-map-view";
-import { projectsQueryOptions } from "@/modules/project-list/hooks/use-projects";
+import { mapQueryOptions } from "@/modules/project-map/map-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 
@@ -8,7 +8,7 @@ export const Route = createFileRoute("/map")({
   head: () => ({ meta: [{ title: "Mapa de projetos | Hub Digital" }] }),
   loader: ({ context }) =>
     context.queryClient.ensureQueryData(
-      projectsQueryOptions({ period: "all", sort: "upvotes", limit: 100 }),
+      mapQueryOptions(),
     ),
   component: MapPage,
 });

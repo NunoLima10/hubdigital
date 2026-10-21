@@ -1,6 +1,6 @@
 import { authClient } from "@/lib/auth-client";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
-import { pricingLabels } from "@/modules/submit/options";
+import { pricingLabels, availabilityLabels, projectStageLabels } from "@/modules/submit/options";
 import type { ProjectMinimal } from "@/modules/submit/types/project";
 import type { ListPeriod } from "@hubdigital/shared";
 import { useEffect, useState } from "react";
@@ -12,7 +12,7 @@ import { useToggleUpvote } from "./hooks/use-toggle-upvote";
 
 const emptyMessages: Record<ListPeriod, string> = {
   this_week: "Ainda não há lançamentos esta semana. Sê o primeiro!",
-  this_month: "Ainda n�o h� lan�amentos este m�s. S� o primeiro!",
+  this_month: "Ainda não há lançamentos este mês. Sê o primeiro!",
   last_week: "Não houve lançamentos na semana passada.",
   all: "Ainda não há projetos publicados. Sê o primeiro a partilhar o teu!",
 };
@@ -25,7 +25,7 @@ type Props = {
   transitionScope?: string;
 };
 export function ProjectList({
-  period = "this_week",
+  period = "all",
   week,
   filters = {},
   onSelect,
@@ -93,10 +93,10 @@ export function ProjectList({
           slug={project.slug}
           title={project.name}
           description={project.shortDescription}
-          website={project.websiteUrl}
           iconUrl={project.logoUrl ?? undefined}
           topis={
-            [project.category?.name, pricingLabels[project.pricing]].filter(
+            [project.category?.name, (project.pricing ? pricingLabels[project.pricing] : undefined),
+                      (project.availability === "not_available" && project.projectStage ? projectStageLabels[project.projectStage] : project.availability ? availabilityLabels[project.availability] : undefined)].filter(
               Boolean,
             ) as string[]
           }

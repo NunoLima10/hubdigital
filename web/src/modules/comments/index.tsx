@@ -29,7 +29,7 @@ export function Comments({ slug }: { slug: string }) {
     data?.reduce((count, comment) => count + 1 + comment.replies.length, 0) ??
     0;
   return (
-    <section
+    <section id="project-comments"
       aria-labelledby="comments-title"
       className="space-y-5 border-t pt-6"
     >

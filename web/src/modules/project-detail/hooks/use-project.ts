@@ -1,3 +1,4 @@
+import { authClient } from "@/lib/auth-client";
 import { API } from "@/api/api";
 import { Project } from "@/modules/submit/types/project";
 import { ItemResponse } from "@/types";
@@ -8,9 +9,9 @@ async function fetchProject(slug: string) {
   return response.data.data;
 }
 
-export function projectQueryOptions(slug: string | undefined) {
+export function projectQueryOptions(slug: string | undefined, viewerId?: string | null) {
   return queryOptions({
-    queryKey: ["project", slug],
+    queryKey: ["project", slug, viewerId === undefined ? "loader" : viewerId],
     queryFn: () => fetchProject(slug as string),
     enabled: Boolean(slug),
     staleTime: 30 * 1000,
@@ -18,5 +19,6 @@ export function projectQueryOptions(slug: string | undefined) {
 }
 
 export function useProject(slug: string | undefined) {
-  return useQuery(projectQueryOptions(slug));
+  const { data: session } = authClient.useSession();
+  return useQuery(projectQueryOptions(slug, session?.user.id ?? null));
 }

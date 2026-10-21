@@ -1,3 +1,4 @@
+import { toAssetUrl } from "@/utils/asset-url";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import {
@@ -5,38 +6,13 @@ import {
   toCreateProjectPayload,
 } from "@/modules/submit/hooks/use-create-project";
 import { useUpdateProject } from "@/modules/submit/hooks/use-update-project";
-import type {
-  CreateProjectInput,
-  Project,
-} from "@/modules/submit/types/project";
-import { locationToFormValue } from "@/modules/submit/utils/location";
+import type { CreateProjectInput, Project } from "@/modules/submit/types/project";
+import { projectToFormValues } from "@/modules/submit/utils/draft";
 import { ProjectCategories } from "@/modules/submit/ui/container/project-categories/project-categories";
+import { LocationFields } from "@/modules/submit/ui/components/location-fields/location-fields";
 import { ProjectForm } from "@/modules/submit/ui/container/project-form/project-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Resolver } from "react-hook-form";
-
-function toValues(project: Project): CreateProjectInput {
-  return {
-    name: project.name,
-    shortDescription: project.shortDescription,
-    description: project.description ?? "",
-    websiteUrl: project.websiteUrl,
-    githubUrl: project.githubUrl ?? "",
-    logoUrl: undefined,
-    galleryImageKeys: project.galleryImageKeys,
-    youtubeVideoUrl: project.youtubeVideoId
-      ? `https://www.youtube.com/watch?v=${project.youtubeVideoId}`
-      : "",
-    pricing: project.pricing,
-    platform: project.platform,
-    businessModel: project.businessModel,
-    access: project.access,
-    projectStage: project.projectStage,
-    audienceStage: project.audienceStage,
-    location: locationToFormValue(project.location),
-    categoryId: project.categoryId,
-  };
-}
 
 export function EditProjectModal({
   project,
@@ -52,22 +28,14 @@ export function EditProjectModal({
       title="Editar projeto"
       className="max-h-[90dvh] max-w-none md:max-w-3xl"
     >
-      {project && (
-        <EditProjectForm key={project.id} project={project} onClose={onClose} />
-      )}
+      {project && <EditProjectForm key={project.id} project={project} onClose={onClose} />}
     </Dialog>
   );
 }
 
-function EditProjectForm({
-  project,
-  onClose,
-}: {
-  project: Project;
-  onClose: () => void;
-}) {
+function EditProjectForm({ project, onClose }: { project: Project; onClose: () => void }) {
   const form = useForm<CreateProjectInput>({
-    defaultValues: toValues(project),
+    defaultValues: projectToFormValues(project),
     resolver: zodResolver(createProjectSchema, undefined, {
       raw: true,
     }) as Resolver<CreateProjectInput>,
@@ -85,19 +53,15 @@ function EditProjectForm({
     >
       <ProjectForm
         form={form}
-        logoPreviewUrl={project.logoUrl ?? undefined}
-        galleryPreviewUrls={project.galleryImageUrls}
+        logoPreviewUrl={toAssetUrl(form.watch("logoUrl")) ?? project.logoUrl ?? undefined}
+        galleryPreviewUrls={form.watch("galleryImageKeys").map((key) => toAssetUrl(key) ?? "")}
       />
       <div className="border-t pt-5">
         <ProjectCategories form={form} />
       </div>
+      <LocationFields form={form} />
       <div className="flex justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onClose}
-          disabled={isPending}
-        >
+        <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
           Cancelar
         </Button>
         <Button type="submit" disabled={isPending}>

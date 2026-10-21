@@ -42,7 +42,6 @@ export function trackProjectEvent(projectId: number, type: ProjectEventType) {
 
   const key = `${STORAGE_PREFIX}:${type}:${projectId}`;
   if (alreadyReported(key)) return;
-  markReported(key);
 
   void fetch(`${env.API_URL}/projects/${projectId}/events`, {
     method: "POST",
@@ -51,5 +50,13 @@ export function trackProjectEvent(projectId: number, type: ProjectEventType) {
     credentials: "include",
     keepalive: true,
     body: JSON.stringify({ type, source: "web" }),
-  }).catch(() => {});
+  }).then(response => { if(response.ok) markReported(key); }).catch(() => {});
+}
+
+/** Raw attempted clicks, aggregated by destination; never blocks navigation. */
+export function trackDestinationClick(linkId?: number, surface: "detail" | "card" | "map" = "detail") {
+  if (!linkId || typeof window === "undefined") return;
+  void fetch(`${env.API_URL}/projects/links/${linkId}/click?surface=${surface}`, {
+    method:"POST", credentials:"include", keepalive:true,
+  }).catch(()=>{});
 }

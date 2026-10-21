@@ -7,7 +7,7 @@ import {
   makerQueryOptions,
   useMaker,
 } from "@/modules/makers/hooks/use-maker";
-import { pricingLabels } from "@/modules/submit/options";
+import { pricingLabels, availabilityLabels, projectStageLabels } from "@/modules/submit/options";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { Github, Globe, Linkedin, UserRound } from "lucide-react";
 
@@ -108,7 +108,7 @@ function MakerPage() {
             </div>
           </div>
           <section className="border-t pt-6">
-            <h2 className="mb-3 text-lg font-semibold">Lançamentos</h2>
+            <h2 className="mb-3 text-lg font-semibold">Projetos</h2>
             {data.projects.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Ainda não publicou nenhum projeto.
@@ -121,12 +121,12 @@ function MakerPage() {
                   slug={project.slug}
                   title={project.name}
                   description={project.shortDescription}
-                  website={project.websiteUrl}
                   iconUrl={project.logoUrl ?? undefined}
                   topis={
                     [
                       project.category?.name,
-                      pricingLabels[project.pricing],
+                      (project.pricing ? pricingLabels[project.pricing] : undefined),
+                      (project.availability === "not_available" && project.projectStage ? projectStageLabels[project.projectStage] : project.availability ? availabilityLabels[project.availability] : undefined),
                     ].filter(Boolean) as string[]
                   }
                   upCount={project.upvoteCount}

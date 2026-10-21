@@ -1,85 +1,169 @@
-import { ProjectIcon } from "@/components/project-icon/project-icon";
-import { useProjects } from "@/modules/project-list/hooks/use-projects";
-import type { Island } from "@hubdigital/shared";
-import { Link } from "@tanstack/react-router";
-import { ChevronRight, ThumbsUp } from "lucide-react";
 import { useMemo, useState } from "react";
-import { CaboVerdeMap } from "./cabo-verde-map";
-
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+import { mapQueryOptions } from "../map-query";
+import { Button } from "@/components/ui/button";
+import { ProjectIcon } from "@/components/project-icon/project-icon";
+import { CountryPicker } from "@/modules/submit/ui/components/location-fields/country-picker";
+import { FormSelect } from "@/modules/submit/ui/components/form-select/form-select";
+import { useCategories } from "@/modules/submit/hooks/use-categories";
+import { formatLocation, islandLabels, type Country } from "@hubdigital/shared";
+import { WorldProjectMap } from "./world-project-map";
+import { positionLabel, matchesMapLocation } from "../positions";
 export function ProjectMapView() {
-  const { data, isLoading, isError } = useProjects({ period: "all", sort: "upvotes", limit: 100 });
-  const [selectedIsland, setSelectedIsland] = useState<Island | null>(null);
-  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
-  const projects = useMemo(
-    () => data?.data.filter((project) => project.location?.country === "cv") ?? [],
-    [data],
+  const [world, setWorld] = useState(false);
+  const [country, setCountry] = useState<Country | "">("");
+  const [island, setIsland] = useState("");
+  const [category, setCategory] = useState("");
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const { data: categories } = useCategories();
+  const {
+    data = [],
+    isLoading,
+    isError,
+    refetch,
+  } = useQuery(
+    mapQueryOptions(
+      world ? country || undefined : undefined,
+      category ? Number(category) : undefined,
+      world ? undefined : island || undefined,
+    ),
   );
-  const islandProjects = useMemo(
+  const visible = useMemo(
     () =>
-      selectedIsland
-        ? projects.filter((project) => project.location?.country === "cv" && project.location.island === selectedIsland)
-        : [],
-    [projects, selectedIsland],
+      world
+        ? data
+        : data.filter(
+            (project) =>
+              [project.location, ...project.additionalLocations].some(
+                (location) => location?.country === "cv",
+              ) ||
+              (!project.location && !project.additionalLocations.length),
+          ),
+    [data, world],
   );
-  const activeProject = islandProjects.find((project) => project.id === selectedProjectId) ?? islandProjects[0];
-
-  function selectIsland(island: Island | null) {
-    setSelectedIsland(island);
-    setSelectedProjectId(null);
-  }
-
-  if (isLoading) {
-    return <div className="h-full animate-pulse bg-muted" aria-label="A carregar mapa" />;
-  }
-  if (isError) {
-    return <p className="rounded-xl border p-8 text-center text-muted-foreground">Não foi possível carregar o mapa. Tenta novamente mais tarde.</p>;
-  }
-
+  const unlocated = visible.filter(
+    (project) => !project.location && !project.additionalLocations.length,
+  ).length;
   return (
-    <div className="relative h-full min-h-0 overflow-hidden">
-      <div className="absolute inset-0">
-        <CaboVerdeMap
-          projects={projects}
-          selectedIsland={selectedIsland}
-          selectedProjectId={activeProject?.id ?? null}
-          onSelectIsland={selectIsland}
-          onSelectProject={setSelectedProjectId}
-          onClearSelection={() => selectIsland(null)}
+    <div className="flex h-full min-h-0 flex-col md:flex-row">
+      <aside
+        className="flex max-h-[45%] shrink-0 flex-col gap-3 overflow-y-auto border-b bg-background p-4 md:max-h-full md:w-80 md:border-r md:border-b-0"
+        aria-label="Projetos no mapa"
+      >
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant={world ? "outline" : "default"}
+            aria-pressed={!world}
+            onClick={() => {
+              setWorld(false);
+              setCountry("");
+            }}
+          >
+            Cabo Verde
+          </Button>
+          <Button
+            type="button"
+            variant={world ? "default" : "outline"}
+            aria-pressed={world}
+            onClick={() => {
+              setWorld(true);
+              setIsland("");
+            }}
+          >
+            Mundo / Diáspora
+          </Button>
+        </div>
+        {world ? (
+          <CountryPicker
+            label="Filtrar país"
+            placeholder="Todos os países"
+            clearLabel="Todos os países"
+            value={country}
+            onChange={(value) => {
+              setCountry(value);
+              setSelectedId(null);
+            }}
+          />
+        ) : (
+          <FormSelect
+            value={island}
+            options={[
+              { value: "", label: "Todas as ilhas" },
+              ...Object.entries(islandLabels).map(([value, label]) => ({ value, label })),
+            ]}
+            placeholder="Todas as ilhas"
+            onValueChange={setIsland}
+          />
+        )}
+        <FormSelect
+          value={category}
+          options={[
+            { value: "", label: "Todas as categorias" },
+            ...(categories ?? []).map((item) => ({ value: String(item.id), label: item.name })),
+          ]}
+          placeholder="Todas as categorias"
+          onValueChange={setCategory}
         />
-        {projects.length === 0 && (
-          <div className="absolute inset-x-4 bottom-4 z-[1000] rounded-lg border bg-background/95 p-4 text-center text-sm shadow-lg backdrop-blur sm:right-16">
-            Ainda não há projetos publicados com uma ilha de Cabo Verde associada.
+        <p className="text-xs text-muted-foreground" aria-live="polite">
+          {visible.length} projetos · {unlocated} sem localização pública
+        </p>
+        {isLoading && <p className="text-sm">A carregar projetos…</p>}
+        {isError && (
+          <div>
+            <p className="text-sm">Não foi possível carregar os projetos.</p>
+            <Button variant="outline" onClick={() => void refetch()}>
+              Tentar novamente
+            </Button>
           </div>
         )}
-      </div>
-
-      {activeProject && (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1000]">
-          <div className="mx-auto max-w-6xl px-3 pb-3 sm:px-6 sm:pb-5">
-            <section className="pointer-events-auto mx-auto flex max-w-3xl items-center gap-3 rounded-xl border bg-background/95 p-3 shadow-xl backdrop-blur sm:gap-4 sm:p-4">
-              <ProjectIcon iconUrl={activeProject.logoUrl} className="size-11 shrink-0 sm:size-12" />
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <p className="truncate font-semibold">{activeProject.name}</p>
-                  <span className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
-                    <ThumbsUp className="size-3" /> {activeProject.upvoteCount}
-                  </span>
-                </div>
-                <p className="mt-0.5 line-clamp-1 text-sm text-muted-foreground">{activeProject.shortDescription}</p>
-              </div>
+        {!isLoading && !isError && !visible.length && (
+          <p className="text-sm text-muted-foreground">Nenhum projeto com estes filtros.</p>
+        )}
+        <ul className="space-y-2">
+          {visible.map((project) => (
+            <li
+              key={project.id}
+              className={`rounded-md border p-3 ${selectedId === project.id ? "border-primary" : ""}`}
+            >
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 text-left"
+                onClick={() => setSelectedId(project.id)}
+              >
+                <ProjectIcon iconUrl={project.logoUrl} className="size-8" />
+                <span className="text-sm font-medium">{project.name}</span>
+              </button>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {[project.location, ...project.additionalLocations]
+                  .filter((location) => matchesMapLocation(location, world, country, island))
+                  .map((location) =>
+                    location ? `${formatLocation(location)} · ${positionLabel(location)}` : "",
+                  )
+                  .join("; ") || "Sem localização pública"}
+              </p>
               <Link
                 to="/projects/$slug"
-                params={{ slug: activeProject.slug }}
-                className="inline-flex shrink-0 items-center gap-1 rounded-md px-2 py-2 text-sm font-medium text-primary hover:bg-primary-soft sm:px-3"
+                params={{ slug: project.slug }}
+                className="mt-2 inline-block text-xs font-medium text-primary"
               >
-                <span className="hidden sm:inline">Ver projeto</span>
-                <span className="sm:hidden">Ver</span>
-                <ChevronRight className="size-4" />
+                Ver projeto
               </Link>
-            </section>
-          </div>
-        </div>
-      )}
+            </li>
+          ))}
+        </ul>
+      </aside>
+      <div className="relative min-h-0 flex-1">
+        <WorldProjectMap
+          projects={visible}
+          world={world}
+          country={world ? country : ""}
+          island={world ? "" : island}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
+      </div>
     </div>
   );
 }

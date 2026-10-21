@@ -9,7 +9,7 @@ export function DashboardNav() {
       </p>
       <NavLink
         to="/dashboard/releases"
-        title="Lançamentos"
+        title="Projetos"
         icon={<Rocket className="size-4" />}
       />
       <NavLink

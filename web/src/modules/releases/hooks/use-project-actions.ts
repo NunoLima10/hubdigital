@@ -2,6 +2,7 @@ import { API } from "@/api/api";
 import { CreateOptions, ItemResponse } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { toast } from "sonner";
 
 type PublishResponse = { id: number; slug: string; status: string };
 
@@ -14,6 +15,8 @@ function useRefreshProjectLists() {
   return () => {
     queryClient.invalidateQueries({ queryKey: ["my-projects"] });
     queryClient.invalidateQueries({ queryKey: ["projects"] });
+    queryClient.invalidateQueries({ queryKey: ["project-map"] });
+    queryClient.invalidateQueries({ queryKey: ["project"] });
   };
 }
 
@@ -33,14 +36,15 @@ export function usePublishProject(options?: CreateOptions) {
     number
   >({
     mutationFn: publishProject,
-    onSuccess: () => {
+    onSuccess: (response) => {
       refresh();
+      toast.success(options?.successMessage ?? (response.data.status === "pending"
+        ? "Projeto enviado para revisão. Ainda não está público."
+        : "Projeto publicado. Já está no ar!"));
       options?.onSuccess?.();
     },
     onError: options?.onError,
     meta: {
-      successMessage:
-        options?.successMessage ?? "Projeto publicado. Já está no ar!",
       errorMessage:
         options?.errorMessage ?? "Não foi possível publicar o projeto",
     },
