@@ -5,15 +5,26 @@ import { StepLayout } from "../../components/step-layout/step-layout";
 import { ProjectCategories } from "../project-categories/project-categories";
 import { ProjectForm } from "../project-form/project-form";
 import { ProjectReview } from "../project-review/project-review";
+import { Button } from "@/components/ui/button";
+import { SubmissionProgress } from "../../components/submission-progress";
+import { LocationFields } from "../../components/location-fields/location-fields";
 
-const labels = ["Descrição", "Categoria", "Revisão"];
 export function FormStepper() {
-  const { active, form } = useSubmitForm();
+  const {
+    active,
+    form,
+    saveState,
+    recovery,
+    resumeRecovery,
+    discardRecovery,
+    project,
+    goToStep,
+    isPublishing,
+  } = useSubmitForm();
   const galleryImageKeys = form.watch("galleryImageKeys");
+  const logoKey = form.watch("logoUrl");
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string>();
-  const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<
-    Record<string, string>
-  >({});
+  const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<Record<string, string>>({});
   const logoPreviewRef = useRef<string | undefined>(undefined);
   const galleryPreviewsRef = useRef<Record<string, string>>({});
 
@@ -47,55 +58,92 @@ export function FormStepper() {
   useEffect(
     () => () => {
       if (logoPreviewRef.current) URL.revokeObjectURL(logoPreviewRef.current);
-      Object.values(galleryPreviewsRef.current).forEach((url) =>
-        URL.revokeObjectURL(url),
-      );
+      Object.values(galleryPreviewsRef.current).forEach((url) => URL.revokeObjectURL(url));
     },
     [],
   );
 
   return (
     <div className="space-y-7">
-      <h1 className="hidden text-xl font-semibold lg:block">
-        Submeter projeto
-      </h1>
-      <ol className="flex gap-2" aria-label={`Passo ${active + 1} de 3`}>
-        {labels.map((label, index) => (
-          <li
-            key={label}
-            className={`flex-1 rounded-md border px-3 py-2 text-center text-xs sm:text-sm ${active === index ? "border-primary bg-primary-soft font-semibold text-primary" : index < active ? "border-primary/30" : "text-muted-foreground"}`}
-          >
-            {index + 1}. {label}
-          </li>
-        ))}
-      </ol>
-      {active < 2 && (
-        <p className="text-xs text-muted-foreground">
-          <span className="text-destructive" aria-hidden="true">*</span>{" "}
-          Campos obrigatórios
+      <div className="space-y-2">
+        <h1 className="text-xl font-semibold">
+          {project ? "Continuar projeto" : "Partilha o que estás a construir"}
+        </h1>
+        <p
+          role="status"
+          aria-live="polite"
+          className={`text-xs ${saveState === "error" ? "text-destructive" : "text-muted-foreground"}`}
+        >
+          {saveState === "saving"
+            ? "A guardar rascunho…"
+            : saveState === "saved"
+              ? "Rascunho guardado"
+              : saveState === "error"
+                ? "Alterações por guardar. Usa Guardar rascunho para tentar novamente."
+                : "O rascunho é guardado automaticamente depois de escolheres um nome."}
         </p>
+      </div>
+      {recovery && (
+        <section
+          className="space-y-3 rounded-lg border border-primary/30 p-4"
+          aria-label="Retomar rascunho"
+        >
+          <p className="text-sm">
+            Encontrámos um rascunho neste navegador:{" "}
+            <strong>{recovery.values.name || "Projeto sem nome"}</strong>.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={resumeRecovery}>Continuar rascunho</Button>
+            <Button variant="outline" onClick={discardRecovery}>
+              {project ? "Usar versão guardada" : "Começar outro"}
+            </Button>
+          </div>
+        </section>
       )}
-      <StepLayout>
-        {active === 0 ? (
-          <ProjectForm
-            form={form}
-            logoPreviewUrl={logoPreviewUrl}
-            galleryPreviewUrls={galleryImageKeys.map(
-              (key) => galleryPreviewUrls[key] ?? toAssetUrl(key) ?? "",
+      {!recovery && (
+        <>
+          <SubmissionProgress active={active} onChange={goToStep} disabled={isPublishing} />
+          {active < 2 && (
+            <p className="text-xs text-muted-foreground">
+              <span className="text-destructive" aria-hidden="true">
+                *
+              </span>{" "}
+              Campos obrigatórios para publicar. Podes guardar um rascunho incompleto.
+            </p>
+          )}
+          <StepLayout>
+            {active === 0 ? (
+              <ProjectForm
+                form={form}
+                logoPreviewUrl={
+                  logoKey === null
+                    ? undefined
+                    : (logoPreviewUrl ?? toAssetUrl(logoKey) ?? project?.logoUrl ?? undefined)
+                }
+                galleryPreviewUrls={galleryImageKeys.map(
+                  (key) => galleryPreviewUrls[key] ?? toAssetUrl(key) ?? "",
+                )}
+                onLogoPreviewChange={changeLogoPreview}
+                onGalleryPreviewChange={addGalleryPreview}
+                onGalleryPreviewRemove={removeGalleryPreview}
+              />
+            ) : active === 1 ? (
+              <ProjectCategories form={form} />
+            ) : active === 2 ? (
+              <LocationFields form={form} />
+            ) : (
+              <ProjectReview
+                logoPreviewUrl={
+                  logoKey === null
+                    ? undefined
+                    : (logoPreviewUrl ?? toAssetUrl(logoKey) ?? project?.logoUrl ?? undefined)
+                }
+                galleryPreviewUrls={galleryPreviewUrls}
+              />
             )}
-            onLogoPreviewChange={changeLogoPreview}
-            onGalleryPreviewChange={addGalleryPreview}
-            onGalleryPreviewRemove={removeGalleryPreview}
-          />
-        ) : active === 1 ? (
-          <ProjectCategories form={form} />
-        ) : (
-          <ProjectReview
-            logoPreviewUrl={logoPreviewUrl}
-            galleryPreviewUrls={galleryPreviewUrls}
-          />
-        )}
-      </StepLayout>
+          </StepLayout>
+        </>
+      )}
     </div>
   );
 }

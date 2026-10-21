@@ -4,11 +4,18 @@ import SumbmitProvider from "@/modules/submit/context/sumbmit-form";
 import { FormStepper } from "@/modules/submit/ui/container/form-stepper/form-stepper";
 import { createFileRoute } from "@tanstack/react-router";
 import { Wrench } from "lucide-react";
+import { z } from "zod";
+import { useProject } from "@/modules/project-detail/hooks/use-project";
+import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_authed/dashboard/submit")({
   component: SubmitPage,
+  validateSearch: z.object({ draft: z.string().min(1).optional() }),
 });
 function SubmitPage() {
+  const { draft } = Route.useSearch();
+  const { data: project, isLoading, isError } = useProject(draft);
+  const { data: session } = authClient.useSession();
   const { data: settings } = usePublicSettings();
   if (settings && !settings["submissions.open"])
     return (
@@ -30,9 +37,11 @@ function SubmitPage() {
     );
   return (
     <DashboardPage>
-      <SumbmitProvider>
-        <FormStepper />
-      </SumbmitProvider>
+      {draft && isLoading ? <p role="status">A carregar rascunho…</p> : draft && (isError || !project || project.author?.id !== session?.user.id || project.status === "published" || project.status === "pending")
+        ? <p>Este rascunho não está disponível para edição aqui. Abre os teus projetos para continuar.</p>
+        : <SumbmitProvider key={project?.id ?? "new"} project={project}>
+            <FormStepper />
+          </SumbmitProvider>}
     </DashboardPage>
   );
 }

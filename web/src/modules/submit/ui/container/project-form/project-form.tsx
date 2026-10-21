@@ -1,3 +1,4 @@
+import { ProjectCard } from "../../components/project-card/project-card";
 import { ImageSelector } from "@/components/image-selector/image-selector";
 import { GalleryImageSelector } from "@/components/gallery-image-selector/gallery-image-selector";
 import { RequiredIndicator } from "@/components/required-indicator/required-indicator";
@@ -5,6 +6,9 @@ import { Input } from "@/components/ui/input";
 import { getYoutubeVideoId } from "@hubdigital/shared";
 import type { UseFormReturn } from "react-hook-form";
 import type { CreateProjectInput } from "../../../types/project";
+import { ProjectDestinations } from "../../components/project-destinations/project-destinations";
+import { FormSelect } from "../../components/form-select/form-select";
+import { availabilityOptions, projectStageOptions } from "../../../options";
 import { DescriptionEditor } from "../../components/description-editor/description-editor";
 
 type Props = {
@@ -26,66 +30,94 @@ export function ProjectForm({
   const values = form.watch();
   const fields = [
     ["name", "Nome do projeto", "Meu Projeto", "text", true],
-    [
-      "shortDescription",
-      "Pequena descrição",
-      "O que resolve o teu projeto?",
-      "text",
-      true,
-    ],
-    ["websiteUrl", "Website", "https://hubdigital.cv/", "url", true],
-    [
-      "githubUrl",
-      "GitHub",
-      "https://github.com/organizacao/projeto",
-      "url",
-      false,
-    ],
+    ["shortDescription", "Descrição curta", "O projeto numa frase", "text", true],
   ] as const;
   return (
     <div className="space-y-5">
       {fields.map(([name, label, placeholder, type, required]) => (
         <label key={name} className="block space-y-1.5 text-sm font-medium">
-          {label}
-          {required && <RequiredIndicator />}
+          <span className="flex items-center justify-between gap-2">
+            <span>
+              {label}
+              {required && <RequiredIndicator />}
+            </span>
+            <span aria-hidden="true" className="text-xs font-normal text-muted-foreground">
+              {values[name].length}/{name === "name" ? 120 : 200}
+            </span>
+          </span>
           <Input
+            aria-label={label}
             type={type}
+            maxLength={name === "name" ? 120 : 200}
             placeholder={placeholder}
             required={required}
             {...form.register(name)}
           />
           {form.formState.errors[name]?.message && (
-            <span className="text-xs text-destructive">
-              {form.formState.errors[name]?.message}
-            </span>
+            <span className="text-xs text-destructive">{form.formState.errors[name]?.message}</span>
           )}
         </label>
       ))}
+      <div className="space-y-4">
+        {(
+          [
+            { name: "projectStage", label: "Fase do projeto", options: projectStageOptions },
+            {
+              name: "availability",
+              label: "Como as pessoas podem experimentar?",
+              options: availabilityOptions,
+            },
+          ] as const
+        ).map(({ name, label, options }) => (
+          <label key={name} className="block space-y-1.5 text-sm font-medium">
+            {label}
+            <RequiredIndicator />
+            <FormSelect
+              value={values[name]}
+              options={options}
+              placeholder="Escolhe uma opção"
+              required
+              invalid={Boolean(form.formState.errors[name])}
+              onValueChange={(value) => form.setValue(name, value as never, { shouldDirty: true })}
+            />
+            {form.formState.errors[name]?.message && (
+              <span className="text-xs text-destructive">
+                {form.formState.errors[name]?.message}
+              </span>
+            )}
+          </label>
+        ))}
+      </div>
+      <ProjectDestinations form={form} />
       <div>
-        <p className="mb-1.5 text-sm font-medium">Descrição detalhada</p>
+        <p className="mb-1.5 text-sm font-medium">Descrição (opcional)</p>
         <DescriptionEditor
           value={values.description}
-          onChange={(html) =>
-            form.setValue("description", html, { shouldValidate: true })
-          }
+          onChange={(html) => form.setValue("description", html, { shouldValidate: true })}
         />
       </div>
       <ImageSelector
-        label="Logo"
+        label="Logo (opcional)"
         type="project_logo"
         recomandations="PNG, JPG ou WebP até 5 MB"
         actionLabel="Carregar logo"
         value={values.logoUrl}
         previewUrl={logoPreviewUrl}
-        onChange={(key) =>
-          form.setValue("logoUrl", key, { shouldValidate: true })
-        }
+        onChange={(key) => form.setValue("logoUrl", key, { shouldValidate: true })}
         onPreviewChange={onLogoPreviewChange}
         error={form.formState.errors.logoUrl?.message}
       />
       <div className="space-y-2">
+        <p className="text-xs text-muted-foreground">Pré-visualização na descoberta</p>
+        <ProjectCard
+          name={values.name || "Nome do projeto"}
+          description={values.shortDescription || "O projeto numa frase"}
+          iconUrl={logoPreviewUrl}
+        />
+      </div>
+      <div className="space-y-2">
         <label className="block space-y-1.5 text-sm font-medium">
-          Trailer no YouTube
+          Vídeo no YouTube (opcional)
           <Input
             type="url"
             placeholder="https://www.youtube.com/watch?v=..."

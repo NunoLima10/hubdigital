@@ -11,7 +11,10 @@ export function StepLayout({ children }: PropsWithChildren) {
     canProceed,
     saveDraft,
     publish,
-    isPending,
+    isSaving,
+    isPublishing,
+    canSave,
+    recovery,
   } = useSubmitForm();
   return (
     <div className="flex min-h-96 flex-col gap-6">
@@ -23,25 +26,25 @@ export function StepLayout({ children }: PropsWithChildren) {
           "submit-backward": "submit-backward",
         }}
       >
-        <div className="flex-1">{children}</div>
+        <fieldset inert={isPublishing} disabled={isPublishing} className="min-w-0 flex-1">{children}</fieldset>
       </ViewTransition>
       <div className="flex flex-wrap justify-end gap-2">
+        <Button variant="outline" disabled={isSaving || isPublishing || !canSave} onClick={saveDraft}>
+          {isSaving ? "A guardar..." : "Guardar rascunho"}
+        </Button>
         {!isFist && (
-          <Button variant="outline" disabled={isPending} onClick={previous}>
+          <Button variant="outline" disabled={isPublishing} onClick={previous}>
             Voltar
           </Button>
         )}
         {!isLast ? (
-          <Button disabled={!canProceed} onClick={next}>
+          <Button disabled={!canProceed || isPublishing} onClick={next}>
             Próximo
           </Button>
         ) : (
           <>
-            <Button variant="outline" disabled={isPending} onClick={saveDraft}>
-              Guardar rascunho
-            </Button>
-            <Button disabled={isPending} onClick={publish}>
-              {isPending ? "A guardar..." : "Publicar projeto"}
+            <Button disabled={isPublishing || Boolean(recovery)} onClick={publish}>
+              {isPublishing ? "A publicar..." : "Publicar projeto"}
             </Button>
           </>
         )}

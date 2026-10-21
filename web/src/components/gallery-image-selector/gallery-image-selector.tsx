@@ -147,7 +147,7 @@ export function GalleryImageSelector({
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <p id="gallery-label" className="text-sm font-medium">
-            Galeria do projeto
+            Imagens (opcional)
           </p>
           <p className="text-xs text-muted-foreground">
             Opcional · até 10 imagens · PNG, JPG ou WebP até 5 MB · recomendado 1280 × 720
@@ -222,7 +222,7 @@ export function GalleryImageSelector({
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">
-                    {index + 1}. {local?.name ?? `Imagem ${index + 1}`}
+                    {index === 0 ? "Imagem de capa" : `${index + 1}.`} {local?.name ?? `Imagem ${index + 1}`}
                   </p>
                   {local && (
                     <p className={`text-xs ${ratioWarning ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"}`}>

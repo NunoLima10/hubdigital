@@ -4,7 +4,8 @@ import type {
   ProjectMinimal as SharedProjectMinimal,
 } from "@hubdigital/shared";
 import {
-  accessValues,
+  availabilityValues,
+  sourceModelValues,
   audienceValues,
   businessModelValues,
   platformValues,
@@ -17,19 +18,29 @@ export type CreateProjectInput = {
   name: string;
   shortDescription: string;
   description?: string;
-  websiteUrl: string;
-  githubUrl?: string;
+  links: import("@hubdigital/shared").ProjectLinkInput[];
   logoUrl?: string | null;
   galleryImageKeys: string[];
   youtubeVideoUrl?: string | null;
   pricing: (typeof pricingValues)[number] | "";
   platform: (typeof platformValues)[number][];
   businessModel: (typeof businessModelValues)[number] | "";
-  access: (typeof accessValues)[number] | "";
+  availability: (typeof availabilityValues)[number] | "";
+  sourceModel: (typeof sourceModelValues)[number] | "";
+  licenseId: string;
   projectStage: (typeof projectStageValues)[number] | "";
-  audienceStage: (typeof audienceValues)[number] | "";
+  audiences: (typeof audienceValues)[number][];
   location: LocationFormValue;
+  languages: string[];
+  helpWanted: SharedProject["helpWanted"];
+  helpDescription: string;
+  teamDescription: string;
+  additionalLocations: import("@hubdigital/shared").ProjectLocation[];
+  teamMode: "local" | "distributed" | null;
+  localConnections: SharedProject["localConnections"];
+  serviceArea: SharedProject["serviceArea"];
   categoryId: number | "";
+  secondaryCategoryIds: number[];
 };
 
 export type Category = CategorySummary;

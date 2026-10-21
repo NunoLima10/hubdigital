@@ -42,7 +42,7 @@ export function FormSelect({
       <SelectContent
         align="start"
         alignItemWithTrigger={false}
-        className="max-h-64 rounded-lg p-1 shadow-lg ring-1 ring-border"
+        className="max-h-64 min-w-[min(18rem,var(--available-width))] max-w-(--available-width) rounded-lg p-1 shadow-lg ring-1 ring-border"
       >
         {options.map((option) => (
           <SelectItem key={option.value} value={option.value} className="rounded-md">

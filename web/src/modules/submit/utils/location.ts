@@ -23,24 +23,27 @@ export type LocationFormValue = {
    * municipality it belongs to changes.
    */
   zone: string;
+  locality: string;
+  publicPin: ProjectLocation["publicPin"];
 };
 
 export const emptyLocation: LocationFormValue = {
   country: "",
   island: "",
   municipality: "",
-  zone: "",
+  zone: "", locality: "", publicPin: null,
 };
 
 export function locationToFormValue(
   location: ProjectLocation | null | undefined
 ): LocationFormValue {
   if (!location) return emptyLocation;
-  if (location.country !== "cv") return { ...emptyLocation, country: location.country };
+  if (location.country !== "cv") return { ...emptyLocation, ...location };
 
   return {
     country: "cv",
-    island: location.island,
+    island: location.island ?? "",
+    locality: location.locality ?? "", publicPin: location.publicPin ?? null,
     municipality: location.municipality ?? "",
     zone: location.zone ?? "",
   };
@@ -55,20 +58,20 @@ export function locationToFormValue(
  */
 export function locationFromFormValue(value: LocationFormValue): unknown {
   if (!value.country) return undefined;
-  if (value.country !== "cv") return { country: value.country };
+  if (value.country !== "cv") return { country: value.country, locality: value.locality || undefined, publicPin: value.publicPin };
 
   return {
-    country: "cv",
+    country: "cv", locality: value.locality || undefined, publicPin: value.publicPin,
     island: value.island || undefined,
     municipality: value.municipality || undefined,
     zone: value.zone || undefined,
   };
 }
 
-/** True once the required levels are chosen: a country, plus an island in Cabo Verde. */
+/** Country-only bases are complete; finer regions and public pins are optional. */
 export function isLocationComplete(value: LocationFormValue): boolean {
   if (!value.country) return false;
-  return value.country !== "cv" || value.island !== "";
+  return true;
 }
 
 /** "Praia, Santiago" for the review step, or null while there is nothing valid to show. */

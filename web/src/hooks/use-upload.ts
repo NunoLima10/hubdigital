@@ -8,6 +8,7 @@ import { useState } from "react";
 type PreSignedUpload = {
   uploadUrl: string;
   fileKey: string;
+  uploadId: number;
 };
 
 async function getPreSignedUrl(file: File, type: FileUploadType) {
@@ -17,6 +18,7 @@ async function getPreSignedUrl(file: File, type: FileUploadType) {
       name: file.name,
       contentType: file.type,
       type,
+      byteSize: file.size,
     }
   );
 
@@ -43,12 +45,14 @@ export function useUpload() {
     setPercentage(1);
 
     try {
-      const { uploadUrl, fileKey } = await getPreSignedUrl(file, type);
+      const { uploadUrl, fileKey, uploadId } = await getPreSignedUrl(file, type);
 
       await axios.put(uploadUrl, file, {
         headers: { "Content-Type": file.type },
         onUploadProgress,
       });
+
+      await API.post(`/uploads/${uploadId}/complete`);
 
       return fileKey;
     } finally {
