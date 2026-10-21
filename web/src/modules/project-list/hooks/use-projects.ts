@@ -94,6 +94,23 @@ async function fetchProjects(query: ProjectsQuery) {
   return response.data;
 }
 
+const ALL_PAGE_SIZE = 100;
+// A guard against a runaway loop, far above what the catalogue will reach soon.
+const ALL_MAX_PAGES = 50;
+
+/** Every published project, newest first, page by page. Used by the sitemap. */
+export async function fetchAllPublishedProjects() {
+  const projects: ProjectMinimal[] = [];
+  for (let page = 0; page < ALL_MAX_PAGES; page++) {
+    const { data } = await API.get<ProjectsResponse>("/projects", {
+      params: { period: "all", sort: "newest", limit: ALL_PAGE_SIZE, offset: page * ALL_PAGE_SIZE },
+    });
+    projects.push(...data.data);
+    if (data.data.length < ALL_PAGE_SIZE || projects.length >= data.meta.total) break;
+  }
+  return projects;
+}
+
 export function projectsQueryOptions(
   query: ProjectsQuery = {},
   userId: string | null = null,

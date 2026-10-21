@@ -7,6 +7,9 @@ const createEnv = () => {
     // to preview an image before the project is saved — once saved, the API
     // returns fully resolved URLs.
     ASSETS_URL: z.string().optional().default(""),
+    // Public origin of this site, without a trailing slash. Crawlers only
+    // accept absolute URLs in og:image, og:url, canonical and the sitemap.
+    SITE_URL: z.string().optional().default("http://localhost:5173"),
   });
 
   const envVars = Object.entries(import.meta.env).reduce<

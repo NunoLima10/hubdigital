@@ -9,12 +9,13 @@ import {
 } from "@/modules/makers/hooks/use-maker";
 import { pricingLabels, availabilityLabels, projectStageLabels } from "@/modules/submit/options";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { makerHead } from "@/modules/makers/seo";
 import { Github, Globe, Linkedin, UserRound } from "lucide-react";
 
 export const Route = createFileRoute("/makers/$handle")({
-  loader: async ({ context, params }) => {
-    await context.queryClient.query(makerQueryOptions(params.handle)).catch(noop);
-  },
+  loader: ({ context, params }) =>
+    context.queryClient.query(makerQueryOptions(params.handle)).catch(noop),
+  head: ({ loaderData, params }) => makerHead(loaderData, params.handle),
   component: MakerPage,
 });
 

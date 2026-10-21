@@ -1,3 +1,7 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Disallow: /dashboard
+Disallow: /onboarding
+
+# Production origin; keep in step with VITE_APP_SITE_URL.
+Sitemap: https://hubdigital.cv/sitemap.xml

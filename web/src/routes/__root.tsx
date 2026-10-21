@@ -1,5 +1,6 @@
 import { AppProvider } from "@/app/provider";
 import "@/index.css";
+import { seo } from "@/lib/seo";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   HeadContent,
@@ -13,26 +14,15 @@ interface RouterContext {
   queryClient: QueryClient;
 }
 
-const description =
-  "Um Hub digital de código aberto para impulsionar a inovação em Cabo Verde, meio para descobrir, partilhar e apoiar projetos e produtos criados por caboverdianos";
-
 export const Route = createRootRouteWithContext<RouterContext>()({
-  // Site-wide defaults, carried over from the old index.html. Routes that have
-  // something more specific to say override them with their own head().
+  // Site-wide defaults. Routes that have something more specific to say
+  // override them with their own head(), built from the same seo() helper.
   head: () => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0" },
-      { title: "Hub Digital" },
-      { name: "description", content: description },
-      {
-        name: "keywords",
-        content:
-          "cabo verde, cvd, caboverdedigital, hubdigital, cabo verde tecnologia",
-      },
-      { name: "author", content: "Hub Digital" },
-      { property: "og:image", content: "/og.webp" },
-      { property: "og:image:alt", content: "og alt" },
+      { name: "theme-color", content: "#0a0a0a" },
+      ...seo({}).meta,
     ],
     links: [
       { rel: "icon", href: "/favicon.ico", sizes: "48x48" },

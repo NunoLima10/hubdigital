@@ -13,6 +13,7 @@ import {
 } from "@/modules/project-detail/components/project-detail-view/project-detail-view";
 import { projectQueryOptions, useProject } from "@/modules/project-detail/hooks/use-project";
 import { Link, createFileRoute } from "@tanstack/react-router";
+import { projectHead } from "@/modules/project-detail/seo";
 import { ArrowLeft } from "lucide-react";
 
 export const Route = createFileRoute("/projects/$slug")({
@@ -23,20 +24,7 @@ export const Route = createFileRoute("/projects/$slug")({
     ]);
     return project;
   },
-  head: ({ loaderData: project }) => {
-    if (!project || project.status !== "published")
-      return { meta: [{ title: "Projeto | Hub Digital" }] };
-    const image = project.galleryImageUrls[0] || project.logoUrl;
-    return {
-      meta: [
-        { title: `${project.name} | Hub Digital` },
-        { name: "description", content: project.shortDescription },
-        { property: "og:title", content: project.name },
-        { property: "og:description", content: project.shortDescription },
-        ...(image ? [{ property: "og:image", content: image }] : []),
-      ],
-    };
-  },
+  head: ({ loaderData, params }) => projectHead(loaderData, params.slug),
   component: ProjectPage,
   pendingComponent: ProjectPendingPage,
 });

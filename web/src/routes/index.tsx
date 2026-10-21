@@ -6,10 +6,12 @@ import { projectsQueryOptions, useProjects } from "@/modules/project-list/hooks/
 import { AnnouncementBanner } from "@/modules/settings/components/announcement-banner/announcement-banner";
 import { noop } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { seo } from "@/lib/seo";
 
 const launchSections = [{ period: "all", title: "Projetos", id: "all-launches-title" }] as const;
 
 export const Route = createFileRoute("/")({
+  head: () => seo({ path: "/" }),
   loader: async ({ context }) => {
     await context.queryClient.query(projectsQueryOptions({ period: "all" })).catch(noop);
   },

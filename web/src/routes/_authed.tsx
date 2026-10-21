@@ -1,3 +1,4 @@
+import { seo } from "@/lib/seo";
 import { Page } from "@/layouts/page";
 import { authClient } from "@/lib/auth-client";
 import { DashboardHeader } from "@/modules/dashboard/components/hearder/header";
@@ -5,6 +6,8 @@ import { SideBar } from "@/modules/dashboard/components/side-bar/side-bar";
 import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed")({
+  // Private pages: titled for the tab, never indexed.
+  head: () => seo({ title: "Dashboard", noIndex: true }),
   component: AuthedLayout,
 });
 
