@@ -1,4 +1,7 @@
+import { projectProfileFields } from "./project-profile";
+import { projectGeographyFields } from "./location-schema";
 import { z } from "zod";
+import { projectDraftLinkSchema } from "./project-links";
 import {
   MODERATION_BULK_MAX,
   MODERATION_REASON_MAX,
@@ -91,19 +94,22 @@ export const adminPublisherSchema = z.object({
 });
 
 export const adminProjectSchema = z.object({
+  ...projectGeographyFields,
+  ...projectProfileFields,
   id: z.number(),
   name: z.string(),
   slug: z.string(),
   shortDescription: z.string(),
   description: z.string().nullable(),
-  websiteUrl: z.string(),
-  githubUrl: z.string().nullable(),
+  links: z.array(projectDraftLinkSchema.extend({ id: z.number() })),
   logoUrl: z.string().nullable(),
   galleryImageKeys: z.array(z.string()),
   galleryImageUrls: z.array(z.string()),
   youtubeVideoId: z.string().nullable(),
   location: locationSchema.nullable(),
-  categoryId: z.number(),
+  categoryId: z.number().nullable(),
+  secondaryCategoryIds: z.array(z.number()),
+  secondaryCategories: z.array(categorySummarySchema),
   category: categorySummarySchema.nullable(),
   publisher: adminPublisherSchema.nullable(),
   status: z.enum(projectStatusValues),

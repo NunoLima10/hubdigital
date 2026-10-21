@@ -1,3 +1,4 @@
+import { projectLinkKindValues } from "./project-links";
 import { z } from "zod";
 
 /**
@@ -56,7 +57,7 @@ export const projectStatsSchema = z.object({
       views: z.number(),
       visits: z.number(),
       upvotes: z.number(),
-    })
+    }),
   ),
 });
 
@@ -81,3 +82,19 @@ export type StatsCounters = z.infer<typeof statsCountersSchema>;
 export type ProjectStats = z.infer<typeof projectStatsSchema>;
 export type ProjectStatsRow = z.infer<typeof projectStatsRowSchema>;
 export type MyProjectStats = z.infer<typeof myProjectStatsSchema>;
+
+export const destinationStatsSchema = z.object({
+  range: z.enum(statsRangeValues),
+  links: z.array(
+    z.object({
+      linkId: z.number(),
+      label: z.string().nullable(),
+      kind: z.enum(projectLinkKindValues),
+      clicks: z.number(),
+      detail: z.number(),
+      card: z.number(),
+      map: z.number(),
+    }),
+  ),
+});
+export type DestinationStats = z.infer<typeof destinationStatsSchema>;

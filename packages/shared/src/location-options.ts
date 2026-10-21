@@ -1,41 +1,15 @@
 import type { Island } from "./island-options";
 
-/**
- * Where a project is based. Cabo Verde gets the full island > municipality >
- * zone breakdown; the diaspora countries where most Cabo Verdeans live are a
- * single pick, with "other" as the catch-all. Values are lowercase ISO 3166-1
- * alpha-2 codes, so adding a country later is one line here. Ordered by size of
- * the community (roughly), "other" last, so it can feed a select as-is.
- */
-export const abroadCountryValues = [
-  "pt",
-  "us",
-  "fr",
-  "nl",
-  "lu",
-  "it",
-  "br",
-  "es",
-  "other",
-] as const;
-
-export const countryValues = ["cv", ...abroadCountryValues] as const;
-
-export type Country = (typeof countryValues)[number];
-export type AbroadCountry = (typeof abroadCountryValues)[number];
-
-export const countryLabels: Record<Country, string> = {
-  cv: "Cabo Verde",
-  pt: "Portugal",
-  us: "Estados Unidos",
-  fr: "França",
-  nl: "Países Baixos",
-  lu: "Luxemburgo",
-  it: "Itália",
-  br: "Brasil",
-  es: "Espanha",
-  other: "Outros",
-};
+import { countryReference } from "./country-reference";
+export type Country = keyof typeof countryReference;
+export type AbroadCountry = Exclude<Country, "cv">;
+export const countryValues = Object.keys(countryReference) as [Country, ...Country[]];
+export const abroadCountryValues = countryValues.filter(
+  (code): code is AbroadCountry => code !== "cv",
+) as [AbroadCountry, ...AbroadCountry[]];
+export const countryLabels = Object.fromEntries(
+  countryValues.map((code) => [code, countryReference[code].name]),
+) as Record<Country, string>;
 
 /**
  * The 22 municipalities (concelhos), keyed by their public location code. The

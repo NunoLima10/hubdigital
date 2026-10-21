@@ -8,11 +8,14 @@ import type { ProjectLocation } from "./location-schema";
  * A zone is left out because only its code is known here, not its name.
  */
 export function formatLocation(location: ProjectLocation): string {
-  if (location.country !== "cv") return countryLabels[location.country];
+  if (location.country !== "cv")
+    return [location.locality, countryLabels[location.country]].filter(Boolean).join(", ");
 
-  const island = islandLabels[location.island];
+  const island = location.island ? islandLabels[location.island] : "Cabo Verde";
 
-  return location.municipality
-    ? `${municipalityLabels[location.municipality]}, ${island}`
-    : island;
+  return location.locality
+    ? `${location.locality}, ${island}`
+    : location.municipality
+      ? `${municipalityLabels[location.municipality]}, ${island}`
+      : island;
 }

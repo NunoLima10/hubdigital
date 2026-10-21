@@ -6,9 +6,9 @@ export const allowedUploadContentTypes = [
   "image/png",
   "image/jpeg",
   "image/webp",
-  "image/gif",
-  "image/svg+xml",
 ] as const;
 
 export type AllowedUploadContentType =
   (typeof allowedUploadContentTypes)[number];
+
+export const maxUploadBytes = 5 * 1024 * 1024;
