@@ -16,10 +16,10 @@ export default defineConfig({
     port: 5174,
   },
   plugins: [
-    react(),
     tanstackRouter({
       target: "react",
       autoCodeSplitting: true,
     }),
+    react(),
   ],
 });
