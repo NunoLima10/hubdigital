@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
 import { ReportButton } from "@/modules/reports/components/report-button/report-button";
 import type { Comment, CommentReply } from "@hubdigital/shared";
 import { Link } from "@tanstack/react-router";
@@ -32,6 +34,7 @@ export function CommentItem({
   isPending,
 }: Props) {
   const [mode, setMode] = useState<"view" | "edit" | "reply">("view");
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const article = useRef<HTMLElement>(null);
   useLayoutEffect(() => {
     if (!isNew || !article.current) return;
@@ -83,7 +86,13 @@ export function CommentItem({
               {comment.author.name}
             </Link>
           ) : (
-            <strong>{comment.author?.name ?? "Utilizador removido"}</strong>
+            // A deleted comment hides its author on purpose; a missing author on
+            // a live one means the account itself is gone.
+            <strong className={comment.isDeleted ? "font-medium text-muted-foreground" : undefined}>
+              {comment.isDeleted
+                ? "Comentário removido"
+                : (comment.author?.name ?? "Conta removida")}
+            </strong>
           )}
           <span aria-hidden className="text-xs text-muted-foreground">·</span>
           <time
@@ -115,11 +124,11 @@ export function CommentItem({
             }}
           />
         ) : (
-          <p
-            className={`whitespace-pre-wrap break-words text-sm leading-6 ${comment.isDeleted ? "italic text-muted-foreground" : ""}`}
-          >
-            {comment.body}
-          </p>
+          // The header already says the comment was removed; the API's
+          // placeholder body would only repeat it.
+          !comment.isDeleted && (
+            <p className="whitespace-pre-wrap break-words text-sm leading-6">{comment.body}</p>
+          )
         )}
         {mode === "view" && !comment.isDeleted && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
@@ -137,11 +146,35 @@ export function CommentItem({
                     </button>
                     <button
                       className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive hover:underline"
-                      onClick={() => onDelete(comment.id)}
+                      onClick={() => setConfirmingDelete(true)}
                     >
                       <Trash2 className="size-3.5" />
                       Remover
                     </button>
+                    <Dialog
+                      open={confirmingDelete}
+                      onClose={() => setConfirmingDelete(false)}
+                      title="Remover comentário"
+                    >
+                      <p className="text-sm">
+                        Queres mesmo remover este comentário? As respostas continuam
+                        visíveis, mas o teu texto desaparece.
+                      </p>
+                      <div className="mt-5 flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => setConfirmingDelete(false)}>
+                          Cancelar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={() => {
+                            setConfirmingDelete(false);
+                            onDelete(comment.id);
+                          }}
+                        >
+                          Remover
+                        </Button>
+                      </div>
+                    </Dialog>
                   </>
                 ) : (
                   <ReportButton

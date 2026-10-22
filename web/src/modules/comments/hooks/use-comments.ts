@@ -1,4 +1,5 @@
 import { API } from "@/api/api";
+import { authClient } from "@/lib/auth-client";
 import { ItemResponse, ListResponse } from "@/types";
 import type { Comment, CommentBody } from "@hubdigital/shared";
 import {
@@ -22,9 +23,13 @@ async function fetchComments(slug: string) {
   return response.data.data;
 }
 
-export function commentsQueryOptions(slug: string | undefined) {
+/**
+ * `isOwn` depends on who is asking, so the viewer is part of the key, like the
+ * project query. The loader fetches anonymously under "loader".
+ */
+export function commentsQueryOptions(slug: string | undefined, viewerId?: string | null) {
   return queryOptions({
-    queryKey: commentsQueryKey(slug ?? ""),
+    queryKey: [...commentsQueryKey(slug ?? ""), viewerId === undefined ? "loader" : viewerId],
     queryFn: () => fetchComments(slug as string),
     enabled: Boolean(slug),
     staleTime: 30 * 1000,
@@ -32,7 +37,14 @@ export function commentsQueryOptions(slug: string | undefined) {
 }
 
 export function useComments(slug: string | undefined) {
-  return useQuery(commentsQueryOptions(slug));
+  const queryClient = useQueryClient();
+  const { data: session } = authClient.useSession();
+  return useQuery({
+    ...commentsQueryOptions(slug, session?.user.id ?? null),
+    // Server-rendered thread until the viewer's own copy, with their edit and
+    // remove actions, arrives.
+    placeholderData: () => queryClient.getQueryData(commentsQueryOptions(slug).queryKey),
+  });
 }
 
 /**
