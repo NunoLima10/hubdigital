@@ -1,7 +1,7 @@
 import { MakersService } from "@/modules/makers/makers-services";
-import { UnauthorizedAccessError } from "@/utils/custom-errors";
+import { BadRequestError, UnauthorizedAccessError } from "@/utils/custom-errors";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { onboardingRouteSchema } from "./users-schemas";
+import { onboardingRouteSchema, updateAvatarRouteSchema } from "./users-schemas";
 import { UserService } from "./users-services";
 import { fromNodeHeaders } from "better-auth/node";
 import { z } from "zod";
@@ -52,6 +52,21 @@ async function onboardingHandler(
   });
 }
 
+async function updateAvatarHandler(
+  req: FastifyRequest<{ Body: z.infer<typeof updateAvatarRouteSchema.body> }>,
+  reply: FastifyReply
+) {
+  if (!req.user) throw new UnauthorizedAccessError();
+
+  const image = await UserService.updateAvatar(req.db, req.user.id, req.body.key);
+  if (image === undefined) {
+    throw new BadRequestError("Imagem inválida. Carrega o ficheiro novamente.");
+  }
+
+  return reply.status(200).send({ data: { image } });
+}
+
 export const usersController = {
   onboardingHandler,
+  updateAvatarHandler,
 };

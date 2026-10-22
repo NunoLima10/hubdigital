@@ -204,6 +204,13 @@
       "when": 1792620281238,
       "tag": "0028_simplified_link_kinds",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1792627386336,
+      "tag": "0029_user_avatar_uploads",
+      "breakpoints": true
     }
   ]
 }

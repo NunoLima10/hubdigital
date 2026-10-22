@@ -1,0 +1,1 @@
+ALTER TYPE "public"."file_upload_type" ADD VALUE 'user_avatar';

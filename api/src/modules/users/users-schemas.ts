@@ -28,3 +28,18 @@ export const onboardingRouteSchema = {
     ...routeErrorResponses
   },
 };
+
+export const updateAvatarRouteSchema = {
+  tags: ["users"],
+  body: z.object({
+    // The key of a finished `user_avatar` upload, or null to remove the photo.
+    key: z
+      .string()
+      .regex(/^user_avatar\/[^/\\]+$/, "Imagem inválida. Carrega o ficheiro novamente.")
+      .nullable(),
+  }),
+  response: {
+    200: z.object({ data: z.object({ image: z.string().nullable() }) }),
+    ...routeErrorResponses,
+  },
+};

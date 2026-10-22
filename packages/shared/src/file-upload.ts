@@ -1,4 +1,4 @@
-export const fileUploadTypeValues = ["project_logo", "project_gallery"] as const;
+export const fileUploadTypeValues = ["project_logo", "project_gallery", "user_avatar"] as const;
 
 export type FileUploadType = (typeof fileUploadTypeValues)[number];
 
