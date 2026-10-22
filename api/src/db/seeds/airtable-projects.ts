@@ -5,6 +5,7 @@ import { maxUploadBytes } from '@hubdigital/shared';
 import type { DB } from '@/db';
 import { categories, fileUploads, projectImages, projectLinks, projects, publishers, users } from '@/db/schemas';
 import { eq } from 'drizzle-orm';
+import { slugify } from '@/utils/slugify';
 import data from './data/airtable-startups.json';
 
 const makerNames = [
@@ -43,7 +44,11 @@ export default async function seedAirtableProjects(db: DB) {
       if (!category) throw new Error('Seed categories before Airtable projects');
       const publishedAt = new Date(`${data.capturedAt}T12:00:00Z`);
       publishedAt.setUTCDate(publishedAt.getUTCDate() - index * 2);
-      const slug = `airtable-${record.sourceId}-${record.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, '')}`;
+      // Same rule as a maker's own project. Rows seeded under the old
+      // `airtable-<id>-<name>` slugs are renamed, not duplicated.
+      const slug = slugify(record.name);
+      const legacySlug = `airtable-${record.sourceId}-${record.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-$/, '')}`;
+      await tx.update(projects).set({ slug }).where(eq(projects.slug, legacySlug));
       await tx.insert(projects).values({
         publisherId: makerIds[index % makerIds.length], categoryId: category.id,
         name: record.name, slug,
