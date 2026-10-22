@@ -1,5 +1,6 @@
 import { AppProvider } from "@/app/provider";
 import "@/index.css";
+import { analyticsScripts } from "@/lib/analytics";
 import { seo } from "@/lib/seo";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -39,6 +40,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         href: "https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Geist:wght@100..900&family=Rubik:ital,wght@0,300..900;1,300..900&display=swap",
       },
     ],
+    scripts: analyticsScripts(),
   }),
   shellComponent: RootDocument,
   component: RootComponent,

@@ -1,3 +1,4 @@
+import "./instrument";
 import { FastifyInstance } from "fastify";
 import { buildServer } from "./server";
 import { logger } from "@/utils/logger";
