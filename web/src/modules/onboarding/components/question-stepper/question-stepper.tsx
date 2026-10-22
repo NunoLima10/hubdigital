@@ -63,7 +63,7 @@ export function QuestionStepper() {
           Começar no Hub Digital
         </p>
         <h1 className="mt-1 text-2xl font-semibold">
-          {step === 4 ? "Seja bem-vindo!" : question.title}
+          {step === 4 ? "Bem-vindo ao Hub Digital!" : question.title}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {step === 4

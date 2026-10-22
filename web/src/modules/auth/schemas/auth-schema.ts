@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const authSchema = z.object({
-  email: z.string().email("Insira um email válido"),
+  email: z.string().email("Indica um email válido"),
   name: z.string().min(1, "O nome é obrigatório"),
   password: z.string().min(8, "A password deve conter pelo menos 8 caracteres"),
   confirmPassword: z

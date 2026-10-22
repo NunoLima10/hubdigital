@@ -167,7 +167,7 @@ export function GalleryImageSelector({
           <Upload className="size-5 text-muted-foreground" />
           <span className="text-sm font-medium">Escolher ou largar imagens</span>
           <span className="text-xs text-muted-foreground">
-            Pode selecionar várias de uma vez
+            Podes selecionar várias de uma vez
           </span>
           <input
             type="file"

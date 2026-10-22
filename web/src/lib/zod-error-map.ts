@@ -15,7 +15,7 @@ const ptErrorMap: z.ZodErrorMap = (issue, ctx) => {
       }
       if (issue.type === "array") {
         return {
-          message: `Selecione pelo menos ${issue.minimum} opção(ões)`,
+          message: issue.minimum === 1 ? "Escolhe pelo menos uma opção" : `Escolhe pelo menos ${issue.minimum} opções`,
         };
       }
       return { message: `Deve ser maior ou igual a ${issue.minimum}` };
@@ -26,11 +26,11 @@ const ptErrorMap: z.ZodErrorMap = (issue, ctx) => {
       return { message: `Deve ser menor ou igual a ${issue.maximum}` };
     case z.ZodIssueCode.invalid_string:
       if (issue.validation === "url") {
-        return { message: "Informe um URL válido" };
+        return { message: "Indica um URL válido" };
       }
       return { message: "Formato inválido" };
     case z.ZodIssueCode.invalid_enum_value:
-      return { message: "Selecione uma opção válida" };
+      return { message: "Escolhe uma opção válida" };
     default:
       return { message: ctx.defaultError };
   }

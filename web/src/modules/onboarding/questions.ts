@@ -51,7 +51,7 @@ export const foundUsByQuestionValues = [
 
 export const onBoardingQuestions: Question[] = [
   {
-    title: "Com qual perfil você mais se identifica?",
+    title: "Com que perfil mais te identificas?",
     reponses: [
       {
         display: "Estudante",
@@ -72,18 +72,18 @@ export const onBoardingQuestions: Question[] = [
     ],
   },
   {
-    title: "Qual é o seu principal objetivo na plataforma?",
+    title: "Qual é o teu principal objetivo na plataforma?",
     reponses: [
       {
         display: "Descobrir novos produtos",
         value: objectiveQuestionValues[0],
       },
       {
-        display: "Lançar meu próprio produto",
+        display: "Lançar o meu próprio produto",
         value: objectiveQuestionValues[1],
       },
       {
-        display: "Conectar-se com inovadores",
+        display: "Conhecer outros inovadores",
         value: objectiveQuestionValues[2],
       },
       {
@@ -93,7 +93,7 @@ export const onBoardingQuestions: Question[] = [
     ],
   },
   {
-    title: "Atualmente, onde você vive?",
+    title: "Onde vives atualmente?",
     reponses: [
       {
         display: "Santo Antão",
@@ -138,7 +138,7 @@ export const onBoardingQuestions: Question[] = [
     ],
   },
   {
-    title: "Como você conheceu nossa plataforma?",
+    title: "Como conheceste o Hub Digital?",
     reponses: [
       {
         display: "Redes sociais",

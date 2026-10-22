@@ -1,3 +1,4 @@
+import { privatePageHead } from "@/lib/seo";
 import { DashboardPage } from "@/modules/dashboard/components/dashboard-page/dashboard-page";
 import { usePublicSettings } from "@/modules/settings/hooks/use-public-settings";
 import SumbmitProvider from "@/modules/submit/context/sumbmit-form";
@@ -9,6 +10,7 @@ import { useProject } from "@/modules/project-detail/hooks/use-project";
 import { authClient } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_authed/dashboard/submit")({
+  head: () => privatePageHead("Publicar projeto"),
   component: SubmitPage,
   validateSearch: z.object({ draft: z.string().min(1).optional() }),
 });

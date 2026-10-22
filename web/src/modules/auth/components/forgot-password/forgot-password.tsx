@@ -37,7 +37,7 @@ export function ForgotPassword() {
           <Input
             type="email"
             required
-            placeholder="voce@email.com"
+            placeholder="nome@email.com"
             {...form.register("email")}
           />
           {form.formState.errors.email && (

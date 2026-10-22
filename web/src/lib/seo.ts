@@ -69,6 +69,11 @@ export function seo({
   };
 }
 
+/** Signed-in and auth pages: titled for the browser tab, never indexed. */
+export function privatePageHead(title: string) {
+  return seo({ title, noIndex: true });
+}
+
 /**
  * A schema.org block for a route's head() scripts. "<" is escaped so a value
  * containing "</script>" cannot close the tag early.

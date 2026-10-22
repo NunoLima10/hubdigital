@@ -1,9 +1,11 @@
+import { privatePageHead } from "@/lib/seo";
 import { Page } from "@/layouts/page";
 import { authClient } from "@/lib/auth-client";
 import { QuestionStepper } from "@/modules/onboarding/components/question-stepper/question-stepper";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed/onboarding")({
+  head: () => privatePageHead("Começar"),
   component: RouteComponent,
 });
 
