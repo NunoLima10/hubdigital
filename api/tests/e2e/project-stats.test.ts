@@ -20,12 +20,14 @@ import {
   categories,
   comments,
   projectEvents,
+  projectEventVisitors,
   projectUpvotes,
   projects,
   publishers,
   users,
 } from "@/db/schemas";
 import { buildServer } from "@/server";
+import { visitorFingerprint } from "@/modules/project-stats/project-stats-services";
 import { shiftDay, toLocalDay } from "@/utils/day";
 import { and, eq } from "drizzle-orm";
 
@@ -106,12 +108,14 @@ describe("Project stats module (e2e)", () => {
   const postEvent = (
     projectId: number,
     body: Record<string, unknown>,
-    userAgent = BROWSER_UA
+    userAgent = BROWSER_UA,
+    remoteAddress = "203.0.113.10"
   ) =>
     server.inject({
       method: "POST",
       url: `/v1/projects/${projectId}/events`,
       headers: { "user-agent": userAgent },
+      remoteAddress,
       payload: body,
     });
 
@@ -207,7 +211,9 @@ describe("Project stats module (e2e)", () => {
       const id = await createProject("counted");
 
       expect((await postEvent(id, { type: "view" })).statusCode).toBe(204);
-      expect((await postEvent(id, { type: "view" })).statusCode).toBe(204);
+      expect(
+        (await postEvent(id, { type: "view" }, BROWSER_UA, "203.0.113.20")).statusCode
+      ).toBe(204);
       expect((await postEvent(id, { type: "visit" })).statusCode).toBe(204);
 
       const rows = await eventRows(id);
@@ -217,6 +223,51 @@ describe("Project stats module (e2e)", () => {
       const visits = rows.find((row) => row.type === "visit");
       expect(views).toMatchObject({ count: 2, source: "web", day: today });
       expect(visits).toMatchObject({ count: 1, source: "web", day: today });
+    });
+
+    it("counts a visitor's repeated views once per day", async () => {
+      signInAs(null);
+      const id = await createProject("refreshed");
+
+      for (let refresh = 0; refresh < 3; refresh++) {
+        expect((await postEvent(id, { type: "view" })).statusCode).toBe(204);
+      }
+
+      const views = (await eventRows(id)).find((row) => row.type === "view");
+      expect(views?.count).toBe(1);
+    });
+
+    it("tells signed-in viewers apart by account, not by network", async () => {
+      const id = await createProject("shared-wifi");
+      const secondViewerId = randomUUID();
+      await db.insert(users).values({
+        id: secondViewerId,
+        name: "Second viewer",
+        email: `second-${secondViewerId}@example.com`,
+        role: "user",
+      });
+
+      for (const viewer of [visitorId, secondViewerId]) {
+        signInAs(viewer);
+        await postEvent(id, { type: "view" });
+        await postEvent(id, { type: "view" });
+      }
+
+      const views = (await eventRows(id)).find((row) => row.type === "view");
+      expect(views?.count).toBe(2);
+    });
+
+    it("stores a daily hash, never the IP", async () => {
+      signInAs(null);
+      const id = await createProject("private");
+      await postEvent(id, { type: "view" });
+
+      const [row] = await db.select().from(projectEventVisitors);
+      expect(row.visitor).toMatch(/^[0-9a-f]{32}$/);
+      expect(JSON.stringify(row)).not.toContain("203.0.113.10");
+      expect(visitorFingerprint({ ip: "203.0.113.10", userAgent: BROWSER_UA }, "2026-01-01")).not.toBe(
+        visitorFingerprint({ ip: "203.0.113.10", userAgent: BROWSER_UA }, "2026-01-02")
+      );
     });
 
     it("keeps web and app events in separate rows", async () => {

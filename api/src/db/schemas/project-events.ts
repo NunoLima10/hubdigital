@@ -5,8 +5,10 @@ import {
   integer,
   pgEnum,
   pgTable,
+  primaryKey,
   serial,
   uniqueIndex,
+  varchar,
 } from "drizzle-orm/pg-core";
 import { projects } from "./projects";
 import { timestamps } from "./timestamps";
@@ -51,5 +53,33 @@ export const projectEvents = pgTable(
     ),
     // The stats endpoint reads one project's rows across a range of days.
     index("project_events_project_day_idx").on(table.projectId, table.day),
+  ]
+);
+
+/**
+ * Who has already been counted today, so a refresh is not a second view. The
+ * visitor is a keyed hash that changes every day (see visitorFingerprint):
+ * no IP or user id is stored, and yesterday's rows cannot be linked to
+ * today's. Only the current day matters, so older rows are pruned as new ones
+ * arrive.
+ */
+export const projectEventVisitors = pgTable(
+  "project_event_visitors",
+  {
+    projectId: integer("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    type: projectEventTypeEnum("type").notNull(),
+    // Same buckets as the counters: a view in the app and one on the site are
+    // two views, even from the same person.
+    source: projectEventSourceEnum("source").notNull(),
+    day: date("day", { mode: "string" }).notNull(),
+    visitor: varchar("visitor", { length: 32 }).notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.projectId, table.type, table.source, table.day, table.visitor],
+    }),
+    index("project_event_visitors_day_idx").on(table.day),
   ]
 );

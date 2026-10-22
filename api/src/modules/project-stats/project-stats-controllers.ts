@@ -7,18 +7,20 @@ import {
   RecordEventReply,
   RecordEventRequest,
 } from "./project-stats-schemas";
-import { ProjectStatsService } from "./project-stats-services";
+import { ProjectStatsService, visitorFingerprint } from "./project-stats-services";
 
 async function recordEventHandler(
   req: RecordEventRequest,
   reply: RecordEventReply
 ) {
+  const userAgent = req.headers["user-agent"];
   await ProjectStatsService.recordEvent(req.db, {
     projectId: req.params.id,
     type: req.body.type,
     source: req.body.source,
     viewerUserId: req.user?.id,
-    userAgent: req.headers["user-agent"],
+    userAgent,
+    visitor: visitorFingerprint({ userId: req.user?.id, ip: req.ip, userAgent }),
   });
 
   return reply.status(204).send();

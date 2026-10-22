@@ -1,5 +1,13 @@
+import { config } from "@/config";
 import { DB } from "@/db";
-import { comments, projectEvents, projects, projectUpvotes } from "@/db/schemas";
+import {
+  comments,
+  projectEvents,
+  projectEventVisitors,
+  projects,
+  projectUpvotes,
+} from "@/db/schemas";
+import { createHmac } from "node:crypto";
 import { Day, eachDay, shiftDay, startOfLocalDay, toLocalDay } from "@/utils/day";
 import { errorLogger } from "@/utils/error-logger";
 import { toPublicUrl } from "@/utils/public-url";
@@ -23,7 +31,54 @@ type RecordEventInput = {
   /** The signed-in viewer, if any. */
   viewerUserId?: string;
   userAgent?: string;
+  /**
+   * From visitorFingerprint. When given, the event counts once per visitor per
+   * day; without it, every call counts.
+   */
+  visitor?: string;
 };
+
+// Rows older than yesterday can no longer dedupe anything. Pruning on a small
+// share of inserts keeps the table at about a day of visitors without a job.
+const VISITOR_PRUNE_RATE = 0.01;
+
+/**
+ * A daily, keyed hash of who is looking: the user id when signed in, else IP
+ * and browser. Salting with the day means the same person gets an unrelated
+ * value tomorrow, and the secret means the value cannot be reversed or
+ * recomputed from a guessed IP.
+ */
+export function visitorFingerprint(
+  input: { userId?: string; ip: string; userAgent?: string },
+  day: Day = toLocalDay(),
+) {
+  const who = input.userId ? `u:${input.userId}` : `a:${input.ip}|${input.userAgent ?? ""}`;
+  return createHmac("sha256", config.COOKIE_SECRET).update(`${day}|${who}`).digest("hex").slice(0, 32);
+}
+
+/** True the first time this visitor is seen for the project, type and day. */
+async function isFirstVisitToday(
+  db: DB | Parameters<Parameters<DB["transaction"]>[0]>[0],
+  input: {
+    projectId: number;
+    type: ProjectEventType;
+    source: ProjectEventSource;
+    visitor: string;
+  },
+  day: Day,
+) {
+  const inserted = await db
+    .insert(projectEventVisitors)
+    .values({ ...input, day })
+    .onConflictDoNothing()
+    .returning({ visitor: projectEventVisitors.visitor });
+
+  if (Math.random() < VISITOR_PRUNE_RATE) {
+    await db.delete(projectEventVisitors).where(lt(projectEventVisitors.day, shiftDay(day, -1)));
+  }
+
+  return inserted.length > 0;
+}
 
 /**
  * Returns whether the event was counted.
@@ -65,13 +120,30 @@ async function recordEvent(
     return false;
   }
 
+  const day = toLocalDay();
+  if (
+    input.visitor &&
+    !(await isFirstVisitToday(
+      db,
+      {
+        projectId: input.projectId,
+        type: input.type,
+        source: input.source,
+        visitor: input.visitor,
+      },
+      day,
+    ))
+  ) {
+    return false;
+  }
+
   await db
     .insert(projectEvents)
     .values({
       projectId: input.projectId,
       type: input.type,
       source: input.source,
-      day: toLocalDay(),
+      day,
       count: 1,
     })
     .onConflictDoUpdate({
