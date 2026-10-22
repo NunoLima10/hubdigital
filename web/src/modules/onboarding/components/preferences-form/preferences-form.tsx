@@ -3,14 +3,14 @@ import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { useEffect, useState } from "react";
 import { onBoardingQuestions } from "../../questions";
 import {
-  diasporaCountryLabels,
-  diasporaCountryValues,
-} from "../../questions";
-import {
   type MakerPreferences,
   usePreferences,
   useUpdatePreferences,
 } from "../../hooks/use-preferences";
+import {
+  DiasporaCountryField,
+  ResponseOption,
+} from "../response-option/response-option";
 
 const keys = [
   "profileResponse",
@@ -18,6 +18,10 @@ const keys = [
   "locationResponse",
   "foundUsByResponse",
 ] as const satisfies readonly (keyof MakerPreferences)[];
+
+const isSame = (a: MakerPreferences, b: MakerPreferences) =>
+  keys.every((key) => a[key] === b[key]) &&
+  (a.diasporaCountry ?? "") === (b.diasporaCountry ?? "");
 
 export function PreferencesForm() {
   const { data, isLoading, isError } = usePreferences();
@@ -35,122 +39,92 @@ export function PreferencesForm() {
 
   if (isLoading)
     return showLoading ? (
-      <div className="grid gap-4 sm:grid-cols-2" aria-label="A carregar preferências">
+      <div className="space-y-4" aria-label="A carregar preferências">
         {[1, 2, 3, 4].map((item) => (
-          <div key={item} className="h-52 animate-pulse rounded-lg bg-muted" />
+          <div key={item} className="h-40 animate-pulse rounded-xl bg-muted" />
         ))}
       </div>
     ) : null;
 
-  if (isError || !answers)
+  if (isError || !answers || !data)
     return (
       <p className="py-12 text-center text-sm text-muted-foreground">
         Não foi possível carregar as preferências.
       </p>
     );
 
+  const changed = !isSame(answers, data);
+
   return (
     <form
-      className="space-y-5"
+      className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
         updatePreferences(answers);
       }}
     >
-      <div className="grid gap-4 sm:grid-cols-2">
-        {onBoardingQuestions.map((question, index) => {
-          const key = keys[index];
-          return (
-            <fieldset key={key} className="rounded-lg border bg-card p-4">
-              <legend className="sr-only">{question.title}</legend>
-              <h2 className="mb-3 text-[15px] font-semibold leading-5">
-                {question.title}
-              </h2>
-              <div className="space-y-2">
-                {(key === "locationResponse" && editingDiasporaCountry
-                  ? []
-                  : question.reponses
-                ).map((response) => (
-                  <label
+      {onBoardingQuestions.map((question, index) => {
+        const key = keys[index];
+        const showDiaspora = key === "locationResponse" && editingDiasporaCountry;
+        return (
+          <fieldset key={key} className="rounded-xl border bg-card p-4 sm:p-5">
+            <legend className="sr-only">{question.title}</legend>
+            <h3 aria-hidden="true" className="mb-4 text-[15px] font-semibold leading-5">
+              {question.title}
+            </h3>
+            {showDiaspora ? (
+              <DiasporaCountryField
+                value={answers.diasporaCountry ?? ""}
+                onChange={(country) =>
+                  setAnswers({ ...answers, diasporaCountry: country || undefined })
+                }
+                onBack={() => {
+                  setEditingDiasporaCountry(false);
+                  setAnswers({ ...answers, diasporaCountry: undefined });
+                }}
+              />
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {question.reponses.map((response) => (
+                  <ResponseOption
                     key={response.value}
-                    className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-sm hover:bg-muted/50 ${answers[key] === response.value ? "border-primary bg-primary-soft" : ""}`}
+                    name={key}
+                    value={response.value}
+                    checked={answers[key] === response.value}
+                    onSelect={() => {
+                      if (key === "locationResponse" && response.value === "diaspora") {
+                        setEditingDiasporaCountry(true);
+                      }
+                      setAnswers({
+                        ...answers,
+                        [key]: response.value,
+                        ...(key === "locationResponse" ? { diasporaCountry: undefined } : {}),
+                      } as MakerPreferences);
+                    }}
                   >
-                    <input
-                      type="radio"
-                      name={key}
-                      value={response.value}
-                      checked={answers[key] === response.value}
-                      onChange={() => {
-                        if (key === "locationResponse" && response.value === "diaspora") {
-                          setEditingDiasporaCountry(true);
-                        }
-                        setAnswers((current) =>
-                          current
-                            ? ({
-                                ...current,
-                                [key]: response.value,
-                                ...(key === "locationResponse"
-                                  ? { diasporaCountry: undefined }
-                                  : {}),
-                              } as MakerPreferences)
-                            : current,
-                        );
-                      }}
-                      className="accent-primary"
-                    />
                     {response.display}
-                  </label>
+                  </ResponseOption>
                 ))}
-                {key === "locationResponse" && editingDiasporaCountry && (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-sm font-medium">
-                        Em que país? <span className="font-normal text-muted-foreground">(opcional)</span>
-                      </p>
-                      <button
-                        type="button"
-                        className="text-sm font-medium text-primary hover:underline"
-                        onClick={() => {
-                          setEditingDiasporaCountry(false);
-                          setAnswers((current) =>
-                            current
-                              ? { ...current, diasporaCountry: undefined }
-                              : current,
-                          );
-                        }}
-                      >
-                        Voltar às ilhas
-                      </button>
-                    </div>
-                    {diasporaCountryValues.map((country) => (
-                      <label
-                        key={country}
-                        className={`flex cursor-pointer items-center gap-3 rounded-md border px-3 py-2.5 text-sm hover:bg-muted/50 ${answers.diasporaCountry === country ? "border-primary bg-primary-soft" : ""}`}
-                      >
-                        <input
-                          type="radio"
-                          name="diasporaCountry"
-                          value={country}
-                          checked={answers.diasporaCountry === country}
-                          onChange={() =>
-                            setAnswers((current) =>
-                              current ? { ...current, diasporaCountry: country } : current,
-                            )
-                          }
-                          className="accent-primary"
-                        />
-                        {diasporaCountryLabels[country]}
-                      </label>
-                    ))}
-                  </div>
-                )}
               </div>
-            </fieldset>
-          );
-        })}
-      </div>
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isPending}>
+            )}
+          </fieldset>
+        );
+      })}
+      <div className="flex items-center justify-end gap-2">
+        {changed && (
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={isPending}
+            onClick={() => {
+              setAnswers(data);
+              setEditingDiasporaCountry(data.locationResponse === "diaspora");
+            }}
+          >
+            Descartar
+          </Button>
+        )}
+        <Button type="submit" disabled={isPending || !changed}>
           {isPending ? "A guardar..." : "Guardar preferências"}
         </Button>
       </div>
