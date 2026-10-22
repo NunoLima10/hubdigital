@@ -44,9 +44,6 @@ export const envSchema = z.object({
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
 
-  // Error reporting; unset keeps Sentry off (local development, tests).
-  SENTRY_DSN: z.string().url().optional(),
-
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(100),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
 

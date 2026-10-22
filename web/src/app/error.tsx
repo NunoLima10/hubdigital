@@ -1,11 +1,7 @@
 import { Button, buttonVariants } from "@/components/ui/button";
-import { reportError } from "@/lib/monitoring";
 import { Link, type ErrorComponentProps } from "@tanstack/react-router";
-import { useEffect } from "react";
 
-export function Erro({ error, reset }: ErrorComponentProps) {
-  useEffect(() => reportError(error), [error]);
-
+export function Erro({ reset }: ErrorComponentProps) {
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-md flex-col items-center justify-center gap-4 px-4 text-center">
       <h1 className="text-xl font-semibold">Algo correu mal</h1>

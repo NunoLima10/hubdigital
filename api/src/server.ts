@@ -29,7 +29,6 @@ import { settingsRoutes } from "./modules/settings/settings-routes";
 import { shareImagesRoutes } from "./modules/share-images/share-images-routes";
 import { config } from "./config";
 import { sql } from "drizzle-orm";
-import * as Sentry from "@sentry/node";
 import betterAuth from "./plugins/better-auth";
 import uploaderPlugin from "./plugins/uploader";
 
@@ -77,9 +76,6 @@ export async function buildServer(db: DB) {
   await server.register(betterAuth);
 
   await server.register(errorHandlerPlugin);
-
-  // Reports 5xx responses; 4xx are the client's mistake, not ours.
-  if (config.SENTRY_DSN) Sentry.setupFastifyErrorHandler(server);
 
   server.setValidatorCompiler(validatorCompiler);
   server.setSerializerCompiler(serializerCompiler);

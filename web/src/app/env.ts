@@ -14,8 +14,6 @@ const createEnv = () => {
     // attribution. Unset uses CARTO's free basemaps.
     MAP_TILE_URL: z.string().optional().default(""),
     MAP_TILE_ATTRIBUTION: z.string().optional().default(""),
-    // Browser error reporting; unset keeps Sentry out of the page entirely.
-    SENTRY_DSN: z.string().optional().default(""),
     // Umami analytics (cookieless). No website id keeps the script off; the
     // URL only changes when Umami is self-hosted.
     UMAMI_WEBSITE_ID: z.string().optional().default(""),
