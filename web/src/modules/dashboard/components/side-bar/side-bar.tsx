@@ -1,6 +1,46 @@
 import { useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef, useState } from "react";
 import { DashboardNav } from "../navbar/navbar";
+
+type Overflow = { before: boolean; after: boolean };
+
+const FADE = "32px";
+
+/**
+ * Which edges of a horizontal scroller have more content past them. The hidden
+ * scrollbar gives no hint on a phone, so the tabs fade out where they continue.
+ */
+function useHorizontalOverflow(ref: RefObject<HTMLElement | null>) {
+  const [overflow, setOverflow] = useState<Overflow>({ before: false, after: false });
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
+    function measure() {
+      if (!element) return;
+      const maximum = element.scrollWidth - element.clientWidth;
+      const next = { before: element.scrollLeft > 1, after: element.scrollLeft < maximum - 1 };
+      setOverflow((current) =>
+        current.before === next.before && current.after === next.after ? current : next,
+      );
+    }
+    measure();
+    element.addEventListener("scroll", measure, { passive: true });
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => {
+      element.removeEventListener("scroll", measure);
+      observer.disconnect();
+    };
+  }, [ref]);
+  return overflow;
+}
+
+function fadeMask({ before, after }: Overflow) {
+  if (!before && !after) return undefined;
+  const start = before ? `transparent, black ${FADE}` : "black";
+  const end = after ? `black calc(100% - ${FADE}), transparent` : "black";
+  return `linear-gradient(to right, ${start}, ${end})`;
+}
 
 export function SideBar() {
   const navigationRef = useRef<HTMLDivElement>(null);
@@ -38,10 +78,13 @@ export function SideBar() {
     return () => container.removeEventListener("wheel", scrollTabs);
   }, []);
 
+  const overflow = useHorizontalOverflow(navigationRef);
+
   return (
     <div className="min-w-0 lg:sticky lg:top-6 lg:rounded-lg lg:border lg:p-4">
       <div
         ref={navigationRef}
+        style={{ maskImage: fadeMask(overflow), WebkitMaskImage: fadeMask(overflow) }}
         className="overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden border-b pb-2 lg:overflow-visible lg:border-0 lg:pb-0"
       >
         <DashboardNav />
