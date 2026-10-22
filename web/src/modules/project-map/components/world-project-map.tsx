@@ -1,3 +1,4 @@
+import { addBaseTiles } from "@/modules/project-map/tiles";
 import { useEffect, useRef, useState } from "react";
 import type { LayerGroup, Map as LeafletMap } from "leaflet";
 import {
@@ -45,12 +46,10 @@ export function WorldProjectMap({
       L.control.zoom({ position: "bottomright" }).addTo(instance);
       instance.fitBounds(caboVerdeBounds);
       instance.on("zoomend", () => setZoom(instance.getZoom()));
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://github.com/mledoze/countries">Countries (ODbL)</a>',
-        maxZoom: 19,
+      addBaseTiles(L, instance, {
         className: "project-map-tile",
-      }).addTo(instance);
+        extraAttribution: '<a href="https://github.com/mledoze/countries">Countries (ODbL)</a>',
+      });
       observer = new ResizeObserver(() => instance.invalidateSize({ pan: false }));
       observer.observe(container.current);
       map.current = instance;

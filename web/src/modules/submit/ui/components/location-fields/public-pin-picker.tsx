@@ -1,3 +1,4 @@
+import { addBaseTiles } from "@/modules/project-map/tiles";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Map as LeafletMap, LayerGroup } from "leaflet";
 import {
@@ -60,10 +61,7 @@ export function PublicPinPicker({
           maxZoom: 19,
           worldCopyJump: true,
         }).setView(center, zoom);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-          maxZoom: 19,
-        }).addTo(instance);
+        addBaseTiles(L, instance);
         instance.on("click", (event) => place(event.latlng.lat, event.latlng.wrap().lng));
         map.current = instance;
         layer.current = L.layerGroup().addTo(instance);

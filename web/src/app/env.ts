@@ -10,6 +10,10 @@ const createEnv = () => {
     // Public origin of this site, without a trailing slash. Crawlers only
     // accept absolute URLs in og:image, og:url, canonical and the sitemap.
     SITE_URL: z.string().optional().default("http://localhost:5173"),
+    // Optional raster tile provider for the maps (Leaflet URL template) and its
+    // attribution. Unset uses CARTO's free basemaps.
+    MAP_TILE_URL: z.string().optional().default(""),
+    MAP_TILE_ATTRIBUTION: z.string().optional().default(""),
   });
 
   const envVars = Object.entries(import.meta.env).reduce<
