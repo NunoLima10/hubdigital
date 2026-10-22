@@ -39,7 +39,7 @@ export function Header({
 }: {
   context?: "explorer" | "dashboard";
 }) {
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending: sessionPending } = authClient.useSession();
   const [searchOpen, setSearchOpen] = useState(false);
   const [dark, setDark] = useState(false);
   useEffect(() => setDark(document.documentElement.classList.contains("dark")), []);
@@ -126,6 +126,16 @@ export function Header({
           <Search className="size-4" />
           <span className="hidden lg:inline">Procurar projetos</span>
         </button>
+        {sessionPending ? (
+          // The server cannot see the session cookie (it belongs to the API's
+          // origin), so until the browser has asked, show neither the guest
+          // buttons nor the avatar — either would flash into the other.
+          <span
+            aria-hidden
+            className="mx-1.5 size-8 shrink-0 animate-pulse rounded-full bg-muted"
+          />
+        ) : (
+          <>
           <Link
             to={session ? "/dashboard/profile" : "/sign-in"}
               aria-label={session ? "Abrir perfil" : "Entrar"}
@@ -161,6 +171,8 @@ export function Header({
             <UserRound className="size-4" />
             Criar conta
           </Link>
+        )}
+          </>
         )}
       </div>
       {searchOpen && (
