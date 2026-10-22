@@ -1,5 +1,5 @@
 import { authenticate } from "@/hooks/autenticate";
-import { FastifyInstance, FastifyRequest } from "fastify";
+import { FastifyInstance } from "fastify";
 import { commentsController } from "./comments-controllers";
 import {
   createCommentRouteSchema,
@@ -22,7 +22,6 @@ export async function commentsRoutes(server: FastifyInstance) {
       rateLimit: {
         max: 20,
         timeWindow: "1 minute",
-        keyGenerator: (req: FastifyRequest) => req.user?.id ?? req.ip,
       },
     },
     preHandler: authenticate,

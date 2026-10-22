@@ -3,7 +3,7 @@ import { countryValues, islandValues, projectMapRecordSchema } from "@hubdigital
 import { ProjectsService } from "./projects-services";
 import { authenticate } from "@/hooks/autenticate";
 import { requirePublisher } from "@/hooks/require-publisher";
-import { FastifyInstance, FastifyRequest } from "fastify";
+import { FastifyInstance } from "fastify";
 import { projectsController } from "./projects-controllers";
 import {
   createProjectRouteSchema,
@@ -105,7 +105,6 @@ export async function projectsRoutes(server: FastifyInstance) {
       rateLimit: {
         max: 30,
         timeWindow: "1 minute",
-        keyGenerator: (req: FastifyRequest) => req.user?.id ?? req.ip,
       },
     },
     preHandler: authenticate,

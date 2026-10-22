@@ -29,7 +29,6 @@ export async function reportsRoutes(server: FastifyInstance) {
       rateLimit: {
         max: 10,
         timeWindow: "1 hour",
-        keyGenerator: (req: FastifyRequest) => req.user?.id ?? req.ip,
       },
     },
     preHandler: authenticate,

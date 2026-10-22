@@ -43,6 +43,9 @@ const HEALTHCHECK_DB_TIMEOUT_MS = 2_000;
 export async function buildServer(db: DB) {
   const server: FastifyInstance = Fastify({
     logger: loggerOptions,
+    // Behind a load balancer req.ip is the balancer unless told which
+    // X-Forwarded-For hops to trust; rate limits and vote audits key on it.
+    trustProxy: config.TRUST_PROXY,
   }).withTypeProvider<ZodTypeProvider>();
 
   server.addHook("onRequest", async (req: FastifyRequest) => {
@@ -69,8 +72,8 @@ export async function buildServer(db: DB) {
   });
 
   await server.register(rateLimitPlugin, {
-    max: 100,
-    timeWindow: "1 minute",
+    max: config.RATE_LIMIT_MAX_REQUESTS,
+    timeWindow: config.RATE_LIMIT_WINDOW_MS,
   });
 
   await server.register(betterAuth);

@@ -2,6 +2,10 @@ import { z } from "zod";
 
 const NODE_ENVS = ["development", "test", "production"] as const;
 
+/** An optional variable left blank (`KEY=` in .env) counts as unset. */
+const blankAsUnset = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((value) => (value === "" ? undefined : value), schema.optional());
+
 export const envSchema = z.object({
   NODE_ENV: z.enum(NODE_ENVS).default("development"),
   PORT: z.coerce.number().int().positive().default(3001),
@@ -44,8 +48,36 @@ export const envSchema = z.object({
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
 
-  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(100),
+  // Per account when signed in, per IP otherwise. A page load is about ten
+  // requests, so 300 a minute leaves room for fast browsing on a shared IP.
+  RATE_LIMIT_MAX_REQUESTS: z.coerce.number().int().positive().default(300),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive().default(60_000),
+
+  // Which X-Forwarded-For hops to believe, as Fastify's trustProxy takes it:
+  // "false" (direct, the default), "true" (any proxy), a hop count ("1"
+  // behind one load balancer) or a comma-separated list of proxy IPs/CIDRs.
+  // Wrong here means every visitor shares the proxy's IP, and one limit.
+  TRUST_PROXY: z
+    .string()
+    .default("false")
+    .transform(
+      (raw): boolean | string[] | ((address: string, hop: number) => boolean) => {
+        const value = raw.trim();
+        if (value === "true") return true;
+        if (value === "false" || value === "") return false;
+        if (/^\d+$/.test(value)) {
+          // Trust the nearest n hops, as proxy-addr reads a hop count.
+          const hops = Number(value);
+          return (_address, hop) => hop < hops;
+        }
+        return value.split(",").map((entry) => entry.trim()).filter(Boolean);
+      },
+    ),
+
+  // Shared with the web app's server. Its server-side renders send it with the
+  // visitor's IP, so they are limited per visitor rather than all together as
+  // the web server's IP. Never exposed to browsers.
+  API_INTERNAL_KEY: blankAsUnset(z.string().min(32)),
 
   CLOUDFLARE_PUBLIC_URL: z.string().url().optional(),
   CLOUDFLARE_BUCKET: z.string().optional(),

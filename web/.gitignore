@@ -27,3 +27,7 @@ dist-ssr
 
 # Cloudflare Wrangler local state
 .wrangler
+
+# Wrangler secrets for local development
+.dev.vars*
+!.dev.vars.example
