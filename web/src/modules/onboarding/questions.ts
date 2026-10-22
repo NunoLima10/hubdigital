@@ -42,6 +42,9 @@ export {
   countryLabels as diasporaCountryLabels,
 } from "@hubdigital/shared";
 
+// Where most of the diaspora lives; listed first in the country picker.
+export const featuredDiasporaCountries = ["pt", "us", "fr", "nl", "lu", "sn", "br", "es", "it"] as const;
+
 export const foundUsByQuestionValues = [
   "social-media",
   "friends",

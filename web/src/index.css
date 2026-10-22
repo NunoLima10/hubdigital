@@ -277,24 +277,24 @@
 
 /* Steps differ in height: snap the group to the new size so the step only
    slides sideways instead of morphing vertically. */
-::view-transition-group(.submit-forward),
-::view-transition-group(.submit-backward) {
+::view-transition-group(.step-forward),
+::view-transition-group(.step-backward) {
   animation: none;
 }
 
-::view-transition-old(.submit-forward) {
+::view-transition-old(.step-forward) {
   animation: hub-step-out-forward 200ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
-::view-transition-new(.submit-forward) {
+::view-transition-new(.step-forward) {
   animation: hub-step-in-forward 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-::view-transition-old(.submit-backward) {
+::view-transition-old(.step-backward) {
   animation: hub-step-out-backward 200ms cubic-bezier(0.4, 0, 1, 1) both;
 }
 
-::view-transition-new(.submit-backward) {
+::view-transition-new(.step-backward) {
   animation: hub-step-in-backward 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 

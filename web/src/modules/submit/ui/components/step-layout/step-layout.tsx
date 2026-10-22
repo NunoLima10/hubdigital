@@ -22,8 +22,8 @@ export function StepLayout({ children }: PropsWithChildren) {
         default="none"
         update={{
           default: "none",
-          "submit-forward": "submit-forward",
-          "submit-backward": "submit-backward",
+          "submit-forward": "step-forward",
+          "submit-backward": "step-backward",
         }}
       >
         <fieldset inert={isPublishing} disabled={isPublishing} className="min-w-0 flex-1">{children}</fieldset>
