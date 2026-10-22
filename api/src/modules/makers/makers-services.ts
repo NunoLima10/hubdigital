@@ -96,6 +96,7 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
     websiteUrl: publisher.websiteUrl,
     githubUrl: publisher.githubUrl,
     linkedinUrl: publisher.linkedinUrl,
+    instagramUrl: publisher.instagramUrl,
     totalUpvotes: publishedProjects.reduce((total, project) => total + project.upvoteCount, 0),
     projectCount: publishedProjects.length,
     joinedAt: publisher.createdAt,
@@ -120,6 +121,7 @@ async function updateProfile(db: DB, userId: string, input: MakerProfileUpdate) 
     websiteUrl: input.websiteUrl || null,
     githubUrl: input.githubUrl || null,
     linkedinUrl: input.linkedinUrl || null,
+    instagramUrl: input.instagramUrl || null,
     updatedAt: new Date().toISOString(),
   };
 

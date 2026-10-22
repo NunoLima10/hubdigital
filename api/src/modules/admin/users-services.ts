@@ -207,6 +207,7 @@ async function getUser(db: DB, id: string) {
           websiteUrl: row.publisher.websiteUrl,
           githubUrl: row.publisher.githubUrl,
           linkedinUrl: row.publisher.linkedinUrl,
+          instagramUrl: row.publisher.instagramUrl,
           trustedAt: row.publisher.trustedAt,
         }
       : null,

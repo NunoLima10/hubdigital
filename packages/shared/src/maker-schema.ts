@@ -30,6 +30,7 @@ export const makerProfileUpdateSchema = z.object({
   websiteUrl: optionalUrl,
   githubUrl: optionalUrl,
   linkedinUrl: optionalUrl,
+  instagramUrl: optionalUrl,
 });
 
 export const makerProfileSchema = z.object({
@@ -41,6 +42,7 @@ export const makerProfileSchema = z.object({
   websiteUrl: z.string().nullable(),
   githubUrl: z.string().nullable(),
   linkedinUrl: z.string().nullable(),
+  instagramUrl: z.string().nullable(),
   /** Upvotes gathered across every project this maker has published. */
   totalUpvotes: z.number(),
   projectCount: z.number(),

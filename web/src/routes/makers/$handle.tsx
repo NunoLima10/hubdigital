@@ -10,7 +10,7 @@ import {
 import { pricingLabels, availabilityLabels, projectStageLabels } from "@/modules/submit/options";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { makerHead } from "@/modules/makers/seo";
-import { Github, Globe, Linkedin, UserRound } from "lucide-react";
+import { Github, Globe, Instagram, Linkedin, UserRound } from "lucide-react";
 
 export const Route = createFileRoute("/makers/$handle")({
   loader: ({ context, params }) =>
@@ -89,6 +89,17 @@ function MakerPage() {
                   >
                     <Linkedin className="size-4" />
                     LinkedIn
+                  </a>
+                )}
+                {data.instagramUrl && (
+                  <a
+                    href={data.instagramUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 hover:underline"
+                  >
+                    <Instagram className="size-4" />
+                    Instagram
                   </a>
                 )}
               </div>

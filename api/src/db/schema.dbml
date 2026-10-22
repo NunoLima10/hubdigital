@@ -167,6 +167,7 @@ enum report_target {
 enum file_upload_type {
   project_logo
   project_gallery
+  user_avatar
 }
 
 table app_settings {
@@ -277,6 +278,19 @@ table moderation_actions {
     (target_type, target_id, created_at) [name: 'moderation_actions_target_idx']
     (actor_id, created_at) [name: 'moderation_actions_actor_idx']
     created_at [name: 'moderation_actions_created_idx']
+  }
+}
+
+table project_event_visitors {
+  project_id integer [not null]
+  type project_event_type [not null]
+  source project_event_source [not null]
+  day date [not null]
+  visitor varchar(32) [not null]
+
+  indexes {
+    (project_id, type, source, day, visitor) [pk]
+    day [name: 'project_event_visitors_day_idx']
   }
 }
 
@@ -420,6 +434,7 @@ table publishers {
   website_url text
   github_url text
   linkedin_url text
+  instagram_url text
   profile_response profile_responses [not null]
   objective_response objective_responses [not null]
   location_response location_responses [not null]

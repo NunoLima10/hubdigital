@@ -13,12 +13,14 @@ type Values = {
   websiteUrl: string;
   githubUrl: string;
   linkedinUrl: string;
+  instagramUrl: string;
 };
 const empty: Values = {
   bio: "",
   websiteUrl: "",
   githubUrl: "",
   linkedinUrl: "",
+  instagramUrl: "",
 };
 export function ProfileForm() {
   const { data: handle, isLoading: loadingHandle } = useMyHandle();
@@ -39,6 +41,7 @@ export function ProfileForm() {
         websiteUrl: profile.websiteUrl ?? "",
         githubUrl: profile.githubUrl ?? "",
         linkedinUrl: profile.linkedinUrl ?? "",
+        instagramUrl: profile.instagramUrl ?? "",
       });
   }, [profile, reset]);
   const { updateMaker, isPending } = useUpdateMaker();
@@ -59,6 +62,7 @@ export function ProfileForm() {
     ["websiteUrl", "Website", "https://exemplo.cv"],
     ["githubUrl", "GitHub", "https://github.com/utilizador"],
     ["linkedinUrl", "LinkedIn", "https://linkedin.com/in/utilizador"],
+    ["instagramUrl", "Instagram", "https://instagram.com/utilizador"],
   ] as const;
   return (
     <div className="space-y-5">
