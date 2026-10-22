@@ -1,3 +1,10 @@
+import {
+  foundUsByQuestionValues,
+  locationQuestionValues,
+  objectiveQuestionValues,
+  profileQuestionValues,
+} from "@hubdigital/shared";
+
 export const PG_ERR_UNIQUE_VIOLATION = "23505";
 
 type Reponse = {
@@ -10,32 +17,12 @@ type Question = {
   reponses: Reponse[];
 };
 
-export const profileQuestionValues = [
-  "student",
-  "technology-professional",
-  "founder",
-  "investor",
-] as const;
-
-export const objectiveQuestionValues = [
-  "discover-products",
-  "launch-product",
-  "networking",
-  "explore",
-] as const;
-
-export const locationQuestionValues = [
-  "CV1",
-  "CV2",
-  "CV3",
-  "CV4",
-  "CV5",
-  "CV6",
-  "CV7",
-  "CV8",
-  "CV9",
-  "diaspora",
-] as const;
+export {
+  foundUsByQuestionValues,
+  locationQuestionValues,
+  objectiveQuestionValues,
+  profileQuestionValues,
+} from "@hubdigital/shared";
 
 export {
   abroadCountryValues as diasporaCountryValues,
@@ -44,13 +31,6 @@ export {
 
 // Where most of the diaspora lives; listed first in the country picker.
 export const featuredDiasporaCountries = ["pt", "us", "fr", "nl", "lu", "sn", "br", "es", "it"] as const;
-
-export const foundUsByQuestionValues = [
-  "social-media",
-  "friends",
-  "event",
-  "online-search",
-] as const;
 
 export const onBoardingQuestions: Question[] = [
   {

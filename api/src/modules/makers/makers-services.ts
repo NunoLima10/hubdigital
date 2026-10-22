@@ -1,11 +1,12 @@
 import { serializeProjectCategories, secondaryCategoriesWith } from "@/utils/project-categories";
 import { DB } from "@/db";
-import { comments, projects, publishers, users } from "@/db/schemas";
+import { projects, publishers, users } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
 import { getPostgresError } from "@/utils/postgres-error";
 import { serializeProjectLinks } from "@/utils/project-links";
 import { withLocation } from "@/utils/location";
+import { projectEngagementExtras, publicProjectConditions } from "@/utils/project-visibility";
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
 import { MakerProfileUpdate } from "@hubdigital/shared";
@@ -51,10 +52,7 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
   if (!publisher || !publisher.user || publisher.user.shadowBannedAt) return null;
   const creditedProjects = await db.query.projects.findMany({
     where: and(
-      eq(projects.status, "published"),
-      isNull(projects.deletedAt),
-      isNull(projects.shadowBannedAt),
-      sql`not exists(select 1 from publishers p join users u on u.id=p.user_id where p.id=${projects.publisherId} and u.shadow_banned_at is not null)`,
+      publicProjectConditions,
       or(
         eq(projects.publisherId, publisher.id),
         sql`exists(select 1 from project_makers pm where pm.project_id=${projects.id} and pm.user_id=${publisher.userId} and pm.status='accepted')`,
@@ -64,26 +62,19 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
       links: true,
       category: true,
       secondaryMemberships: secondaryCategoriesWith,
-      upvotes: true,
-      comments: {
-        columns: { id: true },
-        where: and(isNull(comments.deletedAt), isNull(comments.hiddenAt)),
-      },
     },
+    extras: projectEngagementExtras(viewerId),
     orderBy: desc(projects.publishedAt),
   });
 
   const publishedProjects = creditedProjects.map((project) => {
-    const { upvotes, comments, secondaryMemberships, ...rest } = project;
+    const { secondaryMemberships, logoKey, ...rest } = project;
 
     return {
       ...withLocation(rest),
       ...serializeProjectCategories(secondaryMemberships),
       links: serializeProjectLinks(project.links),
-      logoUrl: toPublicUrl(project.logoUrl),
-      upvoteCount: upvotes.length,
-      hasUpvoted: viewerId ? upvotes.some((upvote) => upvote.userId === viewerId) : false,
-      commentCount: comments.length,
+      logoUrl: toPublicUrl(logoKey),
     };
   });
 
@@ -122,7 +113,6 @@ async function updateProfile(db: DB, userId: string, input: MakerProfileUpdate) 
     githubUrl: input.githubUrl || null,
     linkedinUrl: input.linkedinUrl || null,
     instagramUrl: input.instagramUrl || null,
-    updatedAt: new Date().toISOString(),
   };
 
   try {

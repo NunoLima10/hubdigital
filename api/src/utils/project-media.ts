@@ -3,10 +3,10 @@ import type { DB } from "@/db";
 import { fileUploads } from "@/db/schemas";
 import { ProjectPublicationError } from "./project-publication";
 
-type Media = { logoUrl?: string | null; galleryImageKeys?: string[] };
+type Media = { logoKey?: string | null; galleryImageKeys?: string[] };
 export async function assertProjectMedia(db: Pick<DB, "query">, userId: string, media: Media, requireComplete = false) {
   const expected = [
-    ...(media.logoUrl ? [{ key: media.logoUrl, type: "project_logo", path: "logoUrl" }] : []),
+    ...(media.logoKey ? [{ key: media.logoKey, type: "project_logo", path: "logoKey" }] : []),
     ...(media.galleryImageKeys ?? []).map((key, index) => ({ key, type: "project_gallery", path: `galleryImageKeys.${index}` })),
   ];
   if (!expected.length) return;

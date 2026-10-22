@@ -1,15 +1,7 @@
 import { SettingsService } from "@/modules/settings/settings-services";
 import { projectRevisions } from "@/db/schemas";
 import { DB } from "@/db";
-import {
-  comments,
-  projectFavorites,
-  projectImages,
-  projects,
-  projectUpvotes,
-  publishers,
-  users,
-} from "@/db/schemas";
+import { projectFavorites, projectImages, projects, projectUpvotes, publishers } from "@/db/schemas";
 import { ConflictError } from "@/utils/custom-errors";
 import { sanitizeProjectDescription } from "@/utils/project-content";
 import { serializeProjectLinks, syncProjectLinks } from "@/utils/project-links";
@@ -24,6 +16,11 @@ import { assertProjectMedia } from "@/utils/project-media";
 import { assertProjectReady } from "@/utils/project-publication";
 import { errorLogger } from "@/utils/error-logger";
 import { LocationColumns, locationToColumns, withLocation } from "@/utils/location";
+import {
+  projectEngagementExtras,
+  publicProjectConditions,
+  upvoteCountSql,
+} from "@/utils/project-visibility";
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
 import { LaunchRange } from "@/utils/week";
@@ -45,17 +42,17 @@ import {
   ilike,
   inArray,
   isNull,
-  lt,
   or,
   sql,
 } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 
-// Only the ids are needed to produce a count. Neither a deleted comment nor one
-// hidden by staff belongs in a number shown on a card.
-const liveCommentIds = {
-  columns: { id: true },
-  where: and(isNull(comments.deletedAt), isNull(comments.hiddenAt)),
+/** The relations a project card needs; the counts come from `extras`. */
+const cardRelations = {
+  category: true,
+  secondaryMemberships: secondaryCategoriesWith,
+  images: { orderBy: asc(projectImages.position) },
+  links: true,
 } as const;
 
 type CreateProjectInput = ProjectDraft & {
@@ -102,19 +99,18 @@ function toRowValues<
       : {}),
     ...(input.description !== undefined ? { description } : {}),
     ...(youtubeVideoUrl !== undefined
-      ? {
-          youtubeVideoUrl,
-          youtubeVideoId: youtubeVideoUrl ? getYoutubeVideoId(youtubeVideoUrl) : null,
-        }
+      ? { youtubeVideoUrl }
       : {}),
     ...(location !== undefined ? locationToColumns(location) : {}),
   };
 }
 
 type SerializableProject = LocationColumns & {
-  upvotes: { userId: string }[];
-  comments: { id: number }[];
-  logoUrl?: string | null;
+  upvoteCount: number;
+  hasUpvoted: boolean;
+  commentCount: number;
+  logoKey?: string | null;
+  youtubeVideoUrl?: string | null;
   images: { storageKey: string }[];
   secondaryMemberships: {
     position: number;
@@ -124,12 +120,12 @@ type SerializableProject = LocationColumns & {
 };
 
 /**
- * Collapses the upvote rows into a count plus the current user's state, and
- * turns the stored R2 keys into public URLs. Everything the API hands out goes
- * through here so the two never drift apart.
+ * Turns the stored R2 keys into public URLs and rebuilds the derived fields.
+ * Everything the API hands out goes through here so the two never drift apart.
+ * The counts come from `projectEngagementExtras` in the same query.
  */
-function serializeProject<T extends SerializableProject>(project: T, userId?: string) {
-  const { upvotes, comments: projectComments, secondaryMemberships, ...rest } = project;
+function serializeProject<T extends SerializableProject>(project: T) {
+  const { secondaryMemberships, ...rest } = project;
 
   return {
     ...withLocation(rest),
@@ -139,12 +135,10 @@ function serializeProject<T extends SerializableProject>(project: T, userId?: st
       "description" in project
         ? sanitizeProjectDescription(project.description as string | null)
         : undefined,
-    logoUrl: toPublicUrl(project.logoUrl),
+    logoUrl: toPublicUrl(project.logoKey),
+    youtubeVideoId: project.youtubeVideoUrl ? getYoutubeVideoId(project.youtubeVideoUrl) : null,
     galleryImageKeys: project.images.map((image) => image.storageKey),
     galleryImageUrls: project.images.map((image) => toPublicUrl(image.storageKey)),
-    upvoteCount: upvotes.length,
-    hasUpvoted: userId ? upvotes.some((upvote) => upvote.userId === userId) : false,
-    commentCount: projectComments.length,
   };
 }
 
@@ -310,7 +304,7 @@ async function updateProject(
       await assertProjectMedia(
         tx,
         input.userId!,
-        { logoUrl: body.logoUrl, galleryImageKeys: body.galleryImageKeys },
+        { logoKey: body.logoKey, galleryImageKeys: body.galleryImageKeys },
         true,
       );
       const pending = await tx.query.projectRevisions.findFirst({
@@ -346,11 +340,7 @@ async function updateProject(
     }
     const [result] = await tx
       .update(projects)
-      .set({
-        ...nextValues,
-        rowVersion: sql`${projects.rowVersion} + 1`,
-        updatedAt: new Date().toISOString(),
-      })
+      .set({ ...nextValues, rowVersion: sql`${projects.rowVersion} + 1` })
       .where(
         and(eq(projects.id, id), eq(projects.publisherId, publisherId), isNull(projects.deletedAt)),
       )
@@ -366,7 +356,7 @@ async function updateProject(
         tx,
         input.userId!,
         {
-          logoUrl: input.logoUrl === undefined ? existing.logoUrl : input.logoUrl,
+          logoKey: input.logoKey === undefined ? existing.logoKey : input.logoKey,
           galleryImageKeys:
             input.galleryImageKeys ?? existing.images.map((image) => image.storageKey),
         },
@@ -390,17 +380,37 @@ async function updateProject(
   });
 }
 
-async function latestEditReview(
-  db: DB,
-  project: Pick<typeof projects.$inferSelect, "id" | "rowVersion">,
-) {
-  const review = await db.query.projectRevisions.findFirst({
-    where: eq(projectRevisions.projectId, project.id),
-    orderBy: desc(projectRevisions.createdAt),
-  });
-  return !review || (review.status === "rejected" && review.baseVersion !== project.rowVersion)
-    ? null
-    : review;
+type EditReviewTarget = Pick<typeof projects.$inferSelect, "id" | "rowVersion">;
+
+/**
+ * The newest edit review of each project, in one query. A rejection the maker
+ * has since edited past is no longer worth showing.
+ */
+async function latestEditReviews(db: DB, targets: EditReviewTarget[]) {
+  const reviews = new Map<number, typeof projectRevisions.$inferSelect | null>();
+  if (targets.length === 0) return reviews;
+
+  const latest = await db
+    .selectDistinctOn([projectRevisions.projectId])
+    .from(projectRevisions)
+    .where(inArray(projectRevisions.projectId, targets.map((target) => target.id)))
+    .orderBy(projectRevisions.projectId, desc(projectRevisions.createdAt));
+  const byProject = new Map(latest.map((review) => [review.projectId, review]));
+
+  for (const target of targets) {
+    const review = byProject.get(target.id);
+    reviews.set(
+      target.id,
+      !review || (review.status === "rejected" && review.baseVersion !== target.rowVersion)
+        ? null
+        : review,
+    );
+  }
+  return reviews;
+}
+
+async function latestEditReview(db: DB, project: EditReviewTarget) {
+  return (await latestEditReviews(db, [project])).get(project.id) ?? null;
 }
 
 /** Drafts included — this is the maker's own dashboard. Deleted rows are not. */
@@ -416,15 +426,14 @@ async function listMyProjects(
     db.query.projects.findMany({
       where,
       with: {
-        category: true,
-        secondaryMemberships: secondaryCategoriesWith,
-        upvotes: true,
-        comments: liveCommentIds,
-        images: { orderBy: asc(projectImages.position) },
-        links: true,
+        ...cardRelations,
         // Needed only to report an account-level hide back to its owner.
-        publisher: { with: { user: true } },
+        publisher: {
+          columns: {},
+          with: { user: { columns: { shadowBannedAt: true, shadowBanReason: true } } },
+        },
       },
+      extras: projectEngagementExtras(userId),
       orderBy: desc(projects.createdAt),
       limit,
       offset,
@@ -432,14 +441,14 @@ async function listMyProjects(
     db.select({ total: count() }).from(projects).where(where),
   ]);
 
+  const reviews = await latestEditReviews(db, data);
+
   return {
-    data: await Promise.all(
-      data.map(async ({ publisher, ...project }) => ({
-        ...serializeProject(project, userId),
-        ...ownerModerationFields(project, publisher?.user),
-        editReview: await latestEditReview(db, project),
-      })),
-    ),
+    data: data.map(({ publisher, ...project }) => ({
+      ...serializeProject(project),
+      ...ownerModerationFields(project, publisher?.user),
+      editReview: reviews.get(project.id) ?? null,
+    })),
     total,
   };
 }
@@ -457,28 +466,9 @@ export type ProjectFilters = {
 
 /** Everything a visitor is allowed to see, narrowed by the caller's filters. */
 function publicProjectFilter(week?: LaunchRange | null, filters: ProjectFilters = {}) {
-  const conditions: (SQL | undefined)[] = [
-    eq(projects.status, "published"),
-    isNull(projects.deletedAt),
-    // Hidden by staff (specs/ADMIN.md §A4). Its own upvote rows are left alone,
-    // so unhiding restores the project with its count intact.
-    isNull(projects.shadowBannedAt),
-    // A hidden maker takes their projects with them. Written as a correlated
-    // NOT EXISTS so this stays a pure predicate with no database handle.
-    //
-    // The subquery uses its own aliases and literal column names on purpose:
-    // the relational query builder rewrites every interpolated column to the
-    // root table it is aliasing, so `${users.id}` inside here would come out as
-    // `projects.user_id`. Only the correlating reference to `projects` is
-    // interpolated, because that one does belong to the root.
-    sql`not exists (
-      select 1
-      from ${publishers} as p
-      inner join ${users} as u on u.id = p.user_id
-      where p.id = ${projects.publisherId}
-        and u.shadow_banned_at is not null
-    )`,
-  ];
+  // A hidden project keeps its own upvote rows, so unhiding restores it with
+  // its count intact.
+  const conditions: (SQL | undefined)[] = [publicProjectConditions];
 
   if (week) {
     conditions.push(
@@ -486,17 +476,19 @@ function publicProjectFilter(week?: LaunchRange | null, filters: ProjectFilters 
     );
   }
 
+  // Further bases are matched with `@>`, which the GIN index on
+  // additional_locations can answer.
   if (filters.country)
     conditions.push(
       or(
         eq(projects.country, filters.country),
-        sql`exists (select 1 from jsonb_array_elements(${projects.additionalLocations}) as loc where loc->>'country' = ${filters.country})`,
+        sql`${projects.additionalLocations} @> ${JSON.stringify([{ country: filters.country }])}::jsonb`,
       ),
     );
   if (filters.q) {
-    // ILIKE is enough at launch volume; swap in a tsvector column with a GIN
-    // index when the catalogue outgrows a sequential scan.
-    const pattern = `%${filters.q}%`;
+    // Trigram GIN indexes on both columns make the leading-wildcard ILIKE
+    // indexable. Wildcards typed by the visitor are matched literally.
+    const pattern = `%${filters.q.replace(/[\\%_]/g, "\\$&")}%`;
     conditions.push(or(ilike(projects.name, pattern), ilike(projects.shortDescription, pattern)));
   }
 
@@ -507,7 +499,7 @@ function publicProjectFilter(week?: LaunchRange | null, filters: ProjectFilters 
     conditions.push(
       or(
         eq(projects.island, filters.island),
-        sql`exists (select 1 from jsonb_array_elements(${projects.additionalLocations}) as loc where loc->>'island' = ${filters.island})`,
+        sql`${projects.additionalLocations} @> ${JSON.stringify([{ island: filters.island }])}::jsonb`,
       ),
     );
   }
@@ -540,52 +532,24 @@ async function listProjects(
 ) {
   const where = publicProjectFilter(week, filters);
 
-  const [{ total }] = await db.select({ total: count() }).from(projects).where(where);
-
-  // Ranking by vote count is done in memory rather than in SQL. A weekly window
-  // holds at most a handful of launches, and the upvote rows are already loaded
-  // to compute `hasUpvoted`, so a correlated subquery would buy nothing. Revisit
-  // if `period=all` ever has to rank thousands of rows.
-  if (sort === "upvotes") {
-    const all = await db.query.projects.findMany({
+  // Ranking and paging both happen in SQL, so `period=all` costs one page of
+  // rows however large the catalogue gets.
+  const [[{ total }], data] = await Promise.all([
+    db.select({ total: count() }).from(projects).where(where),
+    db.query.projects.findMany({
       where,
-      with: {
-        category: true,
-        secondaryMemberships: secondaryCategoriesWith,
-        upvotes: true,
-        comments: liveCommentIds,
-        images: { orderBy: asc(projectImages.position) },
-        links: true,
-      },
-    });
+      with: cardRelations,
+      extras: projectEngagementExtras(userId),
+      orderBy:
+        sort === "upvotes"
+          ? [desc(upvoteCountSql), desc(projects.createdAt), desc(projects.id)]
+          : [desc(projects.publishedAt), desc(projects.createdAt), desc(projects.id)],
+      limit,
+      offset,
+    }),
+  ]);
 
-    const ranked = all
-      .map((project) => serializeProject(project, userId))
-      .sort(
-        (a, b) =>
-          b.upvoteCount - a.upvoteCount ||
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      );
-
-    return { data: ranked.slice(offset, offset + limit), total };
-  }
-
-  const data = await db.query.projects.findMany({
-    where,
-    with: {
-      category: true,
-      secondaryMemberships: secondaryCategoriesWith,
-      upvotes: true,
-      comments: liveCommentIds,
-      images: { orderBy: asc(projectImages.position) },
-      links: true,
-    },
-    orderBy: [desc(projects.publishedAt), desc(projects.createdAt)],
-    limit,
-    offset,
-  });
-
-  return { data: data.map((project) => serializeProject(project, userId)), total };
+  return { data: data.map((project) => serializeProject(project)), total };
 }
 
 async function listMapProjects(
@@ -602,7 +566,7 @@ async function listMapProjects(
           slug: projects.slug,
           name: projects.name,
           shortDescription: projects.shortDescription,
-          logoUrl: projects.logoUrl,
+          logoKey: projects.logoKey,
           country: projects.country,
           island: projects.island,
           municipality: projects.municipality,
@@ -617,7 +581,10 @@ async function listMapProjects(
         .limit(limit)
         .offset(offset);
       return {
-        data: rows.map((row) => ({ ...withLocation(row), logoUrl: toPublicUrl(row.logoUrl) })),
+        data: rows.map(({ logoKey, ...row }) => ({
+          ...withLocation(row),
+          logoUrl: toPublicUrl(logoKey),
+        })),
         meta: { total, limit, offset },
       };
     },
@@ -630,49 +597,47 @@ async function listFavoriteProjects(
   userId: string,
   { limit, offset }: { limit: number; offset: number },
 ) {
-  const saved = await db.query.projectFavorites.findMany({
-    where: eq(projectFavorites.userId, userId),
-    columns: { projectId: true },
-    orderBy: desc(projectFavorites.createdAt),
-  });
-  const projectIds = saved.map((favorite) => favorite.projectId);
+  // Literal column names: see publicProjectConditions on why the relational
+  // query builder needs them.
+  const savedAt = sql`(select f.created_at from project_favorites f where f.project_id = ${projects.id} and f.user_id = ${userId})`;
+  const where = and(publicProjectConditions, sql`${savedAt} is not null`);
 
-  if (projectIds.length === 0) return { data: [], total: 0 };
+  const [[{ total }], data] = await Promise.all([
+    db.select({ total: count() }).from(projects).where(where),
+    db.query.projects.findMany({
+      where,
+      with: cardRelations,
+      extras: projectEngagementExtras(userId),
+      orderBy: [desc(savedAt), desc(projects.id)],
+      limit,
+      offset,
+    }),
+  ]);
 
-  const visible = await db.query.projects.findMany({
-    where: and(inArray(projects.id, projectIds), publicProjectFilter(null, {})),
-    with: {
-      category: true,
-      secondaryMemberships: secondaryCategoriesWith,
-      upvotes: true,
-      comments: liveCommentIds,
-      images: { orderBy: asc(projectImages.position) },
-      links: true,
-    },
-  });
-  const byId = new Map(visible.map((project) => [project.id, project]));
-  const ordered = projectIds
-    .map((id) => byId.get(id))
-    .filter((project): project is NonNullable<typeof project> => Boolean(project));
-
-  return {
-    data: ordered.slice(offset, offset + limit).map((project) => serializeProject(project, userId)),
-    total: ordered.length,
-  };
+  return { data: data.map((project) => serializeProject(project)), total };
 }
 
 async function getProjectBySlug(db: DB, slug: string, userId?: string) {
   const result = await db.query.projects.findFirst({
     where: eq(projects.slug, slug),
     with: {
-      category: true,
-      secondaryMemberships: secondaryCategoriesWith,
-      publisher: { with: { user: true } },
-      upvotes: true,
-      comments: liveCommentIds,
-      images: { orderBy: asc(projectImages.position) },
-      links: true,
+      ...cardRelations,
+      publisher: {
+        columns: { handle: true },
+        with: {
+          user: {
+            columns: {
+              id: true,
+              name: true,
+              image: true,
+              shadowBannedAt: true,
+              shadowBanReason: true,
+            },
+          },
+        },
+      },
     },
+    extras: projectEngagementExtras(userId),
   });
 
   if (!result) return null;
@@ -695,7 +660,7 @@ async function getProjectBySlug(db: DB, slug: string, userId?: string) {
   if (!isVisible) return null;
 
   return {
-    ...serializeProject(project, userId),
+    ...serializeProject(project),
     ...(isOwner
       ? {
           ...ownerModerationFields(project, publisher?.user),
@@ -769,7 +734,7 @@ async function publishProject(
       tx,
       existing.publisher.userId,
       {
-        logoUrl: existing.logoUrl,
+        logoKey: existing.logoKey,
         galleryImageKeys: existing.images.map((image) => image.storageKey),
       },
       true,
@@ -787,13 +752,11 @@ async function publishProject(
               // A resubmission starts clean; the previous rejection has been
               // answered by the edit that led here.
               rejectionReason: null,
-              updatedAt: now,
             }
           : {
               status: "published",
               publishedAt: existing.publishedAt ?? now,
               launchedAt: existing.launchedAt,
-              updatedAt: now,
             },
       )
       .where(and(eq(projects.id, id), eq(projects.publisherId, publisherId)))
@@ -812,11 +775,9 @@ async function publishProject(
  * reused, but it disappears from every listing.
  */
 async function deleteProject(db: DB, id: number, publisherId: number) {
-  const now = new Date().toISOString();
-
   const [result] = await db
     .update(projects)
-    .set({ deletedAt: now, updatedAt: now })
+    .set({ deletedAt: new Date().toISOString() })
     .where(
       and(eq(projects.id, id), eq(projects.publisherId, publisherId), isNull(projects.deletedAt)),
     )
@@ -836,32 +797,32 @@ async function toggleUpvote(
   userId: string,
   context: UpvoteContext = {},
 ) {
-  // Only a live project can be voted on: no stuffing votes into a draft before
-  // it launches, and no voting on something that has been removed.
+  // Only a publicly visible project can be voted on: no stuffing votes into a
+  // draft before it launches, and none on something removed or hidden.
   const project = await db.query.projects.findFirst({
-    where: and(
-      eq(projects.id, projectId),
-      eq(projects.status, "published"),
-      isNull(projects.deletedAt),
-    ),
+    where: and(eq(projects.id, projectId), publicProjectConditions),
     columns: { id: true },
   });
 
   if (!project) return null;
 
-  const existing = await db.query.projectUpvotes.findFirst({
-    where: and(eq(projectUpvotes.projectId, projectId), eq(projectUpvotes.userId, userId)),
-  });
+  // Delete first, insert only if there was nothing to delete: two concurrent
+  // clicks then settle on the unique index instead of failing on it.
+  const removed = await db
+    .delete(projectUpvotes)
+    .where(and(eq(projectUpvotes.projectId, projectId), eq(projectUpvotes.userId, userId)))
+    .returning({ id: projectUpvotes.id });
 
-  if (existing) {
-    await db.delete(projectUpvotes).where(eq(projectUpvotes.id, existing.id));
-  } else {
-    await db.insert(projectUpvotes).values({
-      projectId,
-      userId,
-      ipAddress: context.ipAddress?.slice(0, 64),
-      userAgent: context.userAgent,
-    });
+  if (removed.length === 0) {
+    await db
+      .insert(projectUpvotes)
+      .values({
+        projectId,
+        userId,
+        ipAddress: context.ipAddress?.slice(0, 64),
+        userAgent: context.userAgent,
+      })
+      .onConflictDoNothing();
   }
 
   const [{ upvoteCount }] = await db
@@ -869,28 +830,25 @@ async function toggleUpvote(
     .from(projectUpvotes)
     .where(eq(projectUpvotes.projectId, projectId));
 
-  return { upvoted: !existing, upvoteCount };
+  return { upvoted: removed.length === 0, upvoteCount };
 }
 
 async function toggleFavorite(db: DB, projectId: number, userId: string) {
   const project = await db.query.projects.findFirst({
-    where: and(eq(projects.id, projectId), publicProjectFilter(null, {})),
+    where: and(eq(projects.id, projectId), publicProjectConditions),
     columns: { id: true },
   });
 
   if (!project) return null;
 
-  const existing = await db.query.projectFavorites.findFirst({
-    where: and(eq(projectFavorites.projectId, projectId), eq(projectFavorites.userId, userId)),
-    columns: { id: true },
-  });
+  const removed = await db
+    .delete(projectFavorites)
+    .where(and(eq(projectFavorites.projectId, projectId), eq(projectFavorites.userId, userId)))
+    .returning({ id: projectFavorites.id });
 
-  if (existing) {
-    await db.delete(projectFavorites).where(eq(projectFavorites.id, existing.id));
-    return { favorited: false };
-  }
+  if (removed.length > 0) return { favorited: false };
 
-  await db.insert(projectFavorites).values({ projectId, userId });
+  await db.insert(projectFavorites).values({ projectId, userId }).onConflictDoNothing();
   return { favorited: true };
 }
 

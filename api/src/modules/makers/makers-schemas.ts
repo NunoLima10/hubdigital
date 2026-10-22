@@ -2,13 +2,11 @@ import { errorResponseSchema, routeErrorResponses } from "@/shared/schemas";
 import {
   makerProfileSchema,
   makerProfileUpdateSchema,
-} from "@hubdigital/shared";
-import {
   foundUsByQuestionValues,
   locationQuestionValues,
   objectiveQuestionValues,
   profileQuestionValues,
-} from "@/utils/constants";
+} from "@hubdigital/shared";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { abroadCountryValues } from "@hubdigital/shared";

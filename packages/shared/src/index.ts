@@ -7,6 +7,7 @@ export * from "./location-options";
 export * from "./location-schema";
 export * from "./maker-schema";
 export * from "./moderation";
+export * from "./onboarding";
 export * from "./project-options";
 export * from "./project-links";
 export * from "./project-schema";

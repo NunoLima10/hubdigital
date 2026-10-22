@@ -101,11 +101,11 @@ export function ProjectForm({
         type="project_logo"
         recomandations="PNG, JPG ou WebP até 5 MB"
         actionLabel="Carregar logo"
-        value={values.logoUrl}
+        value={values.logoKey}
         previewUrl={logoPreviewUrl}
-        onChange={(key) => form.setValue("logoUrl", key, { shouldValidate: true })}
+        onChange={(key) => form.setValue("logoKey", key, { shouldValidate: true })}
         onPreviewChange={onLogoPreviewChange}
-        error={form.formState.errors.logoUrl?.message}
+        error={form.formState.errors.logoKey?.message}
       />
       <div className="space-y-2">
         <p className="text-xs text-muted-foreground">Pré-visualização na descoberta</p>

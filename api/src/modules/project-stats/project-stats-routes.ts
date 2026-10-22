@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { destinationStatsSchema, statsRangeValues } from "@hubdigital/shared";
+import {
+  destinationStatsSchema,
+  linkClickSurfaceValues,
+  statsRangeValues,
+  type LinkClickSurface,
+} from "@hubdigital/shared";
 import { NotFoundError } from "@/utils/custom-errors";
 import {
   findPublicDestination,
@@ -23,14 +28,14 @@ export async function projectStatsRoutes(server: FastifyInstance) {
   const destinationSchema = {
     params: z.object({ linkId: z.coerce.number().int().positive() }),
     querystring: z
-      .object({ surface: z.enum(["detail", "card", "map"]).default("detail") })
+      .object({ surface: z.enum(linkClickSurfaceValues).default("detail") })
       .strict(),
   };
   server.get("/go/:linkId", {
     schema: destinationSchema,
     handler: async (req, reply) => {
       const params = req.params as { linkId: number };
-      const query = req.query as { surface: "detail" | "card" | "map" };
+      const query = req.query as { surface: LinkClickSurface };
       const destination = await findPublicDestination(req.db, params.linkId);
       if (!destination) throw new NotFoundError();
       const recording = recordDestinationClick(req.db, destination, {
@@ -64,7 +69,7 @@ export async function projectStatsRoutes(server: FastifyInstance) {
       );
       if (destination)
         await recordDestinationClick(req.db, destination, {
-          surface: (req.query as { surface: "detail" | "card" | "map" }).surface,
+          surface: (req.query as { surface: LinkClickSurface }).surface,
           viewerUserId: req.user?.id,
           userAgent: req.headers["user-agent"],
           prefetch: false,

@@ -22,7 +22,7 @@ export function FormStepper() {
     isPublishing,
   } = useSubmitForm();
   const galleryImageKeys = form.watch("galleryImageKeys");
-  const logoKey = form.watch("logoUrl");
+  const logoKey = form.watch("logoKey");
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string>();
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<Record<string, string>>({});
   const logoPreviewRef = useRef<string | undefined>(undefined);

@@ -199,6 +199,7 @@ describe("Projects module (e2e)", () => {
       const [publisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: currentUserId,
           bio: "Building things",
           profileResponse: "founder",
@@ -237,6 +238,7 @@ describe("Projects module (e2e)", () => {
 
     it("generates a unique slug when the name is already taken", async () => {
       await db.insert(publishers).values({
+        handle: `h-${Math.random().toString(36).slice(2, 12)}`,
         userId: currentUserId,
         bio: "Building things",
         profileResponse: "founder",
@@ -298,6 +300,7 @@ describe("Projects module (e2e)", () => {
       const [publisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: currentUserId,
           bio: "Building things",
           profileResponse: "founder",
@@ -328,7 +331,7 @@ describe("Projects module (e2e)", () => {
         payload: {
           ...validProjectPayload,
           categoryId,
-          logoUrl: logoKey,
+          logoKey,
           galleryImageKeys: [galleryKey],
           youtubeVideoUrl: "https://youtu.be/dQw4w9WgXcQ",
         },
@@ -339,8 +342,8 @@ describe("Projects module (e2e)", () => {
 
       // Stored as the raw object key...
       const [record] = await db.query.projects.findMany();
-      expect(record.logoUrl).toBe(logoKey);
-      expect(record.youtubeVideoId).toBe("dQw4w9WgXcQ");
+      expect(record.logoKey).toBe(logoKey);
+      expect(record.youtubeVideoUrl).toBe("https://youtu.be/dQw4w9WgXcQ");
       const images = await db.query.projectImages.findMany({
         where: eq(projectImages.projectId, record.id),
       });
@@ -363,6 +366,7 @@ describe("Projects module (e2e)", () => {
 
     it("rejects an image field that is not an upload key", async () => {
       await db.insert(publishers).values({
+        handle: `h-${Math.random().toString(36).slice(2, 12)}`,
         userId: currentUserId,
         bio: "Building things",
         profileResponse: "founder",
@@ -381,7 +385,7 @@ describe("Projects module (e2e)", () => {
         payload: {
           ...validProjectPayload,
           categoryId,
-          logoUrl: "https://evil.example.com/tracker.png",
+          logoKey: "https://evil.example.com/tracker.png",
         },
       });
 
@@ -416,6 +420,7 @@ describe("Projects module (e2e)", () => {
       const [myPublisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: currentUserId,
           bio: "Building things",
           profileResponse: "founder",
@@ -428,6 +433,7 @@ describe("Projects module (e2e)", () => {
       const [otherPublisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: otherUserId,
           bio: "Building other things",
           profileResponse: "founder",
@@ -520,6 +526,7 @@ describe("Projects module (e2e)", () => {
       const [publisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: currentUserId,
           bio: "Building things",
           profileResponse: "founder",
@@ -579,6 +586,7 @@ describe("Projects module (e2e)", () => {
 
     it("returns 404 when the project does not belong to the current user's publisher", async () => {
       await db.insert(publishers).values({
+        handle: `h-${Math.random().toString(36).slice(2, 12)}`,
         userId: currentUserId,
         bio: "Building things",
         profileResponse: "founder",
@@ -598,6 +606,7 @@ describe("Projects module (e2e)", () => {
       const [otherPublisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: otherUserId,
           bio: "Building other things",
           profileResponse: "founder",
@@ -672,6 +681,7 @@ describe("Projects module (e2e)", () => {
       const [myPublisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: currentUserId,
           bio: "Building things",
           profileResponse: "founder",
@@ -684,6 +694,7 @@ describe("Projects module (e2e)", () => {
       const [otherPublisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: otherUserId,
           bio: "Building other things",
           profileResponse: "founder",
@@ -764,6 +775,7 @@ describe("Projects module (e2e)", () => {
       const [publisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: currentUserId,
           bio: "Building things",
           profileResponse: "founder",
@@ -865,6 +877,7 @@ describe("Projects module (e2e)", () => {
       const [publisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: currentUserId,
           bio: "Building things",
           profileResponse: "founder",
@@ -930,6 +943,7 @@ describe("Projects module (e2e)", () => {
       const [publisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId,
           bio: "Building things",
           profileResponse: "founder",
@@ -1141,18 +1155,18 @@ describe("Projects module (e2e)", () => {
     it("blocks unowned logos and unfinished attachments until they are verified", async () => {
       await seedPublisher(currentUserId);
       getSessionMock.mockResolvedValue({ user: { id: currentUserId, role: "user" } });
-      const logoUrl = "project_logo/not-yet-uploaded.png";
-      const payload = { name: "Projeto com imagem", shortDescription: "Uma ideia para dar feedback", projectStage: "idea", availability: "not_available", categoryId, logoUrl };
+      const logoKey = "project_logo/not-yet-uploaded.png";
+      const payload = { name: "Projeto com imagem", shortDescription: "Uma ideia para dar feedback", projectStage: "idea", availability: "not_available", categoryId, logoKey };
       const unknown = await server.inject({ method: "POST", url: "/v1/projects", payload });
       expect(unknown.statusCode).toBe(400);
-      await db.insert(fileUploads).values({ key: logoUrl, type: "project_logo", userId: currentUserId, contentType: "image/png", byteSize: 8 });
+      await db.insert(fileUploads).values({ key: logoKey, type: "project_logo", userId: currentUserId, contentType: "image/png", byteSize: 8 });
       const created = await server.inject({ method: "POST", url: "/v1/projects", payload });
       expect(created.statusCode).toBe(201);
       const id = created.json().data.id;
       const blocked = await server.inject({ method: "POST", url: `/v1/projects/${id}/publish` });
       expect(blocked.statusCode).toBe(400);
-      expect(blocked.json().error.issues[0].path).toBe("logoUrl");
-      await db.update(fileUploads).set({ completedAt: new Date().toISOString() }).where(eq(fileUploads.key, logoUrl));
+      expect(blocked.json().error.issues[0].path).toBe("logoKey");
+      await db.update(fileUploads).set({ completedAt: new Date().toISOString() }).where(eq(fileUploads.key, logoKey));
       const allowed = await server.inject({ method: "POST", url: `/v1/projects/${id}/publish` });
       expect(allowed.statusCode).toBe(200);
     });
@@ -1351,6 +1365,7 @@ describe("Projects module (e2e)", () => {
       const [publisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: currentUserId,
           bio: "Building things",
           profileResponse: "founder",
@@ -1371,7 +1386,7 @@ describe("Projects module (e2e)", () => {
 
     async function seedAnnouncements(){
       const rows=await db.query.projects.findMany();
-      for(const row of rows){const date=row.launchedAt??new Date().toISOString();await db.insert(projectAnnouncements).values({projectId:row.id,kind:"presentation",introduction:"Uma apresentação à comunidade",status:"published",creationKey:randomUUID(),publishedAt:date,week:toWeekId(new Date(date))});}
+      for(const row of rows){const date=row.launchedAt??new Date().toISOString();await db.insert(projectAnnouncements).values({projectId:row.id,kind:"presentation",introduction:"Uma apresentação à comunidade",status:"published",creationKey:randomUUID(),publishedAt:date});}
     }
     it("explicitly filters announced projects by this week", async () => {
       await db.insert(projects).values([
@@ -1495,6 +1510,7 @@ describe("Projects module (e2e)", () => {
       const [publisher] = await db
         .insert(publishers)
         .values({
+          handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: currentUserId,
           bio: "Building things",
           profileResponse: "founder",

@@ -8,19 +8,31 @@ import {
   publishers,
   users,
 } from "@/db/schemas";
-import { and, desc, eq, exists, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, exists, gte, isNull, lt, sql } from "drizzle-orm";
 import { BadRequestError, ConflictError, NotFoundError } from "@/utils/custom-errors";
-import { currentWeek } from "@/utils/week";
+import { currentWeek, toWeekId, weekFromId, type LaunchRange } from "@/utils/week";
+import { publicProjectConditions } from "@/utils/project-visibility";
 import { toPublicUrl } from "@/utils/public-url";
 import { SettingsService } from "@/modules/settings/settings-services";
 import { ProjectsService } from "@/modules/projects/projects-services";
 import type { Announcement } from "@hubdigital/shared";
-export const publicProjectConditions = and(
-  eq(projects.status, "published"),
-  isNull(projects.deletedAt),
-  isNull(projects.shadowBannedAt),
-  sql`not exists (select 1 from publishers p join users u on u.id=p.user_id where p.id=${projects.publisherId} and u.shadow_banned_at is not null)`,
-);
+
+/** Published inside a weekly window; the week is derived from `published_at`. */
+function publishedDuring(week: Pick<LaunchRange, "start" | "end">) {
+  return and(
+    eq(projectAnnouncements.status, "published"),
+    gte(projectAnnouncements.publishedAt, week.start.toISOString()),
+    lt(projectAnnouncements.publishedAt, week.end.toISOString()),
+  );
+}
+
+/** The API still reports the week an announcement ranks in. */
+function withWeek<T extends { publishedAt: string | null }>(announcement: T) {
+  return {
+    ...announcement,
+    week: announcement.publishedAt ? toWeekId(new Date(announcement.publishedAt)) : null,
+  };
+}
 export async function ownerProject(db: DB, projectId: number, publisherId: number) {
   const project = await db.query.projects.findFirst({
     where: and(
@@ -65,7 +77,7 @@ export async function createAnnouncement(
         eq(projectAnnouncements.creationKey, input.creationKey),
       ),
     });
-    if (existing) return existing;
+    if (existing) return withWeek(existing);
     if (
       input.kind === "first_release" &&
       !["available", "public_beta", "invite_only"].includes(current.availability ?? "")
@@ -83,14 +95,12 @@ export async function createAnnouncement(
     const review =
       settings["moderation.review_required"] &&
       !(settings["moderation.auto_approve_trusted"] && publisher.trustedAt);
-    const week = review ? null : currentWeek().weekId;
     if (
-      week &&
+      !review &&
       (await tx.query.projectAnnouncements.findFirst({
         where: and(
           eq(projectAnnouncements.projectId, projectId),
-          eq(projectAnnouncements.week, week),
-          eq(projectAnnouncements.status, "published"),
+          publishedDuring(currentWeek()),
         ),
       }))
     )
@@ -103,14 +113,13 @@ export async function createAnnouncement(
         projectId,
         status: review ? "pending" : "published",
         publishedAt: review ? null : now,
-        week,
       })
       .onConflictDoNothing()
       .returning();
     if (!created) throw new ConflictError("Este projeto já tem um anúncio de primeira versão.");
     if (!review)
       await tx.update(projects).set({ launchedAt: now }).where(eq(projects.id, projectId));
-    return created;
+    return withWeek(created);
   });
 }
 export async function listAnnouncements(
@@ -131,6 +140,8 @@ export async function listAnnouncements(
     offset?: number;
   },
 ) {
+  const weekRange = week ? weekFromId(week) : null;
+  if (week && !weekRange) return [];
   const voteCount = sql<number>`(select count(*)::int from announcement_votes av where av.announcement_id=${projectAnnouncements.id})`;
   const hasVoted = sql<boolean>`exists(select 1 from announcement_votes av where av.announcement_id=${projectAnnouncements.id} and av.user_id=${userId ?? ""})`;
   const rows = await db
@@ -138,14 +149,14 @@ export async function listAnnouncements(
       announcement: projectAnnouncements,
       votes: voteCount,
       hasVoted,
-      project: { name: projects.name, slug: projects.slug, logoUrl: projects.logoUrl },
+      project: { name: projects.name, slug: projects.slug, logoKey: projects.logoKey },
     })
     .from(projectAnnouncements)
     .innerJoin(projects, eq(projects.id, projectAnnouncements.projectId))
     .where(
       and(
         projectId ? eq(projects.id, projectId) : undefined,
-        week ? eq(projectAnnouncements.week, week) : undefined,
+        weekRange ? publishedDuring(weekRange) : undefined,
         ownerId
           ? and(eq(projects.publisherId, ownerId), isNull(projects.deletedAt))
           : and(publicProjectConditions, eq(projectAnnouncements.status, "published")),
@@ -156,12 +167,13 @@ export async function listAnnouncements(
     .offset(offset);
   return rows.map(({ announcement, project, votes, hasVoted }) => {
     const { rejectionReason, ...data } = announcement;
+    const { logoKey, ...projectFields } = project;
     return {
-      ...data,
+      ...withWeek(data),
       ...(ownerId ? { rejectionReason } : {}),
       votes,
       hasVoted,
-      project: { ...project, logoUrl: toPublicUrl(project.logoUrl) },
+      project: { ...projectFields, logoUrl: toPublicUrl(logoKey) },
     };
   });
 }
@@ -319,15 +331,13 @@ export async function reviewAnnouncement(
       !["available", "public_beta", "invite_only"].includes(project.availability ?? "")
     )
       throw new ConflictError("O projeto já não está disponível para uma primeira versão.");
-    const week = approve ? currentWeek().weekId : null,
-      now = new Date().toISOString();
+    const now = new Date().toISOString();
     if (
       approve &&
       (await tx.query.projectAnnouncements.findFirst({
         where: and(
           eq(projectAnnouncements.projectId, row.projectId),
-          eq(projectAnnouncements.status, "published"),
-          eq(projectAnnouncements.week, week!),
+          publishedDuring(currentWeek()),
         ),
       }))
     )
@@ -338,7 +348,6 @@ export async function reviewAnnouncement(
         status: approve ? "published" : "rejected",
         rejectionReason: approve ? null : reason,
         publishedAt: approve ? now : null,
-        week,
         reviewedBy: actorId,
       })
       .where(eq(projectAnnouncements.id, id));

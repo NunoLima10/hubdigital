@@ -53,7 +53,7 @@ function EditProjectForm({ project, onClose }: { project: Project; onClose: () =
     >
       <ProjectForm
         form={form}
-        logoPreviewUrl={toAssetUrl(form.watch("logoUrl")) ?? project.logoUrl ?? undefined}
+        logoPreviewUrl={toAssetUrl(form.watch("logoKey")) ?? project.logoUrl ?? undefined}
         galleryPreviewUrls={form.watch("galleryImageKeys").map((key) => toAssetUrl(key) ?? "")}
       />
       <div className="border-t pt-5">

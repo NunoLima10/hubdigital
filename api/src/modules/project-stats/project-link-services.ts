@@ -5,6 +5,7 @@ import { isbot } from "isbot";
 import {
   projectLinkReferralHref,
   statsRangeDays,
+  type LinkClickSurface,
   type ProjectLinkKind,
   type StatsRange,
 } from "@hubdigital/shared";
@@ -36,7 +37,7 @@ export async function recordDestinationClick(
   db: DB,
   destination: NonNullable<Awaited<ReturnType<typeof findPublicDestination>>>,
   input: {
-    surface: "detail" | "card" | "map";
+    surface: LinkClickSurface;
     viewerUserId?: string;
     userAgent?: string;
     prefetch: boolean;

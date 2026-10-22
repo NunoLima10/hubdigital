@@ -2,7 +2,7 @@ import { projectProfileFields } from "./project-profile";
 import { countryValues as importCountryValues } from "./location-options";
 import { z } from "zod";
 import { draftLocationSchema, locationSchema, projectGeographyFields } from "./location-schema";
-import { projectStatusValues } from "./project-status";
+import { projectRevisionStatusValues, projectStatusValues } from "./project-status";
 import { youtubeVideoUrlSchema } from "./youtube";
 import { projectDraftLinkSchema, projectLinkSchema, projectLinkHref } from "./project-links";
 import {
@@ -75,7 +75,7 @@ export const projectBodySchema = z.object({
   description: z.string().max(20000).optional(),
   links: z.array(projectLinkSchema).max(8).default([]),
   // nullish: omitted means "leave as is" on PATCH, null means "remove the image".
-  logoUrl: uploadKeySchema.nullish(),
+  logoKey: uploadKeySchema.nullish(),
   galleryImageKeys: z
     .array(galleryUploadKeySchema)
     .max(10, "Pode adicionar no máximo 10 imagens.")
@@ -164,6 +164,8 @@ export const projectSchema = z.object({
   shortDescription: z.string(),
   description: z.string().nullable(),
   links: z.array(projectDraftLinkSchema.extend({ id: z.number() })),
+  /** The stored upload key, for edit forms; `logoUrl` is its public URL. */
+  logoKey: z.string().nullable().optional(),
   logoUrl: z.string().nullable(),
   galleryImageKeys: z.array(z.string()),
   galleryImageUrls: z.array(z.string()),
@@ -201,7 +203,7 @@ export const projectSchema = z.object({
       id: z.number(),
       body: projectBodySchema,
       createdAt: z.string(),
-      status: z.enum(["pending", "approved", "rejected"]),
+      status: z.enum(projectRevisionStatusValues),
       reason: z.string().nullable(),
     })
     .nullable()

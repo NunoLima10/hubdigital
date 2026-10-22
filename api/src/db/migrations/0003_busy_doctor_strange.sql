@@ -1,1 +1,0 @@
-CREATE UNIQUE INDEX "publisher_user_idx" ON "publishers" USING btree ("user_id");

@@ -9,6 +9,14 @@ import { projectImages } from "./project-images";
 import { projectSecondaryCategories } from "./project-secondary-categories";
 import { projectLinks } from "./project-links";
 import { projectUpvotes } from "./project-upvotes";
+import {
+  announcementVotes,
+  projectAnnouncements,
+  projectMakers,
+  projectRevisions,
+} from "./project-community";
+import { projectLinkClicks } from "./project-link-clicks";
+import { fileUploads } from "./uploads";
 import { projects } from "./projects";
 import { publishers } from "./publishers";
 import { reports } from "./reports";
@@ -21,6 +29,8 @@ export const userRelations = relations(users, ({ one, many }) => ({
   upvotes: many(projectUpvotes),
   favorites: many(projectFavorites),
   comments: many(comments),
+  uploads: many(fileUploads),
+  makerMemberships: many(projectMakers, { relationName: "makerMember" }),
 }));
 
 export const publisherRelations = relations(publishers, ({ one, many }) => ({
@@ -47,6 +57,9 @@ export const projectRelations = relations(projects, ({ one, many }) => ({
   images: many(projectImages),
   links: many(projectLinks),
   secondaryMemberships: many(projectSecondaryCategories),
+  announcements: many(projectAnnouncements),
+  makers: many(projectMakers),
+  revisions: many(projectRevisions),
 }));
 
 export const projectSecondaryCategoryRelations = relations(projectSecondaryCategories, ({ one }) => ({
@@ -54,8 +67,43 @@ export const projectSecondaryCategoryRelations = relations(projectSecondaryCateg
   category: one(categories, { fields: [projectSecondaryCategories.categoryId], references: [categories.id] }),
 }));
 
-export const projectLinkRelations = relations(projectLinks, ({ one }) => ({
+export const projectLinkRelations = relations(projectLinks, ({ one, many }) => ({
   project: one(projects, { fields: [projectLinks.projectId], references: [projects.id] }),
+  clicks: many(projectLinkClicks),
+}));
+
+export const projectLinkClickRelations = relations(projectLinkClicks, ({ one }) => ({
+  link: one(projectLinks, { fields: [projectLinkClicks.linkId], references: [projectLinks.id] }),
+}));
+
+export const projectAnnouncementRelations = relations(projectAnnouncements, ({ one, many }) => ({
+  project: one(projects, { fields: [projectAnnouncements.projectId], references: [projects.id] }),
+  votes: many(announcementVotes),
+}));
+
+export const announcementVoteRelations = relations(announcementVotes, ({ one }) => ({
+  announcement: one(projectAnnouncements, {
+    fields: [announcementVotes.announcementId],
+    references: [projectAnnouncements.id],
+  }),
+  user: one(users, { fields: [announcementVotes.userId], references: [users.id] }),
+}));
+
+export const projectMakerRelations = relations(projectMakers, ({ one }) => ({
+  project: one(projects, { fields: [projectMakers.projectId], references: [projects.id] }),
+  user: one(users, {
+    fields: [projectMakers.userId],
+    references: [users.id],
+    relationName: "makerMember",
+  }),
+}));
+
+export const projectRevisionRelations = relations(projectRevisions, ({ one }) => ({
+  project: one(projects, { fields: [projectRevisions.projectId], references: [projects.id] }),
+}));
+
+export const fileUploadRelations = relations(fileUploads, ({ one }) => ({
+  user: one(users, { fields: [fileUploads.userId], references: [users.id] }),
 }));
 
 export const projectImageRelations = relations(projectImages, ({ one }) => ({

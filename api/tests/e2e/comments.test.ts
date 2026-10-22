@@ -105,6 +105,7 @@ describe("Comments module (e2e)", () => {
     const [publisher] = await db
       .insert(publishers)
       .values({
+        handle: `h-${Math.random().toString(36).slice(2, 12)}`,
         userId: currentUserId,
         bio: "Building things",
         profileResponse: "founder",

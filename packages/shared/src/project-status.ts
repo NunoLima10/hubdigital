@@ -12,6 +12,11 @@ export const projectStatusValues = [
 
 export type ProjectStatus = (typeof projectStatusValues)[number];
 
+/** A maker's edit to a live project, waiting on (or answered by) a moderator. */
+export const projectRevisionStatusValues = ["pending", "approved", "rejected"] as const;
+
+export type ProjectRevisionStatus = (typeof projectRevisionStatusValues)[number];
+
 /** The statuses a project can be in without ever having been made public. */
 export const privateProjectStatusValues = [
   "draft",

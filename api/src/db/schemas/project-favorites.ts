@@ -1,4 +1,4 @@
-import { integer, pgTable, serial, text, uniqueIndex } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, serial, text, uniqueIndex } from "drizzle-orm/pg-core";
 import { users } from "./auth";
 import { projects } from "./projects";
 import { timestamps } from "./timestamps";
@@ -20,5 +20,7 @@ export const projectFavorites = pgTable(
       table.projectId,
       table.userId,
     ),
+    // A visitor's saved list, newest first.
+    index("project_favorites_user_created_idx").on(table.userId, table.createdAt.desc()),
   ],
 );

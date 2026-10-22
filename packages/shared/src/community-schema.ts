@@ -1,5 +1,10 @@
 import { z } from "zod";
 export const announcementKindValues = ["presentation", "first_release", "major_update"] as const;
+export type AnnouncementKind = (typeof announcementKindValues)[number];
+export const announcementStatusValues = ["pending", "published", "rejected"] as const;
+export type AnnouncementStatus = (typeof announcementStatusValues)[number];
+export const makerMembershipStatusValues = ["pending", "accepted"] as const;
+export type MakerMembershipStatus = (typeof makerMembershipStatusValues)[number];
 export const announcementKindLabels = {
   presentation: "Apresentação",
   first_release: "Primeira versão",
@@ -15,7 +20,7 @@ export const announcementSchema = z.object({
   projectId: z.number(),
   kind: z.enum(announcementKindValues),
   introduction: z.string(),
-  status: z.enum(["pending", "published", "rejected"]),
+  status: z.enum(announcementStatusValues),
   publishedAt: z.string().nullable(),
   week: z.string().nullable(),
   rejectionReason: z.string().nullable().optional(),
@@ -27,7 +32,7 @@ export type Announcement = z.infer<typeof announcementSchema>;
 export const makerMembershipSchema = z.object({
   id: z.number(),
   projectId: z.number(),
-  status: z.enum(["pending", "accepted"]),
+  status: z.enum(makerMembershipStatusValues),
   userId: z.string(),
   name: z.string(),
   handle: z.string().nullable(),

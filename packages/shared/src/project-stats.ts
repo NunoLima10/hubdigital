@@ -9,6 +9,11 @@ export const projectEventTypeValues = ["view", "visit"] as const;
 
 export type ProjectEventType = (typeof projectEventTypeValues)[number];
 
+/** Where an outbound link click happened. */
+export const linkClickSurfaceValues = ["detail", "card", "map"] as const;
+
+export type LinkClickSurface = (typeof linkClickSurfaceValues)[number];
+
 /**
  * Which client reported the event. Kept per row so a maker can later see the
  * web/app split without a migration, and so the mobile app can report through

@@ -347,7 +347,7 @@ async function getProjectStats(
 async function getMyProjectStats(db: DB, owner: Owner, range: StatsRange) {
   const owned = await db.query.projects.findMany({
     where: and(eq(projects.publisherId, owner.id), isNull(projects.deletedAt)),
-    columns: { id: true, name: true, slug: true, status: true, logoUrl: true },
+    columns: { id: true, name: true, slug: true, status: true, logoKey: true },
   });
 
   const { stats, perProject } = await computeStats(
@@ -363,7 +363,7 @@ async function getMyProjectStats(db: DB, owner: Owner, range: StatsRange) {
       name: project.name,
       slug: project.slug,
       status: project.status,
-      logoUrl: toPublicUrl(project.logoUrl),
+      logoUrl: toPublicUrl(project.logoKey),
       ...(perProject.get(project.id) ?? emptyCounters()),
     }))
     // The projects people are actually looking at come first.

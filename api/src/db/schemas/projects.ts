@@ -8,7 +8,7 @@ import {
   pricingValues,
   projectStageValues,
   projectStatusValues,
-} from "@/utils/constants";
+} from "@hubdigital/shared";
 import { sql } from "drizzle-orm";
 import {
   index,
@@ -29,10 +29,10 @@ import { timestamps } from "./timestamps";
 
 export const pricingEnum = pgEnum("pricing", pricingValues);
 export const platformEnum = pgEnum("platform", platformValues);
-export const businessModelEnum = pgEnum("businessModel", businessModelValues);
+export const businessModelEnum = pgEnum("business_model", businessModelValues);
 export const availabilityEnum = pgEnum("availability", availabilityValues);
 export const sourceModelEnum = pgEnum("source_model", sourceModelValues);
-export const projectStageEnum = pgEnum("projectStage", projectStageValues);
+export const projectStageEnum = pgEnum("project_stage", projectStageValues);
 export const audienceEnum = pgEnum("audience", audienceValues);
 export const projectStatusEnum = pgEnum("project_status", projectStatusValues);
 export const islandEnum = pgEnum("island", islandValues);
@@ -50,16 +50,18 @@ export const projects = pgTable(
     description: text("description"),
     rowVersion: integer("row_version").notNull().default(0),
     creationKey: varchar("creation_key", { length: 36 }),
-    logoUrl: text("logo_url"),
-    youtubeVideoId: varchar("youtube_video_id", { length: 11 }),
+    // An R2 object key, not a URL: serializers turn it into one (toPublicUrl).
+    logoKey: text("logo_key"),
+    // What the maker typed, which a draft may hold half-finished; the video id
+    // is derived from it on read (getYoutubeVideoId), never stored beside it.
     youtubeVideoUrl: text("youtube_video_url"),
     pricing: pricingEnum("pricing"),
     platform: platformEnum("platform").array().notNull().default([]),
-    businessModel: businessModelEnum("businessModel"),
+    businessModel: businessModelEnum("business_model"),
     availability: availabilityEnum("availability"),
     sourceModel: sourceModelEnum("source_model"),
     licenseId: varchar("license_id", { length: 80 }),
-    projectStage: projectStageEnum("projectStage"),
+    projectStage: projectStageEnum("project_stage"),
     audiences: audienceEnum("audiences").array().notNull().default([]),
     // Primary public team base. Optional details and up to four further bases
     // keep distributed teams distinct from the countries the project serves.
@@ -126,7 +128,20 @@ export const projects = pgTable(
   (table) => [
     uniqueIndex("projects_publisher_creation_key_idx").on(table.publisherId, table.creationKey),
     index("projects_launched_at_idx").on(table.launchedAt.desc(), table.id),
-    index("projects_status_idx").on(table.status),
+    // Public listings: published rows, newest first.
+    index("projects_status_published_idx").on(table.status, table.publishedAt.desc()),
+    index("projects_category_idx").on(table.categoryId),
+    // Free-text search is ILIKE on these two columns (pg_trgm, see the baseline migration).
+    index("projects_name_trgm_idx").using("gin", sql`${table.name} gin_trgm_ops`),
+    index("projects_short_description_trgm_idx").using(
+      "gin",
+      sql`${table.shortDescription} gin_trgm_ops`,
+    ),
+    // Country and island filters match further bases with `@>`.
+    index("projects_additional_locations_idx").using(
+      "gin",
+      sql`${table.additionalLocations} jsonb_path_ops`,
+    ),
     index("projects_country_idx").on(table.country),
     index("projects_island_idx").on(table.island),
     // The review queue is ordered by how long something has been waiting.

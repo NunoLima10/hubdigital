@@ -1,4 +1,4 @@
-import { index, integer, pgTable, serial, text, uniqueIndex } from "drizzle-orm/pg-core";
+import { integer, pgTable, serial, text, uniqueIndex } from "drizzle-orm/pg-core";
 import { projects } from "./projects";
 import { timestamps } from "./timestamps";
 
@@ -20,6 +20,5 @@ export const projectImages = pgTable(
       table.position,
     ),
     uniqueIndex("project_images_storage_key_idx").on(table.storageKey),
-    index("project_images_project_id_idx").on(table.projectId),
   ],
 );

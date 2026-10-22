@@ -40,7 +40,7 @@ export function ProjectReview({
       <ProjectCard
         name={values.name || "Nome do projeto"}
         description={values.shortDescription || "Pequena descrição do projeto"}
-        iconUrl={logoPreviewUrl ?? toAssetUrl(values.logoUrl)}
+        iconUrl={logoPreviewUrl ?? toAssetUrl(values.logoKey)}
         badges={badges}
       />
       <ProjectDestinationActions

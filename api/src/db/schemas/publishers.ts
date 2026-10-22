@@ -3,10 +3,11 @@ import {
   locationQuestionValues,
   objectiveQuestionValues,
   profileQuestionValues,
-} from "@/utils/constants";
+} from "@hubdigital/shared";
 import { InferInsertModel } from "drizzle-orm";
 import type { AbroadCountry } from "@hubdigital/shared";
-import { pgEnum, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { check, pgEnum, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { timestamps } from "./timestamps";
 import { users } from "./auth";
 import { uniqueIndex } from "drizzle-orm/pg-core";
@@ -33,10 +34,10 @@ export const publishers = pgTable("publishers", {
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  // Public identifier for the maker's profile page (/makers/:handle). Nullable
-  // only so the column could be added to existing rows; every row is backfilled
-  // and every new publisher gets one at onboarding.
-  handle: varchar("handle"),
+  // Public identifier for the maker's profile page (/makers/:handle). Always
+  // lowercase (handleSchema), which the check below holds the database to, so
+  // the plain unique index is also case-insensitive in practice.
+  handle: varchar("handle", { length: 30 }).notNull(),
   bio: varchar("bio").notNull(),
   websiteUrl: text("website_url"),
   githubUrl: text("github_url"),
@@ -53,7 +54,8 @@ export const publishers = pgTable("publishers", {
   ...timestamps,
 }, (table) => [
   uniqueIndex('publisher_user_idx').on(table.userId),
-  uniqueIndex('publisher_handle_idx').on(table.handle)
+  uniqueIndex('publisher_handle_idx').on(table.handle),
+  check("publisher_handle_lowercase", sql`${table.handle} = lower(${table.handle})`),
 ]);
 
 export type PublisherInsertModel = InferInsertModel<typeof publishers>;

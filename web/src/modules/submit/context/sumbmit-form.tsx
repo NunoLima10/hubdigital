@@ -29,7 +29,7 @@ const stepFields: (keyof CreateProjectInput)[][] = [
     "availability",
     "projectStage",
     "description",
-    "logoUrl",
+    "logoKey",
     "galleryImageKeys",
     "youtubeVideoUrl",
   ],

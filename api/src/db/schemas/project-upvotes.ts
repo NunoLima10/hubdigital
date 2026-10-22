@@ -1,4 +1,5 @@
 import {
+  index,
   integer,
   pgTable,
   serial,
@@ -31,5 +32,6 @@ export const projectUpvotes = pgTable(
       table.projectId,
       table.userId
     ),
+    index("project_upvotes_user_idx").on(table.userId),
   ]
 );

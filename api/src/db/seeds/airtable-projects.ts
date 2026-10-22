@@ -54,7 +54,7 @@ export default async function seedAirtableProjects(db: DB) {
         name: record.name, slug,
         shortDescription: record.description?.replace('… Ver mais', '').slice(0, 160) || record.coreBusiness,
         description: record.description,
-        logoUrl: `project_logo/seed-airtable-${record.sourceId}.${record.localImagePath.split(".").pop()}`,
+        logoKey: `project_logo/seed-airtable-${record.sourceId}.${record.localImagePath.split(".").pop()}`,
         country: 'cv', island: record.island === 'São Vicente' ? 'CV2' : 'CV7',
         // Required fields absent from Airtable use explicit fixture defaults.
         pricing: 'paid', platform: ['web'], businessModel: record.businessModel === 'b2c' ? 'b2c' : 'b2b',
@@ -62,7 +62,7 @@ export default async function seedAirtableProjects(db: DB) {
         status: 'published', publishedAt: publishedAt.toISOString(), launchedAt: publishedAt.toISOString(),
       }).onConflictDoUpdate({ target: projects.slug, set: {
         categoryId: category.id,
-        logoUrl: `project_logo/seed-airtable-${record.sourceId}.${record.localImagePath.split(".").pop()}`,
+        logoKey: `project_logo/seed-airtable-${record.sourceId}.${record.localImagePath.split(".").pop()}`,
         availability: 'available', sourceModel: 'proprietary', projectStage: 'live', audiences: ['businesses'],
       } });
       const [project] = await tx.select({ id: projects.id }).from(projects).where(eq(projects.slug, slug));

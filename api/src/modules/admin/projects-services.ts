@@ -6,7 +6,7 @@ import { serializeProjectLinks } from "@/utils/project-links";
 import { sanitizeProjectDescription } from "@/utils/project-content";
 import { withLocation } from "@/utils/location";
 import { toPublicUrl } from "@/utils/public-url";
-import { ProjectStatus } from "@hubdigital/shared";
+import { getYoutubeVideoId, ProjectStatus } from "@hubdigital/shared";
 import {
   SQL,
   and,
@@ -53,7 +53,8 @@ function serializeAdminProject(project: ProjectRow) {
     ...serializeProjectCategories(secondaryMemberships),
     links: serializeProjectLinks(project.links),
     description: sanitizeProjectDescription(project.description),
-    logoUrl: toPublicUrl(project.logoUrl),
+    logoUrl: toPublicUrl(project.logoKey),
+    youtubeVideoId: project.youtubeVideoUrl ? getYoutubeVideoId(project.youtubeVideoUrl) : null,
     galleryImageKeys: images.map((image) => image.storageKey),
     galleryImageUrls: images.map((image) => toPublicUrl(image.storageKey)),
     upvoteCount: upvotes.length,

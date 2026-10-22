@@ -19,7 +19,7 @@ export type CreateProjectInput = {
   shortDescription: string;
   description?: string;
   links: import("@hubdigital/shared").ProjectLinkInput[];
-  logoUrl?: string | null;
+  logoKey?: string | null;
   galleryImageKeys: string[];
   youtubeVideoUrl?: string | null;
   pricing: (typeof pricingValues)[number] | "";

@@ -5,7 +5,7 @@ import {
   locationQuestionValues,
   objectiveQuestionValues,
   profileQuestionValues,
-} from "@/utils/constants";
+} from "@hubdigital/shared";
 import { z } from "zod";
 import { abroadCountryValues } from "@hubdigital/shared";
 

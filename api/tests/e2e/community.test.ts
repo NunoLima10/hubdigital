@@ -14,7 +14,7 @@ import {
 } from "@/db/schemas";
 import { invalidateSettingsCache } from "@/modules/settings/settings-services";
 import { buildServer } from "@/server";
-import { currentWeek } from "@/utils/week";
+import { currentWeek, toWeekId } from "@/utils/week";
 import { eq, sql } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import {
@@ -158,8 +158,8 @@ describe("community announcements, makers and reviewed edits", () => {
     });
     expect(result.statusCode).toBe(200);
     const row = await db.query.projectAnnouncements.findFirst();
-    expect(row?.week).toBe(currentWeek().weekId);
-    expect(row?.week).not.toBe(oldWeek);
+    expect(toWeekId(new Date(row!.publishedAt!))).toBe(currentWeek().weekId);
+    expect(toWeekId(new Date(row!.publishedAt!))).not.toBe(oldWeek);
     expect(await db.query.moderationActions.findMany()).toHaveLength(2);
   });
   it("credits invited makers only after the invited account accepts", async () => {

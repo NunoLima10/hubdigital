@@ -75,7 +75,7 @@ export function projectToFormValues(project: Project): CreateProjectInput {
     shortDescription: source.shortDescription,
     description: source.description ?? "",
     links: source.links,
-    logoUrl: proposal ? proposal.logoUrl : source.logoUrl ? undefined : null,
+    logoKey: proposal ? proposal.logoKey : source.logoUrl ? undefined : null,
     galleryImageKeys: source.galleryImageKeys,
     youtubeVideoUrl: proposal
       ? (proposal.youtubeVideoUrl ?? "")

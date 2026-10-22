@@ -14,7 +14,6 @@ export function assertProjectReady(
   row: LocationColumns & {
     description?: string | null;
     youtubeVideoUrl?: string | null;
-    youtubeVideoId?: string | null;
     images: { storageKey: string }[];
     links: ProjectLinkInput[];
     secondaryCategoryIds?: number[];
@@ -23,8 +22,7 @@ export function assertProjectReady(
   const result = projectPublicationSchema.safeParse({
     ...withLocation(row),
     description: row.description || undefined,
-    youtubeVideoUrl: row.youtubeVideoUrl || (row.youtubeVideoId
-      ? `https://www.youtube.com/watch?v=${row.youtubeVideoId}` : null),
+    youtubeVideoUrl: row.youtubeVideoUrl || null,
     galleryImageKeys: row.images.map((image) => image.storageKey),
   });
   if (!result.success) {

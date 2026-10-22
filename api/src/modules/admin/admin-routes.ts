@@ -75,7 +75,7 @@ export async function adminRoutes(server: FastifyInstance) {
                   ...project,
                   ...body,
                   description: body.description ?? null,
-                  logoUrl: toPublicUrl(body.logoUrl),
+                  logoUrl: toPublicUrl(body.logoKey),
                   galleryImageUrls: body.galleryImageKeys.map((key) => toPublicUrl(key)),
                   youtubeVideoId: body.youtubeVideoUrl
                     ? getYoutubeVideoId(body.youtubeVideoUrl)

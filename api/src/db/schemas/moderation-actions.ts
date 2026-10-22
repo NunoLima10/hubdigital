@@ -1,4 +1,4 @@
-import { moderationTargetValues } from "@hubdigital/shared";
+import { moderationActionValues, moderationTargetValues } from "@hubdigital/shared";
 import {
   index,
   jsonb,
@@ -14,6 +14,11 @@ import { users } from "./auth";
 export const moderationTargetEnum = pgEnum(
   "moderation_target",
   moderationTargetValues
+);
+
+export const moderationActionEnum = pgEnum(
+  "moderation_action",
+  moderationActionValues
 );
 
 /**
@@ -35,7 +40,7 @@ export const moderationActions = pgTable(
       onDelete: "set null",
     }),
     actorEmail: varchar("actor_email", { length: 255 }),
-    action: varchar("action", { length: 64 }).notNull(),
+    action: moderationActionEnum("action").notNull(),
     targetType: moderationTargetEnum("target_type").notNull(),
     targetId: varchar("target_id", { length: 64 }).notNull(),
     reason: text("reason"),
