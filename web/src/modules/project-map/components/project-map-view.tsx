@@ -45,6 +45,13 @@ export function ProjectMapView() {
   const unlocated = visible.filter(
     (project) => !project.location && !project.additionalLocations.length,
   ).length;
+  const hasFilters = Boolean(country || island || category);
+  const clearFilters = () => {
+    setCountry("");
+    setIsland("");
+    setCategory("");
+    setSelectedId(null);
+  };
   return (
     <div className="flex h-full min-h-0 flex-col md:flex-row">
       <aside
@@ -119,7 +126,18 @@ export function ProjectMapView() {
           </div>
         )}
         {!isLoading && !isError && !visible.length && (
-          <p className="text-sm text-muted-foreground">Nenhum projeto com estes filtros.</p>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              {hasFilters
+                ? "Nenhum projeto corresponde a estes filtros."
+                : "Ainda não há projetos neste mapa."}
+            </p>
+            {hasFilters && (
+              <Button type="button" size="sm" variant="outline" onClick={clearFilters}>
+                Limpar filtros
+              </Button>
+            )}
+          </div>
         )}
         <ul className="space-y-2">
           {visible.map((project) => (

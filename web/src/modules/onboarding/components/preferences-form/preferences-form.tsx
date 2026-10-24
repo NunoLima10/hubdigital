@@ -24,7 +24,7 @@ const isSame = (a: MakerPreferences, b: MakerPreferences) =>
   (a.diasporaCountry ?? "") === (b.diasporaCountry ?? "");
 
 export function PreferencesForm() {
-  const { data, isLoading, isError } = usePreferences();
+  const { data, isLoading, isError, refetch } = usePreferences();
   const showLoading = useDelayedLoading(isLoading);
   const [answers, setAnswers] = useState<MakerPreferences | null>(null);
   const [editingDiasporaCountry, setEditingDiasporaCountry] = useState(false);
@@ -48,9 +48,19 @@ export function PreferencesForm() {
 
   if (isError || !answers || !data)
     return (
-      <p className="py-12 text-center text-sm text-muted-foreground">
-        Não foi possível carregar as preferências.
-      </p>
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <div>
+          <h2 className="font-semibold">
+            Não foi possível carregar as preferências
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Nenhuma alteração foi feita.
+          </p>
+        </div>
+        <Button type="button" variant="outline" onClick={() => void refetch()}>
+          Tentar novamente
+        </Button>
+      </div>
     );
 
   const changed = !isSame(answers, data);

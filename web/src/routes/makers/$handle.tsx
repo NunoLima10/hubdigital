@@ -66,7 +66,7 @@ function MakerPage() {
                     className="inline-flex items-center gap-1 hover:underline"
                   >
                     <Globe className="size-4" />
-                    Website
+                    Site
                   </a>
                 )}
                 {data.githubUrl && (

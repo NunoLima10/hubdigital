@@ -1,9 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { API } from "@/api/api";
-import { projectLinkKindLabels, type DestinationStats, type StatsRange } from "@hubdigital/shared";
 import { ProjectLinkIcon } from "@/components/project-link-icon";
-export function DestinationMetrics({ projectId, range }: { projectId: number; range: StatsRange }) {
-  const { data, isLoading, isError } = useQuery({
+import { Button } from "@/components/ui/button";
+import {
+  projectLinkKindLabels,
+  type DestinationStats,
+  type StatsRange,
+} from "@hubdigital/shared";
+
+export function DestinationMetrics({
+  projectId,
+  range,
+}: {
+  projectId: number;
+  range: StatsRange;
+}) {
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["destination-metrics", projectId, range],
     queryFn: async () => {
       const response = await API.get<{ data: DestinationStats }>(
@@ -21,7 +33,21 @@ export function DestinationMetrics({ projectId, range }: { projectId: number; ra
         visitas confirmadas ou inscrições. Os teus cliques e bots conhecidos são excluídos.
       </p>
       {isLoading && <p className="text-sm">A carregar cliques…</p>}
-      {isError && <p className="text-sm text-destructive">Não foi possível carregar os cliques.</p>}
+      {isError && (
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm text-muted-foreground">
+            Não foi possível carregar os cliques.
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => void refetch()}
+          >
+            Tentar novamente
+          </Button>
+        </div>
+      )}
       {data && !data.length && (
         <p className="text-sm text-muted-foreground">Este projeto ainda não tem links.</p>
       )}

@@ -1,4 +1,4 @@
-import { DestinationMetrics } from "../destination-metrics";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import {
   Select,
@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { StatsRange } from "@hubdigital/shared";
+import { Link } from "@tanstack/react-router";
 import { BarChart3, Eye, ExternalLink, Heart, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import { useMyProjectStats } from "../../hooks/use-my-project-stats";
@@ -15,6 +16,7 @@ import { useProjectStats } from "../../hooks/use-project-stats";
 import { computeDelta } from "../../utils/format";
 import { StatCard } from "../stat-card/stat-card";
 import { TrafficChart } from "../traffic-chart/traffic-chart";
+import { DestinationMetrics } from "../destination-metrics";
 
 const ranges: { value: StatsRange; label: string }[] = [
   { value: "7d", label: "7 dias" },
@@ -24,13 +26,14 @@ const ranges: { value: StatsRange; label: string }[] = [
 export function MetricsView() {
   const [range, setRange] = useState<StatsRange>("30d");
   const [projectFilter, setProjectFilter] = useState("all");
-  const { data, isLoading, isError } = useMyProjectStats(range);
+  const { data, isLoading, isError, refetch } = useMyProjectStats(range);
   const selectedProjectId =
     projectFilter === "all" ? undefined : Number(projectFilter);
   const {
     data: selectedProjectStats,
     isLoading: isProjectLoading,
     isError: isProjectError,
+    refetch: refetchProject,
   } = useProjectStats(selectedProjectId, range);
   const stats = selectedProjectId === undefined ? data : selectedProjectStats;
   const showLoading = useDelayedLoading(
@@ -115,16 +118,45 @@ export function MetricsView() {
         </div>
       )}
       {hasError && (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          Não foi possível carregar as métricas. Tenta novamente mais tarde.
-        </p>
+        <div className="flex flex-col items-center gap-3 py-10 text-center">
+          <div>
+            <h2 className="font-semibold">
+              Não foi possível carregar as métricas
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Os dados do teu projeto não foram alterados.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              void refetch();
+              if (selectedProjectId !== undefined) void refetchProject();
+            }}
+          >
+            Tentar novamente
+          </Button>
+        </div>
       )}
-      {data && data.projects.length === 0 && (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          Ainda não tens projetos. Publica um para começares a ver métricas.
-        </p>
+      {data && data.projects.length === 0 && !hasError && (
+        <div className="flex flex-col items-center gap-3 py-10 text-center">
+          <div>
+            <h2 className="font-semibold">
+              As métricas começam com o teu primeiro projeto
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Publica um projeto para acompanhar visualizações, cliques, votos e comentários.
+            </p>
+          </div>
+          <Link to="/dashboard/submit" className={buttonVariants()}>
+            Publicar projeto
+          </Link>
+        </div>
       )}
-      {selectedProjectId !== undefined && <DestinationMetrics projectId={selectedProjectId} range={range} />}
+      {selectedProjectId !== undefined && !hasError && (
+        <DestinationMetrics projectId={selectedProjectId} range={range} />
+      )}
       {data && data.projects.length > 0 && stats && !hasError && (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

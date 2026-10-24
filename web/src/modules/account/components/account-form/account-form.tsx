@@ -29,7 +29,7 @@ function AvatarField() {
       await change(file);
       toast.success("Foto atualizada");
     } catch {
-      toast.error("Não foi possível atualizar a foto. Tenta de novo.");
+      toast.error("Não foi possível atualizar a foto. Tenta novamente.");
     }
   }
 

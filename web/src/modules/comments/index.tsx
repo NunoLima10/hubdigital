@@ -1,5 +1,6 @@
 import { LoginButton } from "@/components/login-button/login-button";
 import { RollingNumber } from "@/components/rolling-number/rolling-number";
+import { Button } from "@/components/ui/button";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { authClient } from "@/lib/auth-client";
 import type { Comment, CommentBody } from "@hubdigital/shared";
@@ -14,7 +15,7 @@ import {
 } from "./hooks/use-comments";
 
 export function Comments({ slug }: { slug: string }) {
-  const { data, isLoading, isError } = useComments(slug);
+  const { data, isLoading, isError, refetch } = useComments(slug);
   const showLoading = useDelayedLoading(isLoading);
   const { data: session } = authClient.useSession();
   const { createComment, isPending: isCreating } = useCreateComment(slug);
@@ -57,9 +58,12 @@ export function Comments({ slug }: { slug: string }) {
         </div>
       )}
       {isError && (
-        <p className="text-sm text-muted-foreground">
-          Não foi possível carregar os comentários.
-        </p>
+        <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+          <span>Não foi possível carregar os comentários.</span>
+          <Button type="button" size="sm" variant="outline" onClick={() => void refetch()}>
+            Tentar novamente
+          </Button>
+        </div>
       )}
       {data?.length === 0 && (
         <p className="text-sm text-muted-foreground">

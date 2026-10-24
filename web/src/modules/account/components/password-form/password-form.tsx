@@ -58,7 +58,7 @@ export function PasswordForm() {
       form.reset();
       toast.success("Palavra-passe alterada. As outras sessões foram terminadas.");
     } catch {
-      toast.error("Não foi possível contactar o servidor. Tenta de novo.");
+      toast.error("Não foi possível contactar o servidor. Tenta novamente.");
     } finally {
       setIsPending(false);
     }

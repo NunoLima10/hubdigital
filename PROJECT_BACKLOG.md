@@ -52,19 +52,19 @@ Centralize query keys and document which project, comment, vote, ranking, profil
 
 Comment: Implemented for the principal project, comment, vote, announcement, maker, map, metrics, and dashboard mutation paths.
 
-## High priority — next pass
+## Completed — second high-priority pass
 
 ### Helpful empty and error states
 
 Give people a clear next action when content is empty, unavailable, offline, or fails to load.
 
-Comment: Public project listings and project pages now have retry actions. Continue reviewing dashboard and secondary feature states.
+Comment: Implemented across public project lists and pages, favorites, project management, metrics, preferences, comments, and map filters. Empty states now point to a useful next action, and failed requests offer retry where recovery is possible.
 
 ### Consistent Portuguese interface language
 
 Review the principal navigation, actions, submission flow, empty states, and errors so the same terms are used consistently.
 
-Comment: The main navigation and account language now use `Painel`, `Área de trabalho`, and `palavra-passe`. Continue with a full copy review in the next pass.
+Comment: Implemented across the main navigation, account, submission, dashboard, empty states, and errors. The interface now consistently uses `Painel`, `Área de trabalho`, `palavra-passe`, `Site`, and `Tentar novamente`.
 
 ## Before launch
 

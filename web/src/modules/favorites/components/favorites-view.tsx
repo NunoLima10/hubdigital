@@ -1,10 +1,16 @@
+import { Button, buttonVariants } from "@/components/ui/button";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
-import { pricingLabels, availabilityLabels, projectStageLabels } from "@/modules/submit/options";
 import { ProjectCard } from "@/modules/project-list/components/project-card/project-card";
+import {
+  availabilityLabels,
+  pricingLabels,
+  projectStageLabels,
+} from "@/modules/submit/options";
+import { Link } from "@tanstack/react-router";
 import { useFavorites, useToggleFavorite } from "../hooks/use-favorites";
 
 export function FavoritesView() {
-  const { data, isLoading, isError } = useFavorites();
+  const { data, isLoading, isError, refetch } = useFavorites();
   const showLoading = useDelayedLoading(isLoading);
   const { toggleFavorite, pendingProjectId } = useToggleFavorite();
 
@@ -19,16 +25,34 @@ export function FavoritesView() {
 
   if (isError)
     return (
-      <p className="py-12 text-center text-sm text-muted-foreground">
-        Não foi possível carregar os favoritos.
-      </p>
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <div>
+          <h2 className="font-semibold">
+            Não foi possível carregar os favoritos
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Verifica a ligação e tenta novamente.
+          </p>
+        </div>
+        <Button type="button" variant="outline" onClick={() => void refetch()}>
+          Tentar novamente
+        </Button>
+      </div>
     );
 
   if (!data?.data.length)
     return (
-      <p className="py-12 text-center text-sm text-muted-foreground">
-        Ainda não guardaste nenhum projeto.
-      </p>
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <div>
+          <h2 className="font-semibold">Ainda não guardaste nenhum projeto</h2>
+          <p className="mt-1 max-w-sm text-sm text-muted-foreground">
+            Explora os lançamentos e guarda os projetos que queres acompanhar.
+          </p>
+        </div>
+        <Link to="/" className={buttonVariants({ variant: "outline" })}>
+          Explorar projetos
+        </Link>
+      </div>
     );
 
   return (

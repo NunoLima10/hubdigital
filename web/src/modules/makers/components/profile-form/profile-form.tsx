@@ -59,7 +59,7 @@ export function ProfileForm() {
       </p>
     );
   const fields = [
-    ["websiteUrl", "Website", "https://exemplo.cv"],
+    ["websiteUrl", "Site", "https://exemplo.cv"],
     ["githubUrl", "GitHub", "https://github.com/utilizador"],
     ["linkedinUrl", "LinkedIn", "https://linkedin.com/in/utilizador"],
     ["instagramUrl", "Instagram", "https://instagram.com/utilizador"],

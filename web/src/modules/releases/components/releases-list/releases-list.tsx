@@ -16,7 +16,7 @@ import { ReleasesItem } from "../releases-item/releases-item";
 
 export function ReleasesList() {
   const navigate = useNavigate();
-  const { data, isLoading, isError } = useMyProjects();
+  const { data, isLoading, isError, refetch } = useMyProjects();
   const showLoading = useDelayedLoading(isLoading);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deletingProject, setDeletingProject] = useState<Project | null>(null);
@@ -35,9 +35,19 @@ export function ReleasesList() {
     ) : null;
   if (isError)
     return (
-      <p className="py-10 text-center text-sm text-muted-foreground">
-        Não foi possível carregar os teus projetos. Tenta novamente mais tarde.
-      </p>
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <div>
+          <h2 className="font-semibold">
+            Não foi possível carregar os teus projetos
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            As tuas alterações estão seguras.
+          </p>
+        </div>
+        <Button type="button" variant="outline" onClick={() => void refetch()}>
+          Tentar novamente
+        </Button>
+      </div>
     );
   if (!data?.data.length)
     return (
