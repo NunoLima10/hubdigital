@@ -74,6 +74,7 @@ export function ProjectReview({
                 <input
                   type="radio"
                   value={value}
+                  aria-describedby={form.formState.errors.aiInvolvement ? "ai-involvement-error" : undefined}
                   className="mt-0.5 size-4 accent-primary"
                   {...form.register("aiInvolvement")}
                 />
@@ -88,7 +89,7 @@ export function ProjectReview({
           })}
         </div>
         {form.formState.errors.aiInvolvement?.message && (
-          <p className="text-xs text-destructive">
+          <p id="ai-involvement-error" role="alert" className="text-xs text-destructive">
             {form.formState.errors.aiInvolvement.message}
           </p>
         )}

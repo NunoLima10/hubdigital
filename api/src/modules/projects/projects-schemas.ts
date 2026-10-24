@@ -97,6 +97,7 @@ const listProjectsQuerySchema = paginationQuerySchema.extend({
   island: z.enum(islandValues).optional(),
   pricing: z.enum(pricingValues).optional(),
   projectStage: z.enum(projectStageValues).optional(),
+  relatedTo: z.coerce.number().int().positive().optional(),
   // Repeatable query parameter: ?platform=web&platform=mobile
   platform: z
     .union([z.enum(platformValues), z.array(z.enum(platformValues))])

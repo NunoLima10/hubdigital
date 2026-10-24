@@ -83,6 +83,7 @@ export function ProjectCard({
           <>
             {onFavorite && (
               <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 className={cn(

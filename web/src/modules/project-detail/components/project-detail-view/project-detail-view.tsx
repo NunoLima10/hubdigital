@@ -33,13 +33,17 @@ import type { Project } from "@/modules/submit/types/project";
 import { ProjectGeography } from "@/components/project-geography";
 import { FavoriteHeart, type FavoriteHeartHandle } from "@/components/favorite-heart/favorite-heart";
 import { cn } from "@/lib/utils";
-import { Check, CircleCheck, Share2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, CircleCheck, Minus, Share2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ProjectAuthorRow } from "../project-author/project-author";
 import confetti from "canvas-confetti";
 import { prefersReducedMotion } from "@/lib/motion";
 import { takeLaunchCelebration } from "@/modules/releases/utils/launch-celebration";
+import {
+  formatExactDate,
+  formatRelativeDate,
+} from "@/modules/project-detail/utils/relative-date";
 
 function MetadataRow({
   label,
@@ -53,6 +57,57 @@ function MetadataRow({
       <dt className="shrink-0 text-muted-foreground">{label}</dt>
       <dd className="text-right font-medium">{children}</dd>
     </div>
+  );
+}
+
+function activityLabel(project: Project) {
+  if (project.projectStage === "discontinued") return "Descontinuado";
+  if (project.projectStage === "paused") return "Em pausa";
+  const age = Date.now() - new Date(project.updatedAt).getTime();
+  if (age <= 90 * 86_400_000) return "Parece mantido ativamente";
+  if (age <= 180 * 86_400_000) return "Atualizado nos últimos 6 meses";
+  return "Sem atividade recente";
+}
+
+function WeeklyRank({ rank }: { rank: NonNullable<Project["weeklyRank"]> }) {
+  const movement = rank.movement;
+  const MovementIcon = movement === null || movement === 0 ? Minus : movement > 0 ? ArrowUp : ArrowDown;
+  const movementLabel =
+    movement === null
+      ? "Novo no ranking"
+      : movement === 0
+        ? "Sem alteração desde ontem"
+        : movement > 0
+          ? `Subiu ${movement} ${movement === 1 ? "posição" : "posições"}`
+          : `Desceu ${Math.abs(movement)} ${movement === -1 ? "posição" : "posições"}`;
+
+  return (
+    <section aria-labelledby="weekly-rank-title" className="border-y py-4">
+      <p id="weekly-rank-title" className="text-sm font-medium text-muted-foreground">
+        Ranking desta semana
+      </p>
+      <div className="mt-1 flex items-end justify-between gap-4">
+        <p className="text-3xl font-semibold tracking-tight tabular-nums">
+          #{rank.rank}
+          <span className="ml-1 text-sm font-normal text-muted-foreground">
+            de {rank.total}
+          </span>
+        </p>
+        <p
+          className={cn(
+            "mb-1 inline-flex items-center gap-1 text-xs font-medium",
+            movement !== null && movement > 0
+              ? "text-emerald-700 dark:text-emerald-400"
+              : movement !== null && movement < 0
+                ? "text-destructive"
+                : "text-muted-foreground",
+          )}
+        >
+          <MovementIcon className="size-3.5" aria-hidden="true" />
+          {movementLabel}
+        </p>
+      </div>
+    </section>
   );
 }
 
@@ -178,6 +233,7 @@ export function ProjectDetailSidebar({
   const heart = useRef<FavoriteHeartHandle>(null);
   return (
     <div className="space-y-6">
+      {project.weeklyRank && <WeeklyRank rank={project.weeklyRank} />}
       <section>
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Publicado por
@@ -192,7 +248,16 @@ export function ProjectDetailSidebar({
         />
       )}
       <dl>
-        {project.publishedAt && <MetadataRow label="Publicado no Hub Digital">{new Date(project.publishedAt).toLocaleDateString("pt-CV")}</MetadataRow>}
+        {project.publishedAt && (
+          <MetadataRow label="Publicado no Hub Digital">
+            <time
+              dateTime={project.publishedAt}
+              title={formatExactDate(project.publishedAt)}
+            >
+              {formatRelativeDate(project.publishedAt)}
+            </time>
+          </MetadataRow>
+        )}
         <MetadataRow label="Categorias"><div className="space-y-1">{project.category && <p>{project.category.name} <span className="text-xs text-muted-foreground">(principal)</span></p>}{project.secondaryCategories.map((category) => <p key={category.id}>{category.name}</p>)}</div></MetadataRow>
         <ProjectGeography project={project} />
         <ProjectProfile project={project} />
@@ -205,6 +270,16 @@ export function ProjectDetailSidebar({
         {project.aiInvolvement && <MetadataRow label="Uso de IA">{aiInvolvementLabels[project.aiInvolvement]}</MetadataRow>}
         {project.licenseId && <MetadataRow label="Licença">{project.licenseId}</MetadataRow>}
         {project.platform.length > 0 && <MetadataRow label="Plataformas">{project.platform.map((platform) => platformLabels[platform]).join(", ")}</MetadataRow>}
+        <MetadataRow label="Atividade">
+          <span className="block">{activityLabel(project)}</span>
+          <time
+            dateTime={project.updatedAt}
+            title={formatExactDate(project.updatedAt)}
+            className="block text-xs font-normal text-muted-foreground"
+          >
+            Atualizado {formatRelativeDate(project.updatedAt)}
+          </time>
+        </MetadataRow>
       </dl>
       {session && (
         <Button
@@ -262,8 +337,9 @@ function ShareLinkButton({ title }: { title: string }) {
   const iconClass = "absolute inset-0 size-4 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.3,1.4,0.5,1)] motion-reduce:transition-none";
   return (
     <button
+      type="button"
       onClick={share}
-      className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md border text-sm hover:bg-muted"
+      className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md border text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
     >
       <span aria-hidden="true" className="relative size-4">
         <Share2 className={cn(iconClass, copied && "scale-50 -rotate-45 opacity-0")} />

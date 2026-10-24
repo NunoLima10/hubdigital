@@ -105,7 +105,6 @@ function ProjectPage() {
             <Comments slug={slug} />
             <RelatedProjects
               projectId={data.id}
-              categoryId={data.categoryId}
             />
           </>
         )}

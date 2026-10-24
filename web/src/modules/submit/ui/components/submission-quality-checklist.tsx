@@ -1,14 +1,11 @@
-import { cn } from "@/lib/utils";
-import { primaryProjectLink } from "@hubdigital/shared";
 import { ArrowRight, CheckCircle2, Circle } from "lucide-react";
 import { useSubmitForm } from "../../hooks/use-submit-form";
+import {
+  getSubmissionQuality,
+  type QualityCriterion,
+} from "../../utils/quality-score";
 
-type ChecklistItem = {
-  label: string;
-  description: string;
-  complete: boolean;
-  step: number;
-};
+type ChecklistItem = QualityCriterion;
 
 function ChecklistGroup({
   title,
@@ -55,73 +52,7 @@ function ChecklistGroup({
 export function SubmissionQualityChecklist({ hasLogo }: { hasLogo: boolean }) {
   const { form, goToStep } = useSubmitForm();
   const values = form.watch();
-  const doesNotNeedPrimaryLink = ["not_available", "unavailable"].includes(
-    values.availability,
-  );
-  const textDescription = (values.description ?? "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  const required: ChecklistItem[] = [
-    {
-      label: "Nome e descrição curta",
-      description: "Explica o projeto de forma clara numa frase.",
-      complete: values.name.trim().length >= 2 && values.shortDescription.trim().length >= 10,
-      step: 0,
-    },
-    {
-      label: "Fase e disponibilidade",
-      description: "Diz o que já existe e como pode ser experimentado.",
-      complete: Boolean(values.projectStage && values.availability),
-      step: 0,
-    },
-    {
-      label: "Destino principal",
-      description: "Escolhe o link que as pessoas devem abrir primeiro.",
-      complete: doesNotNeedPrimaryLink || Boolean(primaryProjectLink(values.links)),
-      step: 0,
-    },
-    {
-      label: "Categoria principal",
-      description: "Ajuda a comunidade a encontrar o projeto.",
-      complete: typeof values.categoryId === "number",
-      step: 1,
-    },
-    {
-      label: "Uso de IA",
-      description: "Partilha de forma transparente como a IA participou.",
-      complete: Boolean(values.aiInvolvement),
-      step: 3,
-    },
-  ];
-  const recommended: ChecklistItem[] = [
-    {
-      label: "Logo do projeto",
-      description: "Facilita reconhecer o projeto na lista e no mapa.",
-      complete: hasLogo,
-      step: 0,
-    },
-    {
-      label: "Imagem ou vídeo de demonstração",
-      description: "Mostra o produto em uso antes de pedir um clique.",
-      complete: values.galleryImageKeys.length > 0 || Boolean(values.youtubeVideoUrl),
-      step: 0,
-    },
-    {
-      label: "Descrição detalhada",
-      description: "Conta o problema, a solução e para quem foi criada.",
-      complete: textDescription.length >= 80,
-      step: 0,
-    },
-    {
-      label: "Pedido à comunidade",
-      description: "Indica se procuras feedback, testes, parceiros ou ajuda.",
-      complete: values.helpWanted.length > 0 || Boolean(values.helpDescription.trim()),
-      step: 1,
-    },
-  ];
-  const completedRequired = required.filter((item) => item.complete).length;
+  const quality = getSubmissionQuality(values, hasLogo);
 
   function edit(item: ChecklistItem) {
     if (item.step === 3) {
@@ -146,18 +77,16 @@ export function SubmissionQualityChecklist({ hasLogo }: { hasLogo: boolean }) {
             ser compreendido, mas não bloqueiam a publicação.
           </p>
         </div>
-        <span
-          className={cn(
-            "rounded-full border bg-background px-2.5 py-1 text-xs font-medium tabular-nums",
-            completedRequired === required.length && "border-primary/30 text-primary",
-          )}
-        >
-          {completedRequired}/{required.length} essenciais
-        </span>
+        <div className="text-right">
+          <p className="text-2xl font-semibold tracking-tight tabular-nums">
+            {quality.score}<span className="text-sm font-normal text-muted-foreground">/10</span>
+          </p>
+          <p className="text-xs text-muted-foreground">{quality.label}</p>
+        </div>
       </div>
       <div className="space-y-4 border-t p-4">
-        <ChecklistGroup title="Essencial" items={required} onEdit={edit} />
-        <ChecklistGroup title="Ajuda a destacar" items={recommended} onEdit={edit} />
+        <ChecklistGroup title="Essencial" items={quality.required} onEdit={edit} />
+        <ChecklistGroup title="Ajuda a destacar" items={quality.recommended} onEdit={edit} />
       </div>
     </section>
   );

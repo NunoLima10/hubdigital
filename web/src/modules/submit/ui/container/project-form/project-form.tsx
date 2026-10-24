@@ -46,7 +46,8 @@ export function ProjectForm({
             </span>
           </span>
           <Input
-            aria-label={label}
+            aria-invalid={Boolean(form.formState.errors[name]) || undefined}
+            aria-describedby={form.formState.errors[name] ? `${name}-error` : undefined}
             type={type}
             maxLength={name === "name" ? 120 : 200}
             placeholder={placeholder}
@@ -54,7 +55,9 @@ export function ProjectForm({
             {...form.register(name)}
           />
           {form.formState.errors[name]?.message && (
-            <span className="text-xs text-destructive">{form.formState.errors[name]?.message}</span>
+            <span id={`${name}-error`} role="alert" className="text-xs text-destructive">
+              {form.formState.errors[name]?.message}
+            </span>
           )}
         </label>
       ))}
@@ -77,11 +80,13 @@ export function ProjectForm({
               options={options}
               placeholder="Escolhe uma opção"
               required
+              label={label}
+              describedBy={form.formState.errors[name] ? `${name}-error` : undefined}
               invalid={Boolean(form.formState.errors[name])}
               onValueChange={(value) => form.setValue(name, value as never, { shouldDirty: true })}
             />
             {form.formState.errors[name]?.message && (
-              <span className="text-xs text-destructive">
+              <span id={`${name}-error`} role="alert" className="text-xs text-destructive">
                 {form.formState.errors[name]?.message}
               </span>
             )}
@@ -120,6 +125,8 @@ export function ProjectForm({
           Vídeo no YouTube (opcional)
           <Input
             type="url"
+            aria-invalid={Boolean(form.formState.errors.youtubeVideoUrl) || undefined}
+            aria-describedby={form.formState.errors.youtubeVideoUrl ? "youtube-url-error" : undefined}
             placeholder="https://www.youtube.com/watch?v=..."
             {...form.register("youtubeVideoUrl")}
           />
@@ -128,7 +135,7 @@ export function ProjectForm({
           Opcional. Quando existir, o trailer aparece primeiro na galeria.
         </p>
         {form.formState.errors.youtubeVideoUrl?.message && (
-          <p className="text-xs text-destructive">
+          <p id="youtube-url-error" role="alert" className="text-xs text-destructive">
             {form.formState.errors.youtubeVideoUrl.message}
           </p>
         )}

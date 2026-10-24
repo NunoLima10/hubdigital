@@ -27,7 +27,7 @@ export function ProjectCategories({ form }: { form: UseFormReturn<CreateProjectI
       {isError && (
         <div className="text-sm">
           <p>Não foi possível carregar as categorias. Podes guardar o rascunho.</p>
-          <Button variant="outline" onClick={() => void refetch()}>
+          <Button type="button" variant="outline" onClick={() => void refetch()}>
             Tentar novamente
           </Button>
         </div>
@@ -82,10 +82,12 @@ export function ProjectCategories({ form }: { form: UseFormReturn<CreateProjectI
               options={[{ value: "", label: "Não informar" }, ...options]}
               placeholder="Não informar"
               invalid={Boolean(form.formState.errors[name])}
+              label={label}
+              describedBy={form.formState.errors[name] ? `${name}-error` : undefined}
               onValueChange={(value) => form.setValue(name, value as never, { shouldDirty: true })}
             />
             {form.formState.errors[name]?.message && (
-              <span className="text-xs text-destructive">
+              <span id={`${name}-error`} role="alert" className="text-xs text-destructive">
                 {form.formState.errors[name]?.message}
               </span>
             )}
@@ -104,6 +106,8 @@ export function ProjectCategories({ form }: { form: UseFormReturn<CreateProjectI
               options={[{ value: "", label: "Não informar" }, ...sourceModelOptions]}
               placeholder="Não informar"
               invalid={Boolean(form.formState.errors.sourceModel)}
+              label="Acesso ao código-fonte"
+              describedBy={form.formState.errors.sourceModel ? "source-model-error" : undefined}
               onValueChange={(value) =>
                 form.setValue("sourceModel", value as CreateProjectInput["sourceModel"], {
                   shouldDirty: true,
@@ -111,7 +115,7 @@ export function ProjectCategories({ form }: { form: UseFormReturn<CreateProjectI
               }
             />
             {form.formState.errors.sourceModel?.message && (
-              <span className="text-xs text-destructive">
+              <span id="source-model-error" role="alert" className="text-xs text-destructive">
                 {form.formState.errors.sourceModel.message}
               </span>
             )}
@@ -123,9 +127,10 @@ export function ProjectCategories({ form }: { form: UseFormReturn<CreateProjectI
               maxLength={80}
               {...form.register("licenseId")}
               aria-invalid={Boolean(form.formState.errors.licenseId)}
+              aria-describedby={form.formState.errors.licenseId ? "license-error" : undefined}
             />
             {form.formState.errors.licenseId?.message && (
-              <span className="text-xs text-destructive">
+              <span id="license-error" role="alert" className="text-xs text-destructive">
                 {form.formState.errors.licenseId.message}
               </span>
             )}

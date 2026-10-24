@@ -203,6 +203,15 @@ export const projectSchema = z.object({
   launchedAt: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
+  weeklyRank: z
+    .object({
+      rank: z.number().int().positive(),
+      total: z.number().int().positive(),
+      movement: z.number().int().nullable(),
+      week: z.string(),
+    })
+    .nullable()
+    .optional(),
 
   editReview: z
     .object({
@@ -231,12 +240,15 @@ export const projectMinimalFields = {
   links: true,
   availability: true,
   projectStage: true,
+  platform: true,
+  audiences: true,
   logoUrl: true,
   pricing: true,
   location: true,
   category: true,
   secondaryCategories: true,
   createdAt: true,
+  updatedAt: true,
   launchedAt: true,
   upvoteCount: true,
   hasUpvoted: true,

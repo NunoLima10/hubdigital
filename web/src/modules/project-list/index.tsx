@@ -29,6 +29,7 @@ type Props = {
   showRank?: boolean;
   excludeProjectId?: number;
   hideWhenEmpty?: boolean;
+  relatedTo?: number;
 };
 export function ProjectList({
   period = "all",
@@ -41,12 +42,14 @@ export function ProjectList({
   showRank = false,
   excludeProjectId,
   hideWhenEmpty = false,
+  relatedTo,
 }: Props) {
   const { data, isLoading, isError, isFetching, refetch } = useProjects({
     period,
     week,
     sort,
     limit,
+    relatedTo,
     ...filters,
   });
   const showLoading = useDelayedLoading(isLoading);

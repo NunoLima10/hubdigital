@@ -29,21 +29,21 @@ export function StepLayout({ children }: PropsWithChildren) {
         <fieldset inert={isPublishing} disabled={isPublishing} className="min-w-0 flex-1">{children}</fieldset>
       </ViewTransition>
       <div className="flex flex-wrap justify-end gap-2">
-        <Button variant="outline" disabled={isSaving || isPublishing || !canSave} onClick={saveDraft}>
+        <Button type="button" variant="outline" disabled={isSaving || isPublishing || !canSave} onClick={saveDraft}>
           {isSaving ? "A guardar..." : "Guardar rascunho"}
         </Button>
         {!isFirst && (
-          <Button variant="outline" disabled={isPublishing} onClick={previous}>
+          <Button type="button" variant="outline" disabled={isPublishing} onClick={previous}>
             Voltar
           </Button>
         )}
         {!isLast ? (
-          <Button disabled={!canProceed || isPublishing} onClick={next}>
+          <Button type="button" disabled={!canProceed || isPublishing} onClick={next}>
             Próximo
           </Button>
         ) : (
           <>
-            <Button disabled={isPublishing || Boolean(recovery)} onClick={publish}>
+            <Button type="button" disabled={isPublishing || Boolean(recovery)} onClick={publish}>
               {isPublishing ? "A publicar..." : "Publicar projeto"}
             </Button>
           </>

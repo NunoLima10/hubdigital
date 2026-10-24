@@ -24,7 +24,7 @@ const launchSections = [
     sort: "newest",
     limit: 12,
     title: "Projetos recentes",
-    description: "O que a comunidade cabo-verdiana publicou mais recentemente.",
+    description: undefined,
     id: "recent-projects-title",
     showRank: false,
   },
@@ -68,7 +68,9 @@ function LaunchSection({
     <section aria-labelledby={id} className="space-y-3">
       <div>
         <h2 id={id} className="text-lg font-semibold">{title}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        {description && (
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        )}
       </div>
       <ProjectList period={period} sort={sort} limit={limit} showRank={showRank} />
     </section>

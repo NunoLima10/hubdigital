@@ -23,7 +23,7 @@ import {
 } from "@/utils/project-visibility";
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
-import { LaunchRange } from "@/utils/week";
+import { currentWeek, LaunchRange } from "@/utils/week";
 import {
   getYoutubeVideoId,
   ListSort,
@@ -42,6 +42,7 @@ import {
   ilike,
   inArray,
   isNull,
+  ne,
   or,
   sql,
 } from "drizzle-orm";
@@ -139,6 +140,63 @@ function serializeProject<T extends SerializableProject>(project: T) {
     youtubeVideoId: project.youtubeVideoUrl ? getYoutubeVideoId(project.youtubeVideoUrl) : null,
     galleryImageKeys: project.images.map((image) => image.storageKey),
     galleryImageUrls: project.images.map((image) => toPublicUrl(image.storageKey)),
+  };
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** Current weekly place and the change from the same time one day earlier. */
+async function weeklyRankForProject(
+  db: DB,
+  projectId: number,
+  launchedAt: string | null,
+) {
+  const now = new Date();
+  const week = currentWeek(now);
+  const launched = launchedAt ? new Date(launchedAt) : null;
+  if (!launched || launched < week.start || launched >= week.end) return null;
+
+  async function rankingAt(cutoff: Date) {
+    const voteCount = sql<number>`(
+      select count(*)::int
+      from project_upvotes pu
+      where pu.project_id = ${projects.id}
+        and pu.created_at <= ${cutoff.toISOString()}::timestamptz
+    )`;
+    return db
+      .select({ id: projects.id, votes: voteCount })
+      .from(projects)
+      .where(
+        and(
+          publicProjectConditions,
+          sql`exists (
+            select 1 from project_announcements a
+            where a.project_id = ${projects.id}
+              and a.status = 'published'
+              and a.published_at >= ${week.start.toISOString()}::timestamptz
+              and a.published_at < ${week.end.toISOString()}::timestamptz
+              and a.published_at <= ${cutoff.toISOString()}::timestamptz
+          )`,
+        ),
+      )
+      .orderBy(desc(voteCount), desc(projects.createdAt), desc(projects.id));
+  }
+
+  const previousCutoff = new Date(now.getTime() - DAY_MS);
+  const [current, previous] = await Promise.all([
+    rankingAt(now),
+    previousCutoff >= week.start ? rankingAt(previousCutoff) : Promise.resolve([]),
+  ]);
+  const currentIndex = current.findIndex((item) => item.id === projectId);
+  if (currentIndex < 0) return null;
+
+  const previousIndex = previous.findIndex((item) => item.id === projectId);
+  const rank = currentIndex + 1;
+  return {
+    rank,
+    total: current.length,
+    movement: previousIndex < 0 ? null : previousIndex + 1 - rank,
+    week: week.weekId,
   };
 }
 
@@ -462,6 +520,8 @@ export type ProjectFilters = {
   pricing?: (typeof projects.$inferSelect)["pricing"];
   projectStage?: (typeof projects.$inferSelect)["projectStage"];
   platform?: (typeof projects.$inferSelect)["platform"];
+  /** Rank by similarity to this project instead of by recency or votes alone. */
+  relatedTo?: number;
 };
 
 /** Everything a visitor is allowed to see, narrowed by the caller's filters. */
@@ -530,7 +590,66 @@ async function listProjects(
   { limit, offset, sort, week, ...filters }: ListProjectsOptions,
   userId?: string,
 ) {
-  const where = publicProjectFilter(week, filters);
+  const { relatedTo, ...publicFilters } = filters;
+  let where = publicProjectFilter(week, publicFilters);
+  let relatedScore: SQL<number> | undefined;
+
+  if (relatedTo) {
+    const reference = await db.query.projects.findFirst({
+      where: and(eq(projects.id, relatedTo), publicProjectConditions),
+      columns: {
+        categoryId: true,
+        platform: true,
+        audiences: true,
+        projectStage: true,
+        country: true,
+        island: true,
+      },
+      with: { secondaryMemberships: { columns: { categoryId: true } } },
+    });
+
+    if (reference) {
+      const categoryIds = [
+        reference.categoryId,
+        ...reference.secondaryMemberships.map((item) => item.categoryId),
+      ].filter((id): id is number => id !== null);
+      const categoryMatch = categoryIds.length
+        ? sql`case
+            when ${inArray(projects.categoryId, categoryIds)} then 5
+            when exists (
+              select 1 from project_secondary_categories related_categories
+              where related_categories.project_id = ${projects.id}
+                and ${inArray(sql`related_categories.category_id`, categoryIds)}
+            ) then 3 else 0 end`
+        : sql`0`;
+      const platformMatch = reference.platform.length
+        ? sql`case when ${projects.platform} && array[
+            ${sql.join(reference.platform.map((value) => sql`${value}`), sql`, `)}
+          ]::platform[] then 3 else 0 end`
+        : sql`0`;
+      const audienceMatch = reference.audiences.length
+        ? sql`case when ${projects.audiences} && array[
+            ${sql.join(reference.audiences.map((value) => sql`${value}`), sql`, `)}
+          ]::audience[] then 2 else 0 end`
+        : sql`0`;
+      const stageMatch = reference.projectStage
+        ? sql`case when ${projects.projectStage} = ${reference.projectStage} then 2 else 0 end`
+        : sql`0`;
+      const locationMatch = reference.country
+        ? sql`case
+            when ${projects.country} = ${reference.country}
+              and ${projects.island} = ${reference.island} then 3
+            when ${projects.country} = ${reference.country} then 2
+            else 0 end`
+        : sql`0`;
+
+      relatedScore = sql<number>`(
+        ${categoryMatch} + ${platformMatch} + ${audienceMatch} +
+        ${stageMatch} + ${locationMatch}
+      )`;
+      where = and(where, ne(projects.id, relatedTo));
+    }
+  }
 
   // Ranking and paging both happen in SQL, so `period=all` costs one page of
   // rows however large the catalogue gets.
@@ -541,7 +660,9 @@ async function listProjects(
       with: cardRelations,
       extras: projectEngagementExtras(userId),
       orderBy:
-        sort === "upvotes"
+        relatedScore
+          ? [desc(relatedScore), desc(upvoteCountSql), desc(projects.updatedAt)]
+          : sort === "upvotes"
           ? [desc(upvoteCountSql), desc(projects.createdAt), desc(projects.id)]
           : [desc(projects.publishedAt), desc(projects.createdAt), desc(projects.id)],
       limit,
@@ -661,6 +782,7 @@ async function getProjectBySlug(db: DB, slug: string, userId?: string) {
 
   return {
     ...serializeProject(project),
+    weeklyRank: await weeklyRankForProject(db, project.id, project.launchedAt),
     ...(isOwner
       ? {
           ...ownerModerationFields(project, publisher?.user),

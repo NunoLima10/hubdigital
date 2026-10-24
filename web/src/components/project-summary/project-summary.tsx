@@ -105,6 +105,7 @@ export function ProjectVoteButton({
 
   return (
     <Button
+      type="button"
       variant="outline"
       size="sm"
       className={cn(

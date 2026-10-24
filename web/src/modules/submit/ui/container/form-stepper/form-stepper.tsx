@@ -8,6 +8,7 @@ import { ProjectReview } from "../project-review/project-review";
 import { Button } from "@/components/ui/button";
 import { SubmissionProgress } from "../../components/submission-progress";
 import { LocationFields } from "../../components/location-fields/location-fields";
+import { getSubmissionQuality } from "../../../utils/quality-score";
 
 export function FormStepper() {
   const {
@@ -21,8 +22,9 @@ export function FormStepper() {
     goToStep,
     isPublishing,
   } = useSubmitForm();
-  const galleryImageKeys = form.watch("galleryImageKeys");
-  const logoKey = form.watch("logoKey");
+  const values = form.watch();
+  const galleryImageKeys = values.galleryImageKeys;
+  const logoKey = values.logoKey;
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string>();
   const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<Record<string, string>>({});
   const logoPreviewRef = useRef<string | undefined>(undefined);
@@ -62,26 +64,35 @@ export function FormStepper() {
     },
     [],
   );
+  const quality = getSubmissionQuality(values, Boolean(logoPreviewUrl ?? logoKey));
 
   return (
     <div className="space-y-7">
-      <div className="space-y-2">
-        <h1 className="text-xl font-semibold">
-          {project ? "Continuar projeto" : "Partilha o que estás a construir"}
-        </h1>
-        <p
-          role="status"
-          aria-live="polite"
-          className={`text-xs ${saveState === "error" ? "text-destructive" : "text-muted-foreground"}`}
-        >
-          {saveState === "saving"
-            ? "A guardar rascunho…"
-            : saveState === "saved"
-              ? "Rascunho guardado"
-              : saveState === "error"
-                ? "Alterações por guardar. Usa Guardar rascunho para tentar novamente."
-                : "O rascunho é guardado automaticamente depois de escolheres um nome."}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-xl font-semibold">
+            {project ? "Continuar projeto" : "Partilha o que estás a construir"}
+          </h1>
+          <p
+            role="status"
+            aria-live="polite"
+            className={`text-xs ${saveState === "error" ? "text-destructive" : "text-muted-foreground"}`}
+          >
+            {saveState === "saving"
+              ? "A guardar rascunho…"
+              : saveState === "saved"
+                ? "Rascunho guardado"
+                : saveState === "error"
+                  ? "Alterações por guardar. Usa Guardar rascunho para tentar novamente."
+                  : "O rascunho é guardado automaticamente depois de escolheres um nome."}
+          </p>
+        </div>
+        <div className="shrink-0 border-l pl-4 text-right" aria-label={`Qualidade da submissão: ${quality.score} em 10, ${quality.label}`}>
+          <p className="text-xl font-semibold tabular-nums">
+            {quality.score}<span className="text-xs font-normal text-muted-foreground">/10</span>
+          </p>
+          <p className="text-xs text-muted-foreground">Qualidade</p>
+        </div>
       </div>
       {recovery && (
         <section

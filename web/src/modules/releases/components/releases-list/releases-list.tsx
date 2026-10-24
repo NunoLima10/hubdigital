@@ -59,7 +59,7 @@ export function ReleasesList() {
         <div aria-hidden="true" className="mb-5 flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary">
           <Rocket className="size-6" />
         </div>
-        <h2 id="first-launch-title" className="max-w-sm text-xl font-semibold tracking-tight sm:text-2xl">
+        <h2 id="first-launch-title" className="w-full max-w-lg text-lg font-semibold tracking-tight sm:text-xl">
           O teu primeiro projeto começa aqui
         </h2>
         <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
@@ -71,9 +71,6 @@ export function ReleasesList() {
         >
           Publicar o primeiro projeto
         </Link>
-        <p className="mt-3 text-xs text-muted-foreground">
-          Podes guardar um rascunho antes de publicar.
-        </p>
       </section>
     );
   return (

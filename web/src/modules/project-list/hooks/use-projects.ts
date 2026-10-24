@@ -28,6 +28,7 @@ export type ProjectsQuery = {
   island?: Island;
   categoryId?: number;
   pricing?: ProjectPricing;
+  relatedTo?: number;
 };
 
 type ProjectsQueryKeyInput = ProjectsQuery & { userId?: string | null };
@@ -49,6 +50,7 @@ export function projectsQueryKey({
   island,
   categoryId,
   pricing,
+  relatedTo,
 }: ProjectsQueryKeyInput = {}) {
   return [
     ...queryKeys.projects,
@@ -62,6 +64,7 @@ export function projectsQueryKey({
       island: island ?? null,
       categoryId: categoryId ?? null,
       pricing: pricing ?? null,
+      relatedTo: relatedTo ?? null,
     },
   ] as const;
 }
@@ -89,6 +92,7 @@ async function fetchProjects(query: ProjectsQuery) {
       island: query.island,
       categoryId: query.categoryId,
       pricing: query.pricing,
+      relatedTo: query.relatedTo,
     },
   });
 
