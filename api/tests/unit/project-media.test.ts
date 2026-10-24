@@ -10,6 +10,7 @@ const validProject = {
   businessModel: "b2c",
   availability: "not_available",
   projectStage: "prototype",
+  aiInvolvement: "assisted",
   audiences: ["general_public"],
   location: { country: "cv", island: "CV2" },
   categoryId: 1,

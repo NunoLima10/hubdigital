@@ -8,7 +8,7 @@ const errorCodes = {
   },
   INVALID_EMAIL_OR_PASSWORD: {
     en: "Invalid email or password",
-    pt: "Email ou password inválidos",
+    pt: "Email ou palavra-passe inválidos",
   },
   USER_NOT_FOUND: {
     en: "User not found",
@@ -20,7 +20,7 @@ const errorCodes = {
   },
   PASSWORD_TOO_SHORT: {
     en: "Password too short",
-    pt: "A password é demasiado curta",
+    pt: "A palavra-passe é demasiado curta",
   },
 } as const;
 

@@ -3,9 +3,9 @@ import { NavLink } from "../nav-link/nav-link";
 
 export function DashboardNav() {
   return (
-    <nav aria-label="Dashboard" className="flex w-max gap-1 px-0.5 lg:block lg:w-auto lg:space-y-1 lg:px-0">
+    <nav aria-label="Painel" className="flex w-max gap-1 px-0.5 lg:block lg:w-auto lg:space-y-1 lg:px-0">
       <p className="hidden px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground lg:block">
-        Workspace
+        Área de trabalho
       </p>
       <NavLink
         to="/dashboard/releases"

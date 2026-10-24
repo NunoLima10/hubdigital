@@ -6,3 +6,10 @@ export const availabilityValues = ["not_available", "waitlist", "invite_only", "
 export const sourceModelValues = ["open_source", "source_available", "proprietary", "not_applicable", "not_disclosed"] as const;
 export const projectStageValues = ["idea", "building", "prototype", "live", "paused", "discontinued"] as const;
 export const audienceValues = ["students", "developers", "businesses", "government", "general_public"] as const;
+export const aiInvolvementValues = [
+  "none",
+  "assisted",
+  "substantial",
+  "primarily_ai",
+] as const;
+export type AiInvolvement = (typeof aiInvolvementValues)[number];

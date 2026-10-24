@@ -5,7 +5,7 @@ import { GuestGuard } from "@/modules/auth/components/guest-guard/guest-guard";
 import { ResetPassword } from "@/modules/auth/components/reset-password/reset-password";
 
 export const Route = createFileRoute("/reset-password")({
-  head: () => privatePageHead("Nova password"),
+  head: () => privatePageHead("Nova palavra-passe"),
   component: RouteComponent,
 });
 

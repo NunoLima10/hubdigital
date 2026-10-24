@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useMyProjects } from "../../hooks/use-my-projects";
 import { Rocket } from "lucide-react";
-export function Hearder() {
+export function ReleasesHeader() {
   const { data } = useMyProjects();
   const hasProjects = Boolean(data?.data.length);
   return (

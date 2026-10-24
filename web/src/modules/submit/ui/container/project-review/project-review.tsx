@@ -5,6 +5,9 @@ import { getYoutubeVideoId } from "@hubdigital/shared";
 import { useSubmitForm } from "../../../hooks/use-submit-form";
 import { useCategories } from "../../../hooks/use-categories";
 import {
+  aiInvolvementDescriptions,
+  aiInvolvementLabels,
+  aiInvolvementValues,
   availabilityLabels,
   sourceModelLabels,
   audienceLabels,
@@ -18,6 +21,9 @@ import { ProjectGeography } from "@/components/project-geography";
 import { locationSchema } from "@hubdigital/shared";
 import { CategoriesDisplay } from "../../components/categories-diplay/categories-display";
 import { ProjectCard } from "../../components/project-card/project-card";
+import { RequiredIndicator } from "@/components/required-indicator/required-indicator";
+import { cn } from "@/lib/utils";
+import { SubmissionQualityChecklist } from "../../components/submission-quality-checklist";
 
 export function ProjectReview({
   logoPreviewUrl,
@@ -43,6 +49,50 @@ export function ProjectReview({
         iconUrl={logoPreviewUrl ?? toAssetUrl(values.logoKey)}
         badges={badges}
       />
+      <SubmissionQualityChecklist hasLogo={Boolean(logoPreviewUrl ?? values.logoKey)} />
+      <fieldset id="ai-disclosure" className="space-y-3 rounded-lg border bg-muted/25 p-4">
+        <legend className="px-1 text-sm font-semibold">
+          Como usaste IA para criar este projeto?
+          <RequiredIndicator />
+        </legend>
+        <p className="text-xs leading-5 text-muted-foreground">
+          Esta informação será pública e serve apenas para dar contexto ao processo, não
+          para avaliar a qualidade do projeto.
+        </p>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {aiInvolvementValues.map((value) => {
+            const selected = values.aiInvolvement === value;
+            return (
+              <label
+                key={value}
+                className={cn(
+                  "flex cursor-pointer gap-3 rounded-md border bg-background p-3 text-sm transition-colors",
+                  "hover:border-primary/50 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2",
+                  selected && "border-primary bg-primary/5",
+                )}
+              >
+                <input
+                  type="radio"
+                  value={value}
+                  className="mt-0.5 size-4 accent-primary"
+                  {...form.register("aiInvolvement")}
+                />
+                <span>
+                  <span className="block font-medium">{aiInvolvementLabels[value]}</span>
+                  <span className="mt-0.5 block text-xs leading-5 text-muted-foreground">
+                    {aiInvolvementDescriptions[value]}
+                  </span>
+                </span>
+              </label>
+            );
+          })}
+        </div>
+        {form.formState.errors.aiInvolvement?.message && (
+          <p className="text-xs text-destructive">
+            {form.formState.errors.aiInvolvement.message}
+          </p>
+        )}
+      </fieldset>
       <ProjectDestinationActions
         links={values.links}
         availability={values.availability}

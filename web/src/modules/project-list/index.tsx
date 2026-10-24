@@ -1,8 +1,9 @@
 import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { pricingLabels, availabilityLabels, projectStageLabels } from "@/modules/submit/options";
 import type { ProjectMinimal } from "@/modules/submit/types/project";
-import type { ListPeriod } from "@hubdigital/shared";
+import type { ListPeriod, ListSort } from "@hubdigital/shared";
 import { useEffect, useState } from "react";
 import { ProjectCard } from "./components/project-card/project-card";
 import type { ProjectFilterValues } from "./components/project-filters/project-filters";
@@ -23,6 +24,11 @@ type Props = {
   filters?: ProjectFilterValues;
   onSelect?: () => void;
   transitionScope?: string;
+  sort?: ListSort;
+  limit?: number;
+  showRank?: boolean;
+  excludeProjectId?: number;
+  hideWhenEmpty?: boolean;
 };
 export function ProjectList({
   period = "all",
@@ -30,10 +36,17 @@ export function ProjectList({
   filters = {},
   onSelect,
   transitionScope,
+  sort,
+  limit,
+  showRank = false,
+  excludeProjectId,
+  hideWhenEmpty = false,
 }: Props) {
-  const { data, isLoading, isError, isFetching } = useProjects({
+  const { data, isLoading, isError, isFetching, refetch } = useProjects({
     period,
     week,
+    sort,
+    limit,
     ...filters,
   });
   const showLoading = useDelayedLoading(isLoading);
@@ -69,11 +82,18 @@ export function ProjectList({
     );
   if (isError)
     return (
-      <p className="py-12 text-center text-sm text-muted-foreground">
-        Não foi possível carregar os projetos. Tenta novamente mais tarde.
-      </p>
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <p className="text-sm text-muted-foreground">
+          Não foi possível carregar os projetos.
+        </p>
+        <Button type="button" variant="outline" onClick={() => void refetch()}>
+          Tentar novamente
+        </Button>
+      </div>
     );
-  if (!data?.data.length)
+  const projects = data?.data.filter((project) => project.id !== excludeProjectId) ?? [];
+  if (!projects.length) {
+    if (hideWhenEmpty) return null;
     return (
       <p className="py-12 text-center text-sm text-muted-foreground">
         {hasFilters
@@ -83,9 +103,10 @@ export function ProjectList({
             : emptyMessages[period]}
       </p>
     );
+  }
   return (
     <div className="divide-y-0">
-      {data.data.map((project: ProjectMinimal, index: number) => (
+      {projects.map((project: ProjectMinimal, index: number) => (
         <ProjectCard
           key={project.id}
           id={project.id}
@@ -103,7 +124,7 @@ export function ProjectList({
           upCount={project.upvoteCount}
           hasUpvoted={project.hasUpvoted}
           commentCount={project.commentCount}
-          rank={index + 1}
+          rank={showRank ? index + 1 : undefined}
           onUpvote={() => handleUpvote(project.id)}
           isUpvotePending={pendingProjectId === project.id}
           onSelect={onSelect}

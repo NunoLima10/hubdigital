@@ -1,7 +1,7 @@
 import { act, type PropsWithChildren } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import SumbmitProvider from "../src/modules/submit/context/sumbmit-form";
+import SubmitProvider from "../src/modules/submit/context/submit-provider";
 import { useSubmitForm } from "../src/modules/submit/hooks/use-submit-form";
 import { draftPayloadFromForm } from "../src/modules/submit/utils/draft";
 import { StepLayout } from "../src/modules/submit/ui/components/step-layout/step-layout";
@@ -69,9 +69,9 @@ beforeEach(async () => {
   root = createRoot(container);
   await act(async () => {
     root.render(
-      <SumbmitProvider>
+      <SubmitProvider>
         <Probe />
-      </SumbmitProvider>,
+      </SubmitProvider>,
     );
   });
 });
@@ -175,13 +175,14 @@ describe("submission saving", () => {
     const pending = deferred();
     mocks.post
       .mockReturnValueOnce(pending.promise)
-      .mockResolvedValueOnce({ data: { data: { ...saved.data.data, status: "pending" } } });
+      .mockResolvedValueOnce({ data: { data: { ...saved.data.data, status: "published" } } });
     await act(async () => {
       state.form.setValue("name", "Before save");
       state.form.setValue("shortDescription", "A useful project for builders");
       state.form.setValue("categoryId", 1);
       state.form.setValue("projectStage", "idea");
       state.form.setValue("availability", "not_available");
+      state.form.setValue("aiInvolvement", "assisted");
     });
     await advance(1200);
     await edit("Latest published name");
@@ -203,6 +204,10 @@ describe("submission saving", () => {
     expect(mocks.post.mock.calls[1][2].timeout).toBe(15000);
     expect(state.isPublishing).toBe(false);
     expect(localStorage.getItem("hd:submission:saving-test:new")).toBeNull();
+    expect(mocks.navigate).toHaveBeenCalledWith({
+      to: "/projects/$slug",
+      params: { slug: "saving-test" },
+    });
   });
   it("navigates directly to all four steps and resumes recovery at the final step", async () => {
     await act(async () => {
@@ -225,9 +230,9 @@ describe("submission saving", () => {
     root = createRoot(container);
     await act(async () => {
       root.render(
-        <SumbmitProvider>
+        <SubmitProvider>
           <Probe />
-        </SumbmitProvider>,
+        </SubmitProvider>,
       );
     });
     expect(state.recovery?.step).toBe(3);

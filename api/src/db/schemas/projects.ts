@@ -8,6 +8,7 @@ import {
   pricingValues,
   projectStageValues,
   projectStatusValues,
+  aiInvolvementValues,
 } from "@hubdigital/shared";
 import { sql } from "drizzle-orm";
 import {
@@ -36,6 +37,7 @@ export const projectStageEnum = pgEnum("project_stage", projectStageValues);
 export const audienceEnum = pgEnum("audience", audienceValues);
 export const projectStatusEnum = pgEnum("project_status", projectStatusValues);
 export const islandEnum = pgEnum("island", islandValues);
+export const aiInvolvementEnum = pgEnum("ai_involvement", aiInvolvementValues);
 
 export const projects = pgTable(
   "projects",
@@ -63,6 +65,8 @@ export const projects = pgTable(
     licenseId: varchar("license_id", { length: 80 }),
     projectStage: projectStageEnum("project_stage"),
     audiences: audienceEnum("audiences").array().notNull().default([]),
+    // A transparent process disclosure, not a quality or maturity score.
+    aiInvolvement: aiInvolvementEnum("ai_involvement"),
     // Primary public team base. Optional details and up to four further bases
     // keep distributed teams distinct from the countries the project serves.
     country: varchar("country", { length: 2 }),

@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "pnpm docker:up && pnpm api:db:migrate && pnpm shared:build && pnpm --parallel --filter @hubdigital/api --filter @hubdigital/web dev",
+    "dev:apps": "pnpm shared:build && pnpm --parallel --filter @hubdigital/api --filter @hubdigital/web dev",
     "test": "echo \"Error: no test specified\" && exit 1",
     "shared:build": "pnpm run --filter @hubdigital/shared build",
     "web:dev": "pnpm shared:build && pnpm run --filter @hubdigital/web dev",

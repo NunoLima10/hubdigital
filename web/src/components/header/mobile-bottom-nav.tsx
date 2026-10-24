@@ -5,7 +5,7 @@ import { Compass, LayoutDashboard, Map } from "lucide-react";
 const destinations = [
   { to: "/", label: "Explorar", icon: Compass, section: "explorer" },
   { to: "/map", label: "Mapa", icon: Map, section: "map" },
-  { to: "/dashboard/releases", label: "Dashboard", icon: LayoutDashboard, section: "dashboard" },
+  { to: "/dashboard/releases", label: "Painel", icon: LayoutDashboard, section: "dashboard" },
 ] as const;
 
 export function MobileBottomNav() {

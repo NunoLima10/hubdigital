@@ -15,6 +15,13 @@
       "when": 1792699555088,
       "tag": "0001_category_triggers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792862543393,
+      "tag": "0002_violet_odin",
+      "breakpoints": true
     }
   ]
 }

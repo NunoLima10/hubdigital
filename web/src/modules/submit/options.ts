@@ -1,9 +1,23 @@
 import {
   availabilityValues, sourceModelValues, audienceValues, businessModelValues, countryLabels, countryValues,
-  islandLabels, islandValues, municipalitiesOf, municipalityLabels, platformValues, pricingValues, projectStageValues,
+  islandLabels, islandValues, municipalitiesOf, municipalityLabels, platformValues, pricingValues, projectStageValues, aiInvolvementValues,
 } from "@hubdigital/shared";
 export { availabilityValues, sourceModelValues, audienceValues, businessModelValues, countryLabels, countryValues,
-  islandLabels, islandValues, municipalitiesOf, municipalityLabels, platformValues, pricingValues, projectStageValues };
+  islandLabels, islandValues, municipalitiesOf, municipalityLabels, platformValues, pricingValues, projectStageValues, aiInvolvementValues };
+
+export const aiInvolvementLabels: Record<(typeof aiInvolvementValues)[number], string> = {
+  none: "Sem IA",
+  assisted: "Apoio pontual",
+  substantial: "Colaboração importante",
+  primarily_ai: "Principalmente com IA",
+};
+
+export const aiInvolvementDescriptions: Record<(typeof aiInvolvementValues)[number], string> = {
+  none: "Não usei ferramentas de IA para criar o projeto.",
+  assisted: "Usei IA para ideias, texto, pesquisa ou ajuda pontual no código.",
+  substantial: "A IA ajudou a criar partes relevantes, que revi e desenvolvi.",
+  primarily_ai: "O projeto foi sobretudo gerado com IA e orientado por mim (vibe coded).",
+};
 export const pricingLabels: Record<(typeof pricingValues)[number], string> = {
   free: "Gratuito", freemium: "Plano gratuito e opções pagas", paid: "Pago", contact_for_quote: "Sob consulta",
   not_decided: "Por decidir", not_applicable: "Não se aplica",

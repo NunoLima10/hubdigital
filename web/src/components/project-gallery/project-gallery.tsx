@@ -50,7 +50,7 @@ export function ProjectGallery({
   return (
     <section className={cn("space-y-3", className)} aria-label="Galeria do projeto">
       <div
-        className="group relative aspect-video overflow-hidden rounded-lg border bg-black focus-visible:outline-2 focus-visible:outline-primary"
+        className="group relative aspect-video max-h-[34rem] overflow-hidden rounded-lg border bg-muted focus-visible:outline-2 focus-visible:outline-primary"
         tabIndex={0}
         role="group"
         aria-roledescription="carousel"
@@ -74,7 +74,7 @@ export function ProjectGallery({
           <img
             src={item.url}
             alt={`${projectName}, imagem ${item.imageIndex + 1} de ${imageUrls.length}`}
-            className="size-full object-cover"
+            className="size-full object-contain"
           />
         ) : playingVideo ? (
           <iframe
@@ -143,7 +143,7 @@ export function ProjectGallery({
               <img
                 src={galleryItem.type === "video" ? `https://i.ytimg.com/vi/${galleryItem.id}/hqdefault.jpg` : galleryItem.url}
                 alt={galleryItem.type === "video" ? "Trailer" : `Imagem ${galleryItem.imageIndex + 1}`}
-                className="size-full object-cover"
+                className="size-full object-contain"
               />
               {galleryItem.type === "video" && (
                 <span className="absolute inset-0 grid place-items-center bg-black/15 text-white">

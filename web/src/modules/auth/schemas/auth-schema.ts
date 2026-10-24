@@ -3,10 +3,10 @@ import { z } from "zod";
 const authSchema = z.object({
   email: z.string().email("Indica um email válido"),
   name: z.string().min(1, "O nome é obrigatório"),
-  password: z.string().min(8, "A password deve conter pelo menos 8 caracteres"),
+  password: z.string().min(8, "A palavra-passe deve conter pelo menos 8 caracteres"),
   confirmPassword: z
     .string()
-    .min(8, "A password deve conter pelo menos 8 caracteres"),
+    .min(8, "A palavra-passe deve conter pelo menos 8 caracteres"),
 });
 
 export const emailSignInSchema = authSchema.pick({
@@ -16,7 +16,7 @@ export const emailSignInSchema = authSchema.pick({
 
 export const emailSignUpSchema = authSchema.refine(
   (data) => data.password === data.confirmPassword,
-  { message: "As passwords não coincidem", path: ["confirmPassword"] }
+  { message: "As palavras-passe não coincidem", path: ["confirmPassword"] }
 );
 
 export const forgotPasswordSchema = authSchema.pick({
@@ -29,7 +29,7 @@ export const resetPasswordSchema = authSchema
     confirmPassword: true,
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "As passwords não coincidem",
+    message: "As palavras-passe não coincidem",
     path: ["confirmPassword"],
   });
 

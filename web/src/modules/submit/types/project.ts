@@ -11,6 +11,7 @@ import {
   platformValues,
   pricingValues,
   projectStageValues,
+  aiInvolvementValues,
 } from "../options";
 import type { LocationFormValue } from "../utils/location";
 
@@ -30,6 +31,7 @@ export type CreateProjectInput = {
   licenseId: string;
   projectStage: (typeof projectStageValues)[number] | "";
   audiences: (typeof audienceValues)[number][];
+  aiInvolvement: (typeof aiInvolvementValues)[number] | "";
   location: LocationFormValue;
   languages: string[];
   helpWanted: SharedProject["helpWanted"];

@@ -5,7 +5,7 @@ import { ForgotPassword } from "@/modules/auth/components/forgot-password/forgot
 import { GuestGuard } from "@/modules/auth/components/guest-guard/guest-guard";
 
 export const Route = createFileRoute("/forgot-password")({
-  head: () => privatePageHead("Recuperar password"),
+  head: () => privatePageHead("Recuperar palavra-passe"),
   component: RouteComponent,
 });
 

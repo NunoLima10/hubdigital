@@ -3,6 +3,7 @@ import { CreateOptions, ItemResponse } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { toast } from "sonner";
+import { invalidateProjectCaches } from "@/lib/query-keys";
 
 type PublishResponse = { id: number; slug: string; status: string };
 
@@ -13,10 +14,7 @@ function useRefreshProjectLists() {
   const queryClient = useQueryClient();
 
   return () => {
-    queryClient.invalidateQueries({ queryKey: ["my-projects"] });
-    queryClient.invalidateQueries({ queryKey: ["projects"] });
-    queryClient.invalidateQueries({ queryKey: ["project-map"] });
-    queryClient.invalidateQueries({ queryKey: ["project"] });
+    void invalidateProjectCaches(queryClient);
   };
 }
 

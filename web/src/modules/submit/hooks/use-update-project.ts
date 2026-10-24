@@ -4,6 +4,7 @@ import { CreateOptions, ItemResponse } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { CreateProjectPayload } from "./use-create-project";
+import { invalidateProjectCaches, queryKeys } from "@/lib/query-keys";
 
 type UpdateProjectResponse = { id: number; slug: string; pendingReview?: boolean };
 
@@ -26,10 +27,10 @@ export function useUpdateProject(options?: CreateOptions<ItemResponse<UpdateProj
   >({
     mutationFn: patchProject,
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: ["project", response.data.slug] });
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      queryClient.invalidateQueries({ queryKey: ["project-map"] });
-      queryClient.invalidateQueries({ queryKey: ["destination-metrics", response.data.id] });
+      void invalidateProjectCaches(queryClient, {
+        slug: response.data.slug,
+        projectId: response.data.id,
+      });
       toast.success(
         response.data.pendingReview
           ? "Alterações enviadas para revisão. A página atual continua pública."
@@ -41,7 +42,7 @@ export function useUpdateProject(options?: CreateOptions<ItemResponse<UpdateProj
     meta: {
       errorMessage: options?.errorMessage ?? "Erro ao atualizar o projeto",
 
-      invalidatesQuery: ["my-projects"],
+      invalidatesQuery: queryKeys.myProjects,
     },
   });
 

@@ -13,6 +13,7 @@ import {
   platformValues,
   pricingValues,
   projectStageValues,
+  aiInvolvementValues,
 } from "./project-options";
 
 // Images are not free-form URLs: the client uploads through POST /v1/uploads and
@@ -92,6 +93,9 @@ export const projectBodySchema = z.object({
   availability: z.enum(availabilityValues),
   projectStage: z.enum(projectStageValues),
   audiences: z.array(z.enum(audienceValues)).default([]),
+  aiInvolvement: z.enum(aiInvolvementValues, {
+    errorMap: () => ({ message: "Conta-nos como usaste IA neste projeto." }),
+  }),
   ...projectGeographyFields,
   ...projectProfileFields,
   location: locationSchema.nullish(),
@@ -146,6 +150,7 @@ export const projectDraftSchema = projectBodySchema.extend({
   businessModel: z.enum(businessModelValues).nullable().optional(),
   availability: z.enum(availabilityValues).nullable().optional(),
   projectStage: z.enum(projectStageValues).nullable().optional(),
+  aiInvolvement: z.enum(aiInvolvementValues).nullable().optional(),
   location: draftLocationSchema.nullable().optional(),
   categoryId: z.number().int().positive().nullable().optional(),
 });
@@ -178,6 +183,7 @@ export const projectSchema = z.object({
   sourceModel: z.enum(sourceModelValues).nullable(),
   licenseId: z.string().nullable(),
   projectStage: z.enum(projectStageValues).nullable(),
+  aiInvolvement: z.enum(aiInvolvementValues).nullable(),
   audiences: z.array(z.enum(audienceValues)),
   // Null for rows created before location existed.
   ...projectGeographyFields,

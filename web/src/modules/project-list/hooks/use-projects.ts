@@ -3,6 +3,7 @@ import { authClient } from "@/lib/auth-client";
 import { ProjectMinimal } from "@/modules/submit/types/project";
 import type { Island, ListPeriod, ListSort, ProjectPricing } from "@hubdigital/shared";
 import { queryOptions, useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 
 export type ProjectsMeta = {
   limit: number;
@@ -50,7 +51,7 @@ export function projectsQueryKey({
   pricing,
 }: ProjectsQueryKeyInput = {}) {
   return [
-    "projects",
+    ...queryKeys.projects,
     {
       period,
       sort,

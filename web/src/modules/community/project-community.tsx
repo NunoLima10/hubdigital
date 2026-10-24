@@ -8,7 +8,18 @@ import {
   type Announcement,
   type MakerMembership,
 } from "@hubdigital/shared";
-export function Announcements({ projectId }: { projectId?: number }) {
+import { queryKeys } from "@/lib/query-keys";
+export function Announcements({
+  projectId,
+  limit = 50,
+  showLoadMore = true,
+  hideWhenEmpty = false,
+}: {
+  projectId?: number;
+  limit?: number;
+  showLoadMore?: boolean;
+  hideWhenEmpty?: boolean;
+}) {
   const { data: session } = authClient.useSession();
   const cache = useQueryClient();
   const {
@@ -20,17 +31,17 @@ export function Announcements({ projectId }: { projectId?: number }) {
     isFetchingNextPage,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["announcements", "feed", projectId, session?.user.id ?? null],
+    queryKey: [...queryKeys.announcements, "feed", projectId, limit, session?.user.id ?? null],
     initialPageParam: 0,
     queryFn: async ({ pageParam, signal }) =>
       (
         await API.get<{ data: Announcement[] }>("/announcements", {
-          params: { projectId, offset: pageParam, limit: 50 },
+          params: { projectId, offset: pageParam, limit },
           signal,
         })
       ).data.data,
     getNextPageParam: (last, all) =>
-      last.length === 50 ? all.reduce((total, page) => total + page.length, 0) : undefined,
+      last.length === limit ? all.reduce((total, page) => total + page.length, 0) : undefined,
   });
   const data = [
     ...new Map(
@@ -39,9 +50,12 @@ export function Announcements({ projectId }: { projectId?: number }) {
   ];
   const vote = useMutation({
     mutationFn: async (id: number) => API.post(`/announcements/${id}/vote`),
-    onSuccess: () => cache.invalidateQueries({ queryKey: ["announcements"] }),
+    onSuccess: () => cache.invalidateQueries({ queryKey: queryKeys.announcements }),
   });
-  if (projectId && !data.length && !isError) return null;
+  // Optional homepage announcements should not reserve space, flash an empty
+  // state, or compete with project discovery unless there is content to show.
+  if (hideWhenEmpty && (isLoading || isError || !data.length)) return null;
+  if (projectId && !isLoading && !isError && !data.length) return null;
   return (
     <section className="space-y-3">
       <h2 className="text-lg font-semibold">
@@ -109,7 +123,7 @@ export function Announcements({ projectId }: { projectId?: number }) {
           Entrar para apoiar anúncios
         </Link>
       )}
-      {hasNextPage && (
+      {showLoadMore && hasNextPage && (
         <Button
           type="button"
           variant="outline"
@@ -130,7 +144,7 @@ export function Announcements({ projectId }: { projectId?: number }) {
 export function ProjectMakers({ projectId }: { projectId: number }) {
   const { data: session } = authClient.useSession();
   const { data = [] } = useQuery({
-    queryKey: ["project-makers", projectId, session?.user.id ?? null],
+    queryKey: [...queryKeys.projectMakers(projectId), session?.user.id ?? null],
     queryFn: async () =>
       (await API.get<{ data: MakerMembership[] }>(`/projects/${projectId}/makers`)).data.data,
   });

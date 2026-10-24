@@ -3,8 +3,15 @@ import { describe, expect, it } from "vitest";
 import { projectAppStore, projectLinkDisplayLabel, projectLinkHref, projectPublicationSchema, projectLinkActionLabel } from "@hubdigital/shared";
 import { sanitizeProjectDescription } from "@/utils/project-content";
 
-const project = { name: "Nha projeto", shortDescription: "Uma ideia útil para a comunidade", projectStage: "idea", availability: "not_available", categoryId: 1 };
+const project = { name: "Nha projeto", shortDescription: "Uma ideia útil para a comunidade", projectStage: "idea", availability: "not_available", aiInvolvement: "none", categoryId: 1 };
 describe("project destinations and publication", () => {
+  it("requires an explicit AI process disclosure", () => {
+    const { aiInvolvement: _aiInvolvement, ...withoutDisclosure } = project;
+    expect(projectPublicationSchema.safeParse(withoutDisclosure).success).toBe(false);
+    expect(
+      projectPublicationSchema.safeParse({ ...project, aiInvolvement: "primarily_ai" }).success,
+    ).toBe(true);
+  });
   it("lets an idea publish without a website, business model, pricing, audience or platforms", () => {
     expect(projectPublicationSchema.safeParse(project).success).toBe(true);
   });

@@ -22,6 +22,7 @@ export const draftFormSchema = projectDraftSchema.extend({
   sourceModel: projectDraftSchema.shape.sourceModel.unwrap().unwrap().or(z.literal("")),
   licenseId: z.string().max(80),
   projectStage: projectDraftSchema.shape.projectStage.unwrap().unwrap().or(z.literal("")),
+  aiInvolvement: projectDraftSchema.shape.aiInvolvement.unwrap().unwrap().or(z.literal("")),
   categoryId: z.number().int().positive().or(z.literal("")),
   location: z.object({
     country: z.enum(countryValues).or(z.literal("")),
@@ -54,6 +55,7 @@ export function draftPayloadFromForm(values: CreateProjectInput) {
     sourceModel: values.sourceModel || null,
     licenseId: values.licenseId || null,
     projectStage: values.projectStage || null,
+    aiInvolvement: values.aiInvolvement || null,
     categoryId: values.categoryId || null,
     location: locationFromFormValue(values.location) ?? null,
     youtubeVideoUrl: values.youtubeVideoUrl || null,
@@ -88,6 +90,7 @@ export function projectToFormValues(project: Project): CreateProjectInput {
     sourceModel: source.sourceModel ?? "",
     licenseId: source.licenseId ?? "",
     projectStage: source.projectStage ?? "",
+    aiInvolvement: source.aiInvolvement ?? "",
     audiences: source.audiences,
     languages: source.languages,
     helpWanted: source.helpWanted,

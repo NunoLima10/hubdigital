@@ -9,7 +9,7 @@ export function Erro({ reset }: ErrorComponentProps) {
         Não conseguimos mostrar esta página. Tenta de novo; se continuar, volta mais tarde.
       </p>
       <div className="flex gap-2">
-        <Button onClick={reset}>Tentar de novo</Button>
+        <Button onClick={reset}>Tentar novamente</Button>
         <Link to="/" className={buttonVariants({ variant: "outline" })}>
           Voltar ao início
         </Link>

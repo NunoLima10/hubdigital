@@ -2,8 +2,9 @@ import { API } from "@/api/api";
 import type { ProjectMinimal } from "@/modules/submit/types/project";
 import type { ItemResponse, ListResponse } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 
-export const favoritesQueryKey = ["projects", "favorites"] as const;
+export const favoritesQueryKey = [...queryKeys.projects, "favorites"] as const;
 
 async function fetchFavorites() {
   const response = await API.get<ListResponse<ProjectMinimal>>(

@@ -1,5 +1,6 @@
 import { authClient } from "@/lib/auth-client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 import { API } from "@/api/api";
 import { Button } from "@/components/ui/button";
 export function MakerInvitations() {
@@ -20,8 +21,8 @@ export function MakerInvitations() {
       API.post(`/maker-invitations/${input.id}`, { accept: input.accept }),
     onSuccess: () => {
       cache.invalidateQueries({ queryKey: ["maker-invitations"] });
-      cache.invalidateQueries({ queryKey: ["project-makers"] });
-      cache.invalidateQueries({ queryKey: ["maker"] });
+      cache.invalidateQueries({ queryKey: queryKeys.projectMakers() });
+      cache.invalidateQueries({ queryKey: queryKeys.makers });
     },
   });
   if (!data.length) return null;

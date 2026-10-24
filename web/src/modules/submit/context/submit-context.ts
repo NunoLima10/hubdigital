@@ -8,7 +8,7 @@ export type Recovery = ReturnType<typeof draftRecoverySchema.parse>;
 type SubmitContextType = {
   form: UseFormReturn<CreateProjectInput>;
   active: number;
-  isFist: boolean;
+  isFirst: boolean;
   isLast: boolean;
   next: () => void;
   previous: () => void;
@@ -25,4 +25,4 @@ type SubmitContextType = {
   discardRecovery: () => void;
   project?: Project;
 };
-export const SumbmitContext = createContext<SubmitContextType | undefined>(undefined);
+export const SubmitContext = createContext<SubmitContextType | undefined>(undefined);

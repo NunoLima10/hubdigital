@@ -15,13 +15,20 @@ import { projectQueryOptions, useProject } from "@/modules/project-detail/hooks/
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { projectHead } from "@/modules/project-detail/seo";
 import { ArrowLeft } from "lucide-react";
+import { RelatedProjects } from "@/modules/project-detail/components/related-projects/related-projects";
+import { Button } from "@/components/ui/button";
+import { isAxiosError } from "axios";
+import { notFound } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/projects/$slug")({
   loader: async ({ context, params }) => {
-    const [project] = await Promise.all([
-      context.queryClient.query(projectQueryOptions(params.slug)).catch(noop),
-      context.queryClient.query(commentsQueryOptions(params.slug)).catch(noop),
-    ]);
+    let project;
+    try {
+      project = await context.queryClient.query(projectQueryOptions(params.slug));
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) throw notFound();
+    }
+    await context.queryClient.query(commentsQueryOptions(params.slug)).catch(noop);
     return project;
   },
   head: ({ loaderData, params }) => projectHead(loaderData, params.slug),
@@ -50,7 +57,7 @@ function ProjectPendingPage() {
 
 function ProjectPage() {
   const { slug } = Route.useParams();
-  const { data, isLoading, isError } = useProject(slug);
+  const { data, isLoading, isError, refetch } = useProject(slug);
   return (
     <Page
       viewTransition
@@ -77,15 +84,29 @@ function ProjectPage() {
         </Link>
         {isLoading && <ProjectDetailSkeleton slug={slug} />}
         {isError && (
-          <p className="text-sm text-muted-foreground">Não foi possível carregar este projeto.</p>
+          <div className="flex flex-col items-start gap-3 rounded-lg border p-5">
+            <div>
+              <h1 className="font-semibold">Não foi possível carregar o projeto</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Verifica a ligação e tenta novamente.
+              </p>
+            </div>
+            <Button type="button" variant="outline" onClick={() => void refetch()}>
+              Tentar novamente
+            </Button>
+          </div>
         )}
         {data && (
           <>
             <ProjectDetailView project={data} />
             <div className="border-t pt-6 lg:hidden">
-              <ProjectDetailSidebar project={data} />
+              <ProjectDetailSidebar project={data} showDestinationActions={false} />
             </div>
             <Comments slug={slug} />
+            <RelatedProjects
+              projectId={data.id}
+              categoryId={data.categoryId}
+            />
           </>
         )}
       </div>

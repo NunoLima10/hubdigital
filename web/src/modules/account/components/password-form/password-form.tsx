@@ -11,21 +11,21 @@ import { useHasPassword } from "../../hooks/use-account";
 
 const passwordSchema = z
   .object({
-    currentPassword: z.string().min(1, "Indica a password atual"),
-    newPassword: z.string().min(8, "A password deve conter pelo menos 8 caracteres").max(128),
+    currentPassword: z.string().min(1, "Indica a palavra-passe atual"),
+    newPassword: z.string().min(8, "A palavra-passe deve conter pelo menos 8 caracteres").max(128),
     confirmPassword: z.string(),
   })
   .refine((values) => values.newPassword === values.confirmPassword, {
-    message: "As passwords não coincidem",
+    message: "As palavras-passe não coincidem",
     path: ["confirmPassword"],
   });
 
 type Values = z.infer<typeof passwordSchema>;
 
 const fields = [
-  ["currentPassword", "Password atual", "current-password"],
-  ["newPassword", "Nova password", "new-password"],
-  ["confirmPassword", "Confirmar nova password", "new-password"],
+  ["currentPassword", "Palavra-passe atual", "current-password"],
+  ["newPassword", "Nova palavra-passe", "new-password"],
+  ["confirmPassword", "Confirmar nova palavra-passe", "new-password"],
 ] as const;
 
 export function PasswordForm() {
@@ -49,14 +49,14 @@ export function PasswordForm() {
         form.setError("currentPassword", {
           message:
             error.code === "INVALID_PASSWORD"
-              ? "A password atual não está correta"
+              ? "A palavra-passe atual não está correta"
               : ((error.code && getAuthErrorMessage(error.code)) ??
-                "Não foi possível mudar a password"),
+                "Não foi possível mudar a palavra-passe"),
         });
         return;
       }
       form.reset();
-      toast.success("Password alterada. As outras sessões foram terminadas.");
+      toast.success("Palavra-passe alterada. As outras sessões foram terminadas.");
     } catch {
       toast.error("Não foi possível contactar o servidor. Tenta de novo.");
     } finally {
@@ -67,11 +67,11 @@ export function PasswordForm() {
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="font-semibold">Password</h2>
+        <h2 className="font-semibold">Palavra-passe</h2>
         <p className="mt-1 text-sm text-muted-foreground">
           {hasPassword === false
-            ? "Entras com o Google, por isso esta conta não tem password no Hub Digital."
-            : "Ao mudares a password, terminas a sessão nos outros dispositivos."}
+            ? "Entras com o Google, por isso esta conta não tem palavra-passe no Hub Digital."
+            : "Ao mudares a palavra-passe, terminas a sessão nos outros dispositivos."}
         </p>
       </div>
       {!isLoading && hasPassword !== false && (
@@ -88,7 +88,7 @@ export function PasswordForm() {
             </label>
           ))}
           <Button type="submit" disabled={isPending}>
-            {isPending ? "A guardar..." : "Mudar password"}
+            {isPending ? "A guardar..." : "Mudar palavra-passe"}
           </Button>
         </form>
       )}

@@ -9,11 +9,12 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { invalidateCommentCaches, queryKeys } from "@/lib/query-keys";
 
 type ApiError = AxiosError<{ error: { message: string } }>;
 
 export function commentsQueryKey(slug: string) {
-  return ["comments", slug] as const;
+  return queryKeys.commentThread(slug);
 }
 
 async function fetchComments(slug: string) {
@@ -55,9 +56,7 @@ function useRefreshThread(slug: string) {
   const queryClient = useQueryClient();
 
   return () => {
-    queryClient.invalidateQueries({ queryKey: commentsQueryKey(slug) });
-    queryClient.invalidateQueries({ queryKey: ["projects"] });
-    queryClient.invalidateQueries({ queryKey: ["project", slug] });
+    void invalidateCommentCaches(queryClient, slug);
   };
 }
 

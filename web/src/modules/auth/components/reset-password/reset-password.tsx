@@ -31,23 +31,23 @@ export function ResetPassword() {
     if (error?.code) {
       toast.error(
         getAuthErrorMessage(error.code) ??
-          "Não foi possível redefinir a password.",
+          "Não foi possível redefinir a palavra-passe.",
       );
       return;
     }
-    toast.success("A tua password foi redefinida.");
+    toast.success("A tua palavra-passe foi redefinida.");
     navigate({ to: "/sign-in" });
   }
   return (
     <AuthCard
-      title="Redefinir password"
-      subtitle="Escolhe uma nova password para continuar a aceder à tua conta"
+      title="Redefinir palavra-passe"
+      subtitle="Escolhe uma nova palavra-passe para continuar a aceder à tua conta"
     >
       <form onSubmit={form.handleSubmit(submit)} className="space-y-4">
         {(
           [
-            ["password", "Password"],
-            ["confirmPassword", "Confirmar password"],
+            ["password", "Palavra-passe"],
+            ["confirmPassword", "Confirmar palavra-passe"],
           ] as const
         ).map(([name, label]) => (
           <label key={name} className="block space-y-1.5 text-sm font-medium">
@@ -61,7 +61,7 @@ export function ResetPassword() {
           </label>
         ))}
         <Button type="submit" className="w-full">
-          Redefinir password
+          Redefinir palavra-passe
         </Button>
       </form>
     </AuthCard>

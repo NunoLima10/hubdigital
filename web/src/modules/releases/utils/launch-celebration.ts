@@ -1,6 +1,5 @@
-// Publishing from the submit form navigates to the releases list, so the
-// celebration has to survive the route change. The form marks the project
-// here; the matching releases item takes the mark once and plays it.
+// A publish action and its destination live on different routes, so the
+// celebration marker survives navigation and is consumed exactly once.
 const pending = new Set<number>();
 
 export function celebrateLaunch(projectId: number) {

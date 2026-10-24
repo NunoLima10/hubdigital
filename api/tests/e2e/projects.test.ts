@@ -59,6 +59,7 @@ const validProjectPayload = {
   businessModel: "b2c",
   availability: "not_available",
   projectStage: "prototype",
+  aiInvolvement: "none",
   audiences: ["general_public"],
   location: { country: "cv", island: "CV2" },
   galleryImageKeys: ["project_gallery/test-gallery.png"],
@@ -77,6 +78,7 @@ function projectFixture(
     businessModel: "b2c",
     availability: "not_available",
     projectStage: "prototype",
+    aiInvolvement: "none",
     audiences: ["general_public"],
     country: "cv",
     island: "CV2",
@@ -455,6 +457,7 @@ describe("Projects module (e2e)", () => {
           businessModel: "b2c",
           availability: "not_available",
           projectStage: "prototype",
+          aiInvolvement: "none",
           audiences: ["general_public"],
           status: "published",
           launchedAt: new Date().toISOString(),
@@ -470,6 +473,7 @@ describe("Projects module (e2e)", () => {
           businessModel: "b2c",
           availability: "not_available",
           projectStage: "prototype",
+          aiInvolvement: "none",
           audiences: ["general_public"],
           status: "published",
           launchedAt: new Date().toISOString(),
@@ -544,11 +548,12 @@ describe("Projects module (e2e)", () => {
           slug: "meu-projeto",
           name: "Meu Projeto",
           shortDescription: validProjectPayload.shortDescription,
-                pricing: "free",
+          pricing: "free",
           platform: ["web"],
           businessModel: "b2c",
           availability: "not_available",
           projectStage: "prototype",
+          aiInvolvement: "none",
           audiences: ["general_public"],
           country: "cv",
           island: "CV2",
@@ -1130,7 +1135,7 @@ describe("Projects module (e2e)", () => {
     it("publishes a repository-only open-source beta without business questions and keeps link IDs stable", async () => {
       await seedPublisher(currentUserId);
       getSessionMock.mockResolvedValue({ user: { id: currentUserId, role: "user" } });
-      const payload = { name: "Ferramenta CLI", shortDescription: "Uma ferramenta útil na linha de comandos", projectStage: "prototype", availability: "public_beta", sourceModel: "open_source", categoryId,
+      const payload = { name: "Ferramenta CLI", shortDescription: "Uma ferramenta útil na linha de comandos", projectStage: "prototype", availability: "public_beta", sourceModel: "open_source", aiInvolvement: "assisted", categoryId,
         description: '<p onclick="bad()">Descrição <strong>útil</strong><script>bad()</script></p>',
         links: [{ kind: "repository", url: "https://codeberg.org/maker/tool", isPrimary: true }],
       };
@@ -1156,7 +1161,7 @@ describe("Projects module (e2e)", () => {
       await seedPublisher(currentUserId);
       getSessionMock.mockResolvedValue({ user: { id: currentUserId, role: "user" } });
       const logoKey = "project_logo/not-yet-uploaded.png";
-      const payload = { name: "Projeto com imagem", shortDescription: "Uma ideia para dar feedback", projectStage: "idea", availability: "not_available", categoryId, logoKey };
+      const payload = { name: "Projeto com imagem", shortDescription: "Uma ideia para dar feedback", projectStage: "idea", availability: "not_available", aiInvolvement: "none", categoryId, logoKey };
       const unknown = await server.inject({ method: "POST", url: "/v1/projects", payload });
       expect(unknown.statusCode).toBe(400);
       await db.insert(fileUploads).values({ key: logoKey, type: "project_logo", userId: currentUserId, contentType: "image/png", byteSize: 8 });

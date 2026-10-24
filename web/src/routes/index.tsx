@@ -7,49 +7,70 @@ import { AnnouncementBanner } from "@/modules/settings/components/announcement-b
 import { noop } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { seo } from "@/lib/seo";
+import { HomeSidebar } from "@/modules/project-list/components/home-sidebar/home-sidebar";
 
-const launchSections = [{ period: "all", title: "Projetos", id: "all-launches-title" }] as const;
+const launchSections = [
+  {
+    period: "this_week",
+    sort: "upvotes",
+    limit: 12,
+    title: "Lançamentos desta semana",
+    description: "Os projetos que a comunidade está a descobrir e apoiar agora.",
+    id: "weekly-projects-title",
+    showRank: true,
+  },
+  {
+    period: "all",
+    sort: "newest",
+    limit: 12,
+    title: "Projetos recentes",
+    description: "O que a comunidade cabo-verdiana publicou mais recentemente.",
+    id: "recent-projects-title",
+    showRank: false,
+  },
+  {
+    period: "all",
+    sort: "upvotes",
+    limit: 5,
+    title: "Mais apoiados",
+    description: "Projetos que mais receberam apoio da comunidade.",
+    id: "supported-projects-title",
+    showRank: true,
+  },
+] as const;
 
 export const Route = createFileRoute("/")({
   head: () => seo({ path: "/" }),
   loader: async ({ context }) => {
-    await context.queryClient.query(projectsQueryOptions({ period: "all" })).catch(noop);
+    await Promise.all(
+      launchSections.map(({ period, sort, limit }) =>
+        context.queryClient
+          .query(projectsQueryOptions({ period, sort, limit }))
+          .catch(noop),
+      ),
+    );
   },
   component: Home,
 });
 
-function LaunchSection({ period, title, id }: (typeof launchSections)[number]) {
-  const { data, isLoading, isError } = useProjects({ period });
+function LaunchSection({
+  period,
+  sort,
+  limit,
+  title,
+  description,
+  id,
+  showRank,
+}: (typeof launchSections)[number]) {
+  const { data, isLoading, isError } = useProjects({ period, sort, limit });
   if (!isLoading && !isError && !data?.data.length) return null;
   return (
     <section aria-labelledby={id} className="space-y-3">
-      <h3 id={id} className="text-lg font-semibold">
-        {title}
-      </h3>
-      <ProjectList period={period} />
-    </section>
-  );
-}
-
-function ActivityPlaceholder() {
-  return (
-    <section aria-labelledby="activity-title" className="hidden rounded-lg border p-5 lg:block">
-      <h2 id="activity-title" className="text-base font-semibold">
-        Atividade da comunidade
-      </h2>
-      <p className="mt-1 text-sm text-muted-foreground">Gráfico em breve</p>
-      <div aria-hidden="true" className="relative mt-6 h-48 rounded-md bg-muted/30">
-        <div className="absolute inset-x-4 inset-y-5 flex flex-col justify-between">
-          {[0, 1, 2, 3].map((line) => (
-            <div key={line} className="border-t border-dashed border-border" />
-          ))}
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="rounded-md bg-background px-3 py-2 text-sm text-muted-foreground">
-            Espaço reservado para o gráfico
-          </span>
-        </div>
+      <div>
+        <h2 id={id} className="text-lg font-semibold">{title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
+      <ProjectList period={period} sort={sort} limit={limit} showRank={showRank} />
     </section>
   );
 }
@@ -60,12 +81,12 @@ function Home() {
       viewTransition
       banner={<AnnouncementBanner />}
       header={<Header />}
-      rightSection={<ActivityPlaceholder />}
+      rightSection={<HomeSidebar />}
     >
       <div className="space-y-10">
-        <Announcements />
+        <Announcements limit={3} showLoadMore={false} hideWhenEmpty />
         {launchSections.map((section) => (
-          <LaunchSection key={section.period} {...section} />
+          <LaunchSection key={section.id} {...section} />
         ))}
       </div>
     </Page>

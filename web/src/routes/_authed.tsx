@@ -2,13 +2,13 @@ import { privatePageHead } from "@/lib/seo";
 import { Button } from "@/components/ui/button";
 import { Page } from "@/layouts/page";
 import { authClient } from "@/lib/auth-client";
-import { DashboardHeader } from "@/modules/dashboard/components/hearder/header";
+import { DashboardHeader } from "@/modules/dashboard/components/header/header";
 import { SideBar } from "@/modules/dashboard/components/side-bar/side-bar";
 import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed")({
   // Private pages: titled for the tab, never indexed.
-  head: () => privatePageHead("Dashboard"),
+  head: () => privatePageHead("Painel"),
   component: AuthedLayout,
 });
 
@@ -46,7 +46,7 @@ function SessionCheckFailed({ onRetry }: { onRetry: () => void }) {
           Não foi possível confirmar a tua sessão. Verifica a ligação e tenta de novo.
         </p>
         <Button variant="outline" onClick={onRetry}>
-          Tentar de novo
+          Tentar novamente
         </Button>
       </div>
     </Page>

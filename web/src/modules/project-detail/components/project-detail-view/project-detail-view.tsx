@@ -20,6 +20,7 @@ import {
 import { useTrackProjectView } from "@/modules/project-stats/hooks/use-track-project-view";
 import { trackDestinationClick } from "@/modules/project-stats/utils/track-project-event";
 import {
+  aiInvolvementLabels,
   availabilityLabels,
   sourceModelLabels,
   audienceLabels,
@@ -32,10 +33,13 @@ import type { Project } from "@/modules/submit/types/project";
 import { ProjectGeography } from "@/components/project-geography";
 import { FavoriteHeart, type FavoriteHeartHandle } from "@/components/favorite-heart/favorite-heart";
 import { cn } from "@/lib/utils";
-import { Check, Share2 } from "lucide-react";
+import { Check, CircleCheck, Share2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ProjectAuthorRow } from "../project-author/project-author";
+import confetti from "canvas-confetti";
+import { prefersReducedMotion } from "@/lib/motion";
+import { takeLaunchCelebration } from "@/modules/releases/utils/launch-celebration";
 
 function MetadataRow({
   label,
@@ -54,6 +58,7 @@ function MetadataRow({
 
 export function ProjectDetailView({ project }: { project: Project }) {
   useTrackProjectView(project.id);
+  const [justPublished] = useState(() => takeLaunchCelebration(project.id));
   const { data: session } = authClient.useSession();
   const { toggleUpvote, pendingProjectId } = useToggleUpvote();
   const [voteAfterSignIn, setVoteAfterSignIn] = useState(false);
@@ -65,8 +70,35 @@ export function ProjectDetailView({ project }: { project: Project }) {
     }
   }, [session, voteAfterSignIn, project.id, project.hasUpvoted, toggleUpvote]);
 
+  useEffect(() => {
+    if (!justPublished || prefersReducedMotion()) return;
+    const colors = ["#22c55e", "#eab308", "#3b82f6", "#f97316"];
+    confetti({
+      particleCount: 85,
+      spread: 75,
+      startVelocity: 42,
+      origin: { y: 0.22 },
+      colors,
+    });
+    return () => {
+      confetti.reset();
+    };
+  }, [justPublished]);
+
   return (
     <div className="space-y-6">
+      {justPublished && (
+        <div
+          role="status"
+          className="flex items-start gap-3 rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100"
+        >
+          <CircleCheck className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <div>
+            <p className="font-semibold">Projeto publicado com sucesso!</p>
+            <p className="text-sm opacity-80">Esta é a tua página pública. Já podes partilhá-la.</p>
+          </div>
+        </div>
+      )}
       <ModerationNotice project={project} />
       <ProjectSummary
         viewTransitionName={projectViewTransitionName(project.id)}
@@ -95,6 +127,13 @@ export function ProjectDetailView({ project }: { project: Project }) {
           />
         }
       />
+      <div className="lg:hidden">
+        <ProjectDestinationActions
+          links={project.links}
+          availability={project.availability}
+          onVisit={(link) => trackDestinationClick(link.id)}
+        />
+      </div>
       <ProjectMakers projectId={project.id} />
       <ProjectGallery
         imageUrls={project.galleryImageUrls}
@@ -125,7 +164,13 @@ export function ProjectDetailView({ project }: { project: Project }) {
   );
 }
 
-export function ProjectDetailSidebar({ project }: { project: Project }) {
+export function ProjectDetailSidebar({
+  project,
+  showDestinationActions = true,
+}: {
+  project: Project;
+  showDestinationActions?: boolean;
+}) {
   const { data: session } = authClient.useSession();
   const { data: favorites } = useFavorites(Boolean(session));
   const { toggleFavorite, pendingProjectId } = useToggleFavorite();
@@ -139,7 +184,13 @@ export function ProjectDetailSidebar({ project }: { project: Project }) {
         </h2>
         <ProjectAuthorRow author={project.author} />
       </section>
-      <ProjectDestinationActions links={project.links} availability={project.availability} onVisit={link => trackDestinationClick(link.id)} />
+      {showDestinationActions && (
+        <ProjectDestinationActions
+          links={project.links}
+          availability={project.availability}
+          onVisit={(link) => trackDestinationClick(link.id)}
+        />
+      )}
       <dl>
         {project.publishedAt && <MetadataRow label="Publicado no Hub Digital">{new Date(project.publishedAt).toLocaleDateString("pt-CV")}</MetadataRow>}
         <MetadataRow label="Categorias"><div className="space-y-1">{project.category && <p>{project.category.name} <span className="text-xs text-muted-foreground">(principal)</span></p>}{project.secondaryCategories.map((category) => <p key={category.id}>{category.name}</p>)}</div></MetadataRow>
@@ -151,6 +202,7 @@ export function ProjectDetailSidebar({ project }: { project: Project }) {
         {project.audiences.length > 0 && <MetadataRow label="Para quem">{project.audiences.map((audience) => audienceLabels[audience]).join(", ")}</MetadataRow>}
         {project.businessModel && <MetadataRow label="Modelo de negócio">{businessModelLabels[project.businessModel]}</MetadataRow>}
         {project.sourceModel && <MetadataRow label="Código-fonte">{sourceModelLabels[project.sourceModel]}</MetadataRow>}
+        {project.aiInvolvement && <MetadataRow label="Uso de IA">{aiInvolvementLabels[project.aiInvolvement]}</MetadataRow>}
         {project.licenseId && <MetadataRow label="Licença">{project.licenseId}</MetadataRow>}
         {project.platform.length > 0 && <MetadataRow label="Plataformas">{project.platform.map((platform) => platformLabels[platform]).join(", ")}</MetadataRow>}
       </dl>

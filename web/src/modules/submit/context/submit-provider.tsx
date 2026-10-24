@@ -20,6 +20,11 @@ import type { ItemResponse } from "@/types";
 import { createProjectSchema } from "../hooks/use-create-project";
 import type { CreateProjectInput, Project } from "../types/project";
 import { draftRecoverySchema, projectToFormValues, toDraftPayload } from "../utils/draft";
+import {
+  invalidateProjectCaches,
+  invalidateProjectCollections,
+  queryKeys,
+} from "@/lib/query-keys";
 
 const stepFields: (keyof CreateProjectInput)[][] = [
   [
@@ -48,13 +53,14 @@ const stepFields: (keyof CreateProjectInput)[][] = [
     "teamDescription",
   ],
   ["location", "additionalLocations", "teamMode", "localConnections", "serviceArea"],
+  ["aiInvolvement"],
 ];
-import { SumbmitContext, type SaveState, type Recovery } from "./submit-context";
+import { SubmitContext, type SaveState, type Recovery } from "./submit-context";
 import { initialProjectValues } from "./initial-project-values";
 type SavedProject = { id: number; slug: string };
 const requestOptions = { timeout: 15_000 };
 
-export default function SumbmitProvider({
+export default function SubmitProvider({
   children,
   project,
 }: PropsWithChildren<{ project?: Project }>) {
@@ -151,8 +157,10 @@ export default function SumbmitProvider({
       );
       lastSaved.current = JSON.stringify(snapshot);
       failedSignature.current = null;
-      queryClient.invalidateQueries({ queryKey: ["my-projects"] });
-      queryClient.invalidateQueries({ queryKey: ["project", response.data.data.slug] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.myProjects });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.projectDetail(response.data.data.slug),
+      });
       return response.data.data;
     },
     [queryClient],
@@ -236,16 +244,22 @@ export default function SumbmitProvider({
           /* optional recovery */
         }
       }
-      queryClient.invalidateQueries({ queryKey: ["projects"] });
-      queryClient.invalidateQueries({ queryKey: ["project-map"] });
-      queryClient.invalidateQueries({ queryKey: ["my-projects"] });
+      await invalidateProjectCollections(queryClient);
       toast.success(
         response.data.data.status === "pending"
           ? "Projeto enviado para revisão. Ainda não está público."
           : "Projeto publicado. Já está no ar!",
       );
-      celebrateLaunch(saved.id);
-      void navigate({ to: "/dashboard/releases" });
+      if (response.data.data.status === "published") {
+        celebrateLaunch(saved.id);
+        await invalidateProjectCaches(queryClient, {
+          slug: saved.slug,
+          projectId: saved.id,
+        });
+        void navigate({ to: "/projects/$slug", params: { slug: saved.slug } });
+      } else {
+        void navigate({ to: "/dashboard/releases" });
+      }
     } catch (error) {
       setSaveState("error");
       failedSignature.current = JSON.stringify(form.getValues());
@@ -293,11 +307,11 @@ export default function SumbmitProvider({
     setRecovery(null);
   }
   return (
-    <SumbmitContext.Provider
+    <SubmitContext.Provider
       value={{
         form,
         active: step,
-        isFist: step === 0,
+        isFirst: step === 0,
         isLast: step === 3,
         next: () => changeStep(step + 1),
         previous: () => changeStep(step - 1),
@@ -316,6 +330,6 @@ export default function SumbmitProvider({
       }}
     >
       {children}
-    </SumbmitContext.Provider>
+    </SubmitContext.Provider>
   );
 }

@@ -56,7 +56,7 @@ export function Header({
     ? { to: "/" as const, label: "Explorar", icon: Compass }
     : {
         to: "/dashboard/releases" as const,
-        label: "Dashboard",
+        label: "Painel",
         icon: LayoutDashboard,
       };
   const avatar = (

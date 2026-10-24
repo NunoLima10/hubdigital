@@ -14,6 +14,7 @@ import {
   type Project,
 } from "@hubdigital/shared";
 import { toast } from "sonner";
+import { queryKeys } from "@/lib/query-keys";
 export function ProjectCommunityManager({ project }: { project: Project }) {
   const { data: session } = authClient.useSession();
   const viewer = session?.user.id ?? null;
@@ -55,8 +56,8 @@ export function ProjectCommunityManager({ project }: { project: Project }) {
       const changed =
         response.data.data.introduction !== introduction.trim() || response.data.data.kind !== kind;
       if (!changed) setIntroduction("");
-      cache.invalidateQueries({ queryKey: ["my-announcements", project.id] });
-      cache.invalidateQueries({ queryKey: ["announcements"] });
+      cache.invalidateQueries({ queryKey: queryKeys.myAnnouncements(project.id) });
+      cache.invalidateQueries({ queryKey: queryKeys.announcements });
       if (changed) {
         toast.info(
           "O anúncio já foi enviado com a mensagem anterior. A mensagem atual continua aqui por enviar.",
@@ -80,7 +81,7 @@ export function ProjectCommunityManager({ project }: { project: Project }) {
       await API.post(`/projects/${project.id}/makers`, { handle: target.trim().replace(/^@/, "") }),
     onSuccess: () => {
       setHandle("");
-      cache.invalidateQueries({ queryKey: ["project-makers", project.id] });
+      cache.invalidateQueries({ queryKey: queryKeys.projectMakers(project.id) });
       toast.success("Participação registada. Outros criadores precisam de aceitar o convite.");
     },
     onError: () => toast.error("Não foi possível adicionar este perfil. Confirma o nome público."),

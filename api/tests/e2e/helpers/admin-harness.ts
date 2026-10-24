@@ -91,6 +91,7 @@ export function projectFixture(
     businessModel: "b2c",
     availability: "public_beta",
     projectStage: "prototype",
+    aiInvolvement: "none",
     audiences: ["general_public"],
     country: "cv",
     island: "CV2",

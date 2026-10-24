@@ -49,7 +49,7 @@ export function SignInForm() {
           )}
         </label>
         <label className="block space-y-1.5 text-sm font-medium">
-          Password
+          Palavra-passe
           <Input type="password" required {...form.register("password")} />
           {form.formState.errors.password && (
             <span className="text-xs text-destructive">
@@ -59,7 +59,7 @@ export function SignInForm() {
         </label>
         <p className="text-right text-sm">
           <Link to="/forgot-password" className="text-primary hover:underline">
-            Esqueceste a password?
+            Esqueceste a palavra-passe?
           </Link>
         </p>
         <Button type="submit" disabled={isPending} className="w-full">

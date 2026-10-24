@@ -37,7 +37,7 @@ function RouteComponent() {
       <section aria-label="Conta" className="border-t pt-6">
         <AccountForm />
       </section>
-      <section aria-label="Password" className="border-t pt-6">
+      <section aria-label="Palavra-passe" className="border-t pt-6">
         <PasswordForm />
       </section>
       <section aria-labelledby="preferences-title" className="space-y-5 border-t pt-6">

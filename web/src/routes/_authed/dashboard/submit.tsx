@@ -1,7 +1,7 @@
 import { privatePageHead } from "@/lib/seo";
 import { DashboardPage } from "@/modules/dashboard/components/dashboard-page/dashboard-page";
 import { usePublicSettings } from "@/modules/settings/hooks/use-public-settings";
-import SumbmitProvider from "@/modules/submit/context/sumbmit-form";
+import SubmitProvider from "@/modules/submit/context/submit-provider";
 import { FormStepper } from "@/modules/submit/ui/container/form-stepper/form-stepper";
 import { createFileRoute } from "@tanstack/react-router";
 import { Wrench } from "lucide-react";
@@ -41,9 +41,9 @@ function SubmitPage() {
     <DashboardPage>
       {draft && isLoading ? <p role="status">A carregar rascunho…</p> : draft && (isError || !project || project.author?.id !== session?.user.id || project.status === "published" || project.status === "pending")
         ? <p>Este rascunho não está disponível para edição aqui. Abre os teus projetos para continuar.</p>
-        : <SumbmitProvider key={project?.id ?? "new"} project={project}>
+        : <SubmitProvider key={project?.id ?? "new"} project={project}>
             <FormStepper />
-          </SumbmitProvider>}
+          </SubmitProvider>}
     </DashboardPage>
   );
 }

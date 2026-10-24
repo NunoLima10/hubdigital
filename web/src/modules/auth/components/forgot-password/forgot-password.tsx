@@ -28,7 +28,7 @@ export function ForgotPassword() {
   }
   return (
     <AuthCard
-      title="Recuperar password"
+      title="Recuperar palavra-passe"
       subtitle="Insere o teu email para receber um link de recuperação"
     >
       <form onSubmit={form.handleSubmit(submit)} className="space-y-4">

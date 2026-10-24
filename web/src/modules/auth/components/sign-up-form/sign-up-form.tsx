@@ -44,8 +44,8 @@ export function SignUpForm() {
           [
             ["name", "Nome", "text"],
             ["email", "Email", "email"],
-            ["password", "Password", "password"],
-            ["confirmPassword", "Confirmar password", "password"],
+            ["password", "Palavra-passe", "password"],
+            ["confirmPassword", "Confirmar palavra-passe", "password"],
           ] as const
         ).map(([name, label, type]) => (
           <label key={name} className="block space-y-1.5 text-sm font-medium">

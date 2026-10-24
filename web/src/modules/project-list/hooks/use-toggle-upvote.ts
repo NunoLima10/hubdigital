@@ -3,6 +3,7 @@ import { ProjectMinimal } from "@/modules/submit/types/project";
 import { ItemResponse } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProjectsResponse } from "./use-projects";
+import { queryKeys } from "@/lib/query-keys";
 
 type ToggleUpvoteResponse = { upvoted: boolean; upvoteCount: number };
 
@@ -29,16 +30,16 @@ export function useToggleUpvote() {
   const { mutate, isPending, variables } = useMutation({
     mutationFn: toggleUpvote,
     onMutate: async (projectId: number) => {
-      await queryClient.cancelQueries({ queryKey: ["projects"] });
+      await queryClient.cancelQueries({ queryKey: queryKeys.projects });
 
       // The same project can sit in several cached listings at once (this week,
       // last week, an archived leaderboard), so patch every one of them.
       const previous = queryClient.getQueriesData<ProjectsResponse>({
-        queryKey: ["projects"],
+        queryKey: queryKeys.projects,
       });
 
       queryClient.setQueriesData<ProjectsResponse>(
-        { queryKey: ["projects"] },
+        { queryKey: queryKeys.projects },
         (current) =>
           current && {
             ...current,
@@ -59,7 +60,7 @@ export function useToggleUpvote() {
     // is authoritative, so write the real numbers back over it.
     onSuccess: (result, projectId) => {
       queryClient.setQueriesData<ProjectsResponse>(
-        { queryKey: ["projects"] },
+        { queryKey: queryKeys.projects },
         (current) =>
           current && {
             ...current,
@@ -74,7 +75,7 @@ export function useToggleUpvote() {
             ),
           },
       );
-      void queryClient.invalidateQueries({ queryKey: ["project"] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.projectDetails });
     },
     meta: {
       errorMessage: "Erro ao votar no projeto",
