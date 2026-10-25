@@ -90,18 +90,22 @@ export function getSubmissionQuality(values: CreateProjectInput, hasLogo: boolea
   const weighted =
     (completedRequired / required.length) * 6 +
     (completedRecommended / recommended.length) * 4;
-  const score = Math.max(1, Math.min(10, Math.round(weighted)));
+  const score = Math.max(0, Math.min(10, Math.round(weighted)));
+  const nextImprovement = criteria.find((item) => !item.complete) ?? null;
 
   return {
     score,
     label:
-      score >= 9
+      score === 10
         ? "Muito completo"
         : score >= 7
           ? "Quase pronto"
           : score >= 4
             ? "Bom começo"
-            : "Base por completar",
+            : score > 0
+              ? "Base por completar"
+              : "Por começar",
+    nextImprovement,
     required,
     recommended,
     completedRequired,

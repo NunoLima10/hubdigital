@@ -4,6 +4,7 @@ import {
   getSubmissionQuality,
   type QualityCriterion,
 } from "../../utils/quality-score";
+import { SubmissionQualityScore } from "./submission-quality-score";
 
 type ChecklistItem = QualityCriterion;
 
@@ -77,12 +78,7 @@ export function SubmissionQualityChecklist({ hasLogo }: { hasLogo: boolean }) {
             ser compreendido, mas não bloqueiam a publicação.
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-2xl font-semibold tracking-tight tabular-nums">
-            {quality.score}<span className="text-sm font-normal text-muted-foreground">/10</span>
-          </p>
-          <p className="text-xs text-muted-foreground">{quality.label}</p>
-        </div>
+        <SubmissionQualityScore quality={quality} />
       </div>
       <div className="space-y-4 border-t p-4">
         <ChecklistGroup title="Essencial" items={quality.required} onEdit={edit} />

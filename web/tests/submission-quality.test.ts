@@ -1,10 +1,11 @@
 import { initialProjectValues } from "@/modules/submit/context/initial-project-values";
 import { getSubmissionQuality } from "@/modules/submit/utils/quality-score";
+import { submissionQualityScoreColor } from "@/modules/submit/ui/components/submission-quality-score";
 import { describe, expect, it } from "vitest";
 
 describe("submission quality score", () => {
-  it("starts at one and reaches ten without blocking optional guidance", () => {
-    expect(getSubmissionQuality(initialProjectValues, false).score).toBe(1);
+  it("starts at zero and reaches ten without blocking optional guidance", () => {
+    expect(getSubmissionQuality(initialProjectValues, false).score).toBe(0);
 
     const complete = {
       ...initialProjectValues,
@@ -46,5 +47,14 @@ describe("submission quality score", () => {
     };
 
     expect(getSubmissionQuality(essentials, false).score).toBe(6);
+  });
+
+  it("uses distinct colors for empty, weak, good, and complete submissions", () => {
+    expect(submissionQualityScoreColor(0)).toBe("text-foreground");
+    expect(submissionQualityScoreColor(3)).toContain("text-destructive");
+    expect(submissionQualityScoreColor(7)).toContain("text-orange");
+    expect(submissionQualityScoreColor(8)).toContain("text-teal");
+    expect(submissionQualityScoreColor(9)).toContain("text-teal");
+    expect(submissionQualityScoreColor(10)).toContain("text-emerald");
   });
 });

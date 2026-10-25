@@ -41,8 +41,8 @@ function MakerPage() {
       )}
       {data && (
         <div className="space-y-8">
-          <div className="flex flex-wrap items-start gap-5">
-            <span className="flex size-18 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-muted-foreground">
+          <header className="grid gap-5 rounded-xl border bg-card p-5 sm:grid-cols-[auto_1fr] sm:p-6 lg:grid-cols-[auto_1fr_auto]">
+            <span className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted text-muted-foreground">
               {data.image ? (
                 <img
                   src={data.image}
@@ -53,17 +53,26 @@ function MakerPage() {
                 <UserRound className="size-8" />
               )}
             </span>
-            <div className="min-w-60 flex-1">
+            <div className="min-w-0">
               <h1 className="text-2xl font-semibold">{data.name}</h1>
-              <p className="text-sm text-muted-foreground">@{data.handle}</p>
-              {data.bio && <p className="mt-2 text-sm leading-6">{data.bio}</p>}
-              <div className="mt-3 flex flex-wrap gap-4 text-sm text-primary">
+              <p className="mt-0.5 text-sm text-muted-foreground">
+                @{data.handle}
+              </p>
+              {data.bio && (
+                <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-6">
+                  {data.bio}
+                </p>
+              )}
+              <nav
+                aria-label={`Links de ${data.name}`}
+                className="mt-4 flex flex-wrap gap-2"
+              >
                 {data.websiteUrl && (
                   <a
                     href={data.websiteUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 hover:underline"
+                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
                   >
                     <Globe className="size-4" />
                     Site
@@ -74,7 +83,7 @@ function MakerPage() {
                     href={data.githubUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 hover:underline"
+                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
                   >
                     <Github className="size-4" />
                     GitHub
@@ -85,7 +94,7 @@ function MakerPage() {
                     href={data.linkedinUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 hover:underline"
+                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
                   >
                     <Linkedin className="size-4" />
                     LinkedIn
@@ -96,29 +105,33 @@ function MakerPage() {
                     href={data.instagramUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 hover:underline"
+                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
                   >
                     <Instagram className="size-4" />
                     Instagram
                   </a>
                 )}
-              </div>
+              </nav>
             </div>
-            <div className="flex gap-6 rounded-lg border px-5 py-3 text-center text-sm">
+            <div className="flex self-start overflow-hidden rounded-lg border text-center text-sm sm:col-start-2 lg:col-start-auto">
               <div>
-                <strong className="block text-lg tabular-nums">
+                <strong className="block px-5 pt-3 text-lg tabular-nums">
                   {data.projectCount}
                 </strong>
-                <span className="text-muted-foreground">Projetos</span>
+                <span className="block px-5 pb-3 text-muted-foreground">
+                  Projetos
+                </span>
               </div>
-              <div>
-                <strong className="block text-lg tabular-nums">
+              <div className="border-l">
+                <strong className="block px-5 pt-3 text-lg tabular-nums">
                   {data.totalUpvotes}
                 </strong>
-                <span className="text-muted-foreground">Votos</span>
+                <span className="block px-5 pb-3 text-muted-foreground">
+                  Votos
+                </span>
               </div>
             </div>
-          </div>
+          </header>
           <section className="border-t pt-6">
             <h2 className="mb-3 text-lg font-semibold">Projetos</h2>
             {data.projects.length === 0 ? (

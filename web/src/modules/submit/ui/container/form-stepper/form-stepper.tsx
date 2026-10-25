@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { SubmissionProgress } from "../../components/submission-progress";
 import { LocationFields } from "../../components/location-fields/location-fields";
 import { getSubmissionQuality } from "../../../utils/quality-score";
+import { SubmissionQualityScore } from "../../components/submission-quality-score";
 
 export function FormStepper() {
   const {
@@ -87,11 +88,8 @@ export function FormStepper() {
                   : "O rascunho é guardado automaticamente depois de escolheres um nome."}
           </p>
         </div>
-        <div className="shrink-0 border-l pl-4 text-right" aria-label={`Qualidade da submissão: ${quality.score} em 10, ${quality.label}`}>
-          <p className="text-xl font-semibold tabular-nums">
-            {quality.score}<span className="text-xs font-normal text-muted-foreground">/10</span>
-          </p>
-          <p className="text-xs text-muted-foreground">Qualidade</p>
+        <div className="shrink-0 border-l pl-4 text-right">
+          <SubmissionQualityScore quality={quality} compact />
         </div>
       </div>
       {recovery && (

@@ -24,9 +24,6 @@ export function Profile() {
         <p className="truncate font-semibold">
           {data?.user.name ?? "Minha conta"}
         </p>
-        <p className="truncate text-sm text-muted-foreground">
-          {data?.user.email}
-        </p>
       </div>
       {handle && (
         <Link

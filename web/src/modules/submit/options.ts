@@ -9,14 +9,14 @@ export const aiInvolvementLabels: Record<(typeof aiInvolvementValues)[number], s
   none: "Sem IA",
   assisted: "Apoio pontual",
   substantial: "Colaboração importante",
-  primarily_ai: "Principalmente com IA",
+  primarily_ai: "Vibe coded",
 };
 
 export const aiInvolvementDescriptions: Record<(typeof aiInvolvementValues)[number], string> = {
   none: "Não usei ferramentas de IA para criar o projeto.",
   assisted: "Usei IA para ideias, texto, pesquisa ou ajuda pontual no código.",
-  substantial: "A IA ajudou a criar partes relevantes, que revi e desenvolvi.",
-  primarily_ai: "O projeto foi sobretudo gerado com IA e orientado por mim (vibe coded).",
+  substantial: "Usei um assistente como Claude Code, Codex ou Cursor para criar partes importantes, que revi e testei.",
+  primarily_ai: "Usei uma plataforma como Lovable ou Bolt para gerar quase todo o projeto, com pouca revisão manual.",
 };
 export const pricingLabels: Record<(typeof pricingValues)[number], string> = {
   free: "Gratuito", freemium: "Plano gratuito e opções pagas", paid: "Pago", contact_for_quote: "Sob consulta",

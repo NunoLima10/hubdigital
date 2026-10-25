@@ -56,6 +56,7 @@ export function Dialog({
   className,
   bodyClassName,
   dialogRef,
+  hideHeader = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -64,6 +65,7 @@ export function Dialog({
   className?: string;
   bodyClassName?: string;
   dialogRef?: RefObject<HTMLDivElement | null>;
+  hideHeader?: boolean;
 }) {
   useDialogScrollLock(open);
   return (
@@ -86,17 +88,21 @@ export function Dialog({
               className,
             )}
           >
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 md:px-5 md:py-4">
-              <DialogPrimitive.Title className="text-lg font-semibold">
-                {title}
-              </DialogPrimitive.Title>
-              <DialogPrimitive.Close
-                aria-label="Fechar"
-                className="flex size-11 shrink-0 items-center justify-center rounded hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:size-8"
-              >
-                <X className="size-4" />
-              </DialogPrimitive.Close>
-            </div>
+            {hideHeader ? (
+              <DialogPrimitive.Title className="sr-only">{title}</DialogPrimitive.Title>
+            ) : (
+              <div className="flex shrink-0 items-center justify-between gap-3 border-b px-4 py-3 md:px-5 md:py-4">
+                <DialogPrimitive.Title className="text-lg font-semibold">
+                  {title}
+                </DialogPrimitive.Title>
+                <DialogPrimitive.Close
+                  aria-label="Fechar"
+                  className="flex size-11 shrink-0 items-center justify-center rounded hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:size-8"
+                >
+                  <X className="size-4" />
+                </DialogPrimitive.Close>
+              </div>
+            )}
             <div className={cn("min-h-0 overflow-y-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:p-5", bodyClassName)}>
               {children}
             </div>
