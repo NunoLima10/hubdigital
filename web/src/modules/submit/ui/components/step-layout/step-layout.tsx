@@ -4,6 +4,7 @@ import { useSubmitForm } from "../../../hooks/use-submit-form";
 
 export function StepLayout({ children }: PropsWithChildren) {
   const {
+    active,
     isFirst,
     isLast,
     next,
@@ -34,12 +35,12 @@ export function StepLayout({ children }: PropsWithChildren) {
         </Button>
         {!isFirst && (
           <Button type="button" variant="outline" disabled={isPublishing} onClick={previous}>
-            Voltar
+            {isLast ? "Voltar à edição" : "Voltar"}
           </Button>
         )}
         {!isLast ? (
           <Button type="button" disabled={!canProceed || isPublishing} onClick={next}>
-            Próximo
+            {active === 3 ? "Rever projeto" : "Próximo"}
           </Button>
         ) : (
           <>

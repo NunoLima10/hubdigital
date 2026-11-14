@@ -209,12 +209,24 @@ describe("submission saving", () => {
       params: { slug: "saving-test" },
     });
   });
-  it("navigates directly to all four steps and resumes recovery at the final step", async () => {
+  it("opens review after Community and resumes recovery on the review screen", async () => {
     await act(async () => {
       state.goToStep(3);
     });
     expect(state.active).toBe(3);
+    expect(state.isLast).toBe(false);
+    expect(button("Rever projeto").disabled).toBe(false);
+    expect(button("Publicar projeto")).toBeUndefined();
+    await act(async () => {
+      button("Rever projeto").click();
+    });
+    expect(state.active).toBe(4);
     expect(state.isLast).toBe(true);
+    expect(button("Publicar projeto").disabled).toBe(false);
+    await act(async () => {
+      button("Voltar à edição").click();
+    });
+    expect(state.active).toBe(3);
     await act(async () => {
       state.goToStep(2);
     });
@@ -222,7 +234,7 @@ describe("submission saving", () => {
     expect(state.isLast).toBe(false);
     await edit("Four-step draft");
     await act(async () => {
-      state.goToStep(3);
+      state.goToStep(4);
     });
     await act(async () => {
       root.unmount();
@@ -235,12 +247,29 @@ describe("submission saving", () => {
         </SubmitProvider>,
       );
     });
-    expect(state.recovery?.step).toBe(3);
+    expect(state.recovery?.step).toBe(4);
     await act(async () => {
       state.resumeRecovery();
     });
-    expect(state.active).toBe(3);
+    expect(state.active).toBe(4);
     expect(state.form.getValues("name")).toBe("Four-step draft");
+  });
+
+  it("returns missing AI disclosure to Community instead of review", async () => {
+    await act(async () => {
+      state.form.setValue("name", "Community validation");
+      state.form.setValue("shortDescription", "A useful project for builders");
+      state.form.setValue("categoryId", 1);
+      state.form.setValue("projectStage", "idea");
+      state.form.setValue("availability", "not_available");
+      state.goToStep(4);
+    });
+    await act(async () => {
+      state.publish();
+    });
+    expect(state.active).toBe(3);
+    expect(state.form.getFieldState("aiInvolvement").invalid).toBe(true);
+    expect(mocks.post).not.toHaveBeenCalled();
   });
 
   it("returns invalid coordinates to the base step before any publication request", async () => {

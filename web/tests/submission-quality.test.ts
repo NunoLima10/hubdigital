@@ -4,6 +4,11 @@ import { submissionQualityScoreColor } from "@/modules/submit/ui/components/subm
 import { describe, expect, it } from "vitest";
 
 describe("submission quality score", () => {
+  it("routes community requests and AI disclosure to the Community step", () => {
+    const quality = getSubmissionQuality(initialProjectValues, false);
+    expect(quality.required.find((item) => item.label === "Uso de IA")?.step).toBe(3);
+    expect(quality.recommended.find((item) => item.label === "Pedido à comunidade")?.step).toBe(3);
+  });
   it("starts at zero and reaches ten without blocking optional guidance", () => {
     expect(getSubmissionQuality(initialProjectValues, false).score).toBe(0);
 

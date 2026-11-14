@@ -79,7 +79,7 @@ export function getSubmissionQuality(values: CreateProjectInput, hasLogo: boolea
       label: "Pedido à comunidade",
       description: "Indica se procuras feedback, testes, parceiros ou ajuda.",
       complete: values.helpWanted.length > 0 || Boolean(values.helpDescription.trim()),
-      step: 1,
+      step: 3,
       required: false,
     },
   ];

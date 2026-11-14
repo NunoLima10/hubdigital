@@ -5,6 +5,7 @@ import { StepLayout } from "../../components/step-layout/step-layout";
 import { ProjectCategories } from "../project-categories/project-categories";
 import { ProjectForm } from "../project-form/project-form";
 import { ProjectReview } from "../project-review/project-review";
+import { ProjectCommunityStep } from "../project-community-step/project-community-step";
 import { Button } from "@/components/ui/button";
 import { SubmissionProgress } from "../../components/submission-progress";
 import { LocationFields } from "../../components/location-fields/location-fields";
@@ -20,6 +21,7 @@ export function FormStepper() {
     resumeRecovery,
     discardRecovery,
     project,
+    savedProjectId,
     goToStep,
     isPublishing,
   } = useSubmitForm();
@@ -27,7 +29,9 @@ export function FormStepper() {
   const galleryImageKeys = values.galleryImageKeys;
   const logoKey = values.logoKey;
   const [logoPreviewUrl, setLogoPreviewUrl] = useState<string>();
-  const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<Record<string, string>>({});
+  const [galleryPreviewUrls, setGalleryPreviewUrls] = useState<
+    Record<string, string>
+  >({});
   const logoPreviewRef = useRef<string | undefined>(undefined);
   const galleryPreviewsRef = useRef<Record<string, string>>({});
 
@@ -61,18 +65,27 @@ export function FormStepper() {
   useEffect(
     () => () => {
       if (logoPreviewRef.current) URL.revokeObjectURL(logoPreviewRef.current);
-      Object.values(galleryPreviewsRef.current).forEach((url) => URL.revokeObjectURL(url));
+      Object.values(galleryPreviewsRef.current).forEach((url) =>
+        URL.revokeObjectURL(url),
+      );
     },
     [],
   );
-  const quality = getSubmissionQuality(values, Boolean(logoPreviewUrl ?? logoKey));
+  const quality = getSubmissionQuality(
+    values,
+    Boolean(logoPreviewUrl ?? logoKey),
+  );
 
   return (
     <div className="space-y-7">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
           <h1 className="text-xl font-semibold">
-            {project ? "Continuar projeto" : "Partilha o que estás a construir"}
+            {active === 4
+              ? "Revisão do projeto"
+              : project
+                ? "Continuar projeto"
+                : "Partilha o que estás a construir"}
           </h1>
           <p
             role="status"
@@ -111,23 +124,34 @@ export function FormStepper() {
       )}
       {!recovery && (
         <>
-          <SubmissionProgress active={active} onChange={goToStep} disabled={isPublishing} />
-          {active < 2 && (
+          {active < 4 && (
+            <SubmissionProgress
+              active={active}
+              onChange={goToStep}
+              disabled={isPublishing}
+            />
+          )}
+          {(active < 2 || active === 3) && (
             <p className="text-xs text-muted-foreground">
               <span className="text-destructive" aria-hidden="true">
                 *
               </span>{" "}
-              Campos obrigatórios para publicar. Podes guardar um rascunho incompleto.
+              Campos obrigatórios para publicar. Podes guardar um rascunho
+              incompleto.
             </p>
           )}
           <StepLayout>
             {active === 0 ? (
               <ProjectForm
                 form={form}
+                projectId={savedProjectId}
                 logoPreviewUrl={
                   logoKey === null
                     ? undefined
-                    : (logoPreviewUrl ?? toAssetUrl(logoKey) ?? project?.logoUrl ?? undefined)
+                    : (logoPreviewUrl ??
+                      toAssetUrl(logoKey) ??
+                      project?.logoUrl ??
+                      undefined)
                 }
                 galleryPreviewUrls={galleryImageKeys.map(
                   (key) => galleryPreviewUrls[key] ?? toAssetUrl(key) ?? "",
@@ -140,12 +164,17 @@ export function FormStepper() {
               <ProjectCategories form={form} />
             ) : active === 2 ? (
               <LocationFields form={form} />
+            ) : active === 3 ? (
+              <ProjectCommunityStep />
             ) : (
               <ProjectReview
                 logoPreviewUrl={
                   logoKey === null
                     ? undefined
-                    : (logoPreviewUrl ?? toAssetUrl(logoKey) ?? project?.logoUrl ?? undefined)
+                    : (logoPreviewUrl ??
+                      toAssetUrl(logoKey) ??
+                      project?.logoUrl ??
+                      undefined)
                 }
                 galleryPreviewUrls={galleryPreviewUrls}
               />

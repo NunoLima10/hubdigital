@@ -13,6 +13,7 @@ import { DescriptionEditor } from "../../components/description-editor/descripti
 
 type Props = {
   form: UseFormReturn<CreateProjectInput>;
+  projectId?: number | null;
   logoPreviewUrl?: string;
   galleryPreviewUrls?: string[];
   onLogoPreviewChange?: (file: File | null) => void;
@@ -21,6 +22,7 @@ type Props = {
 };
 export function ProjectForm({
   form,
+  projectId,
   logoPreviewUrl,
   galleryPreviewUrls,
   onLogoPreviewChange,
@@ -30,7 +32,13 @@ export function ProjectForm({
   const values = form.watch();
   const fields = [
     ["name", "Nome do projeto", "Meu Projeto", "text", true],
-    ["shortDescription", "Descrição curta", "O projeto numa frase", "text", true],
+    [
+      "shortDescription",
+      "Descrição curta",
+      "O projeto numa frase",
+      "text",
+      true,
+    ],
   ] as const;
   return (
     <div className="space-y-5">
@@ -41,13 +49,18 @@ export function ProjectForm({
               {label}
               {required && <RequiredIndicator />}
             </span>
-            <span aria-hidden="true" className="text-xs font-normal text-muted-foreground">
+            <span
+              aria-hidden="true"
+              className="text-xs font-normal text-muted-foreground"
+            >
               {values[name].length}/{name === "name" ? 120 : 200}
             </span>
           </span>
           <Input
             aria-invalid={Boolean(form.formState.errors[name]) || undefined}
-            aria-describedby={form.formState.errors[name] ? `${name}-error` : undefined}
+            aria-describedby={
+              form.formState.errors[name] ? `${name}-error` : undefined
+            }
             type={type}
             maxLength={name === "name" ? 120 : 200}
             placeholder={placeholder}
@@ -55,7 +68,11 @@ export function ProjectForm({
             {...form.register(name)}
           />
           {form.formState.errors[name]?.message && (
-            <span id={`${name}-error`} role="alert" className="text-xs text-destructive">
+            <span
+              id={`${name}-error`}
+              role="alert"
+              className="text-xs text-destructive"
+            >
               {form.formState.errors[name]?.message}
             </span>
           )}
@@ -64,7 +81,11 @@ export function ProjectForm({
       <div className="space-y-4">
         {(
           [
-            { name: "projectStage", label: "Fase do projeto", options: projectStageOptions },
+            {
+              name: "projectStage",
+              label: "Fase do projeto",
+              options: projectStageOptions,
+            },
             {
               name: "availability",
               label: "Como as pessoas podem experimentar?",
@@ -81,24 +102,34 @@ export function ProjectForm({
               placeholder="Escolhe uma opção"
               required
               label={label}
-              describedBy={form.formState.errors[name] ? `${name}-error` : undefined}
+              describedBy={
+                form.formState.errors[name] ? `${name}-error` : undefined
+              }
               invalid={Boolean(form.formState.errors[name])}
-              onValueChange={(value) => form.setValue(name, value as never, { shouldDirty: true })}
+              onValueChange={(value) =>
+                form.setValue(name, value as never, { shouldDirty: true })
+              }
             />
             {form.formState.errors[name]?.message && (
-              <span id={`${name}-error`} role="alert" className="text-xs text-destructive">
+              <span
+                id={`${name}-error`}
+                role="alert"
+                className="text-xs text-destructive"
+              >
                 {form.formState.errors[name]?.message}
               </span>
             )}
           </label>
         ))}
       </div>
-      <ProjectDestinations form={form} />
+      <ProjectDestinations form={form} projectId={projectId} />
       <div>
         <p className="mb-1.5 text-sm font-medium">Descrição (opcional)</p>
         <DescriptionEditor
           value={values.description}
-          onChange={(html) => form.setValue("description", html, { shouldValidate: true })}
+          onChange={(html) =>
+            form.setValue("description", html, { shouldValidate: true })
+          }
         />
       </div>
       <ImageSelector
@@ -108,12 +139,16 @@ export function ProjectForm({
         actionLabel="Carregar logo"
         value={values.logoKey}
         previewUrl={logoPreviewUrl}
-        onChange={(key) => form.setValue("logoKey", key, { shouldValidate: true })}
+        onChange={(key) =>
+          form.setValue("logoKey", key, { shouldValidate: true })
+        }
         onPreviewChange={onLogoPreviewChange}
         error={form.formState.errors.logoKey?.message}
       />
       <div className="space-y-2">
-        <p className="text-xs text-muted-foreground">Pré-visualização na descoberta</p>
+        <p className="text-xs text-muted-foreground">
+          Pré-visualização na descoberta
+        </p>
         <ProjectCard
           name={values.name || "Nome do projeto"}
           description={values.shortDescription || "O projeto numa frase"}
@@ -125,8 +160,14 @@ export function ProjectForm({
           Vídeo no YouTube (opcional)
           <Input
             type="url"
-            aria-invalid={Boolean(form.formState.errors.youtubeVideoUrl) || undefined}
-            aria-describedby={form.formState.errors.youtubeVideoUrl ? "youtube-url-error" : undefined}
+            aria-invalid={
+              Boolean(form.formState.errors.youtubeVideoUrl) || undefined
+            }
+            aria-describedby={
+              form.formState.errors.youtubeVideoUrl
+                ? "youtube-url-error"
+                : undefined
+            }
             placeholder="https://www.youtube.com/watch?v=..."
             {...form.register("youtubeVideoUrl")}
           />
@@ -135,22 +176,27 @@ export function ProjectForm({
           Opcional. Quando existir, o trailer aparece primeiro na galeria.
         </p>
         {form.formState.errors.youtubeVideoUrl?.message && (
-          <p id="youtube-url-error" role="alert" className="text-xs text-destructive">
+          <p
+            id="youtube-url-error"
+            role="alert"
+            className="text-xs text-destructive"
+          >
             {form.formState.errors.youtubeVideoUrl.message}
           </p>
         )}
-        {values.youtubeVideoUrl && getYoutubeVideoId(values.youtubeVideoUrl) && (
-          <div className="relative aspect-video max-w-sm overflow-hidden rounded-lg border bg-muted">
-            <img
-              src={`https://i.ytimg.com/vi/${getYoutubeVideoId(values.youtubeVideoUrl)}/hqdefault.jpg`}
-              alt="Pré-visualização do trailer"
-              className="size-full object-cover"
-            />
-            <span className="absolute inset-0 grid place-items-center bg-black/15 text-sm font-semibold text-white">
-              Trailer · primeira posição
-            </span>
-          </div>
-        )}
+        {values.youtubeVideoUrl &&
+          getYoutubeVideoId(values.youtubeVideoUrl) && (
+            <div className="relative aspect-video max-w-sm overflow-hidden rounded-lg border bg-muted">
+              <img
+                src={`https://i.ytimg.com/vi/${getYoutubeVideoId(values.youtubeVideoUrl)}/hqdefault.jpg`}
+                alt="Pré-visualização do trailer"
+                className="size-full object-cover"
+              />
+              <span className="absolute inset-0 grid place-items-center bg-black/15 text-sm font-semibold text-white">
+                Trailer · primeira posição
+              </span>
+            </div>
+          )}
       </div>
       <GalleryImageSelector
         value={values.galleryImageKeys}

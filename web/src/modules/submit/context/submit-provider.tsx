@@ -19,7 +19,11 @@ import { authClient } from "@/lib/auth-client";
 import type { ItemResponse } from "@/types";
 import { createProjectSchema } from "../hooks/use-create-project";
 import type { CreateProjectInput, Project } from "../types/project";
-import { draftRecoverySchema, projectToFormValues, toDraftPayload } from "../utils/draft";
+import {
+  draftRecoverySchema,
+  projectToFormValues,
+  toDraftPayload,
+} from "../utils/draft";
 import {
   invalidateProjectCaches,
   invalidateProjectCollections,
@@ -48,12 +52,16 @@ const stepFields: (keyof CreateProjectInput)[][] = [
     "secondaryCategoryIds",
     "pricing",
     "languages",
-    "helpWanted",
-    "helpDescription",
     "teamDescription",
   ],
-  ["location", "additionalLocations", "teamMode", "localConnections", "serviceArea"],
-  ["aiInvolvement"],
+  [
+    "location",
+    "additionalLocations",
+    "teamMode",
+    "localConnections",
+    "serviceArea",
+  ],
+  ["helpWanted", "helpDescription", "aiInvolvement"],
 ];
 import { SubmitContext, type SaveState, type Recovery } from "./submit-context";
 import { initialProjectValues } from "./initial-project-values";
@@ -65,7 +73,12 @@ export default function SubmitProvider({
   project,
 }: PropsWithChildren<{ project?: Project }>) {
   const [step, setStep] = useState(0);
-  const [saveState, setSaveState] = useState<SaveState>(project ? "saved" : "unsaved");
+  const [savedProjectId, setSavedProjectId] = useState<number | null>(
+    project?.id ?? null,
+  );
+  const [saveState, setSaveState] = useState<SaveState>(
+    project ? "saved" : "unsaved",
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [recovery, setRecovery] = useState<Recovery | null>(null);
@@ -78,13 +91,17 @@ export default function SubmitProvider({
   const activeSave = useRef<Promise<SavedProject> | null>(null);
   const publishing = useRef(false);
   const finished = useRef(false);
-  const lastSaved = useRef(project ? JSON.stringify(projectToFormValues(project)) : "");
+  const lastSaved = useRef(
+    project ? JSON.stringify(projectToFormValues(project)) : "",
+  );
   const failedSignature = useRef<string | null>(null);
   const storageKey = session?.user.id
     ? `hd:submission:${session.user.id}:${project?.id ?? "new"}`
     : null;
   const form = useForm<CreateProjectInput>({
-    defaultValues: project ? projectToFormValues(project) : initialProjectValues,
+    defaultValues: project
+      ? projectToFormValues(project)
+      : initialProjectValues,
     resolver: zodResolver(createProjectSchema, undefined, {
       raw: true,
     }) as Resolver<CreateProjectInput>,
@@ -93,7 +110,9 @@ export default function SubmitProvider({
   const values = form.watch();
   const signature = JSON.stringify(values);
   const canSave = Boolean(values.name.trim()) && !recovery;
-  const hasWork = Boolean(projectId.current || signature !== JSON.stringify(initialProjectValues));
+  const hasWork = Boolean(
+    projectId.current || signature !== JSON.stringify(initialProjectValues),
+  );
 
   useEffect(() => {
     if (!storageKey) return;
@@ -110,7 +129,14 @@ export default function SubmitProvider({
     setRecoveryChecked(true);
   }, [storageKey]);
   useEffect(() => {
-    if (!storageKey || !recoveryChecked || recovery || finished.current || !hasWork) return;
+    if (
+      !storageKey ||
+      !recoveryChecked ||
+      recovery ||
+      finished.current ||
+      !hasWork
+    )
+      return;
     if (project && signature === lastSaved.current) {
       try {
         window.localStorage.removeItem(storageKey);
@@ -132,7 +158,17 @@ export default function SubmitProvider({
     } catch {
       /* Never block saving because a local recovery copy failed. */
     }
-  }, [storageKey, recoveryChecked, recovery, values, step, saveState, hasWork, project, signature]);
+  }, [
+    storageKey,
+    recoveryChecked,
+    recovery,
+    values,
+    step,
+    saveState,
+    hasWork,
+    project,
+    signature,
+  ]);
 
   const persist = useCallback(
     async (snapshot: CreateProjectInput) => {
@@ -156,6 +192,7 @@ export default function SubmitProvider({
         requestOptions,
       );
       lastSaved.current = JSON.stringify(snapshot);
+      setSavedProjectId(projectId.current);
       failedSignature.current = null;
       void queryClient.invalidateQueries({ queryKey: queryKeys.myProjects });
       void queryClient.invalidateQueries({
@@ -167,7 +204,12 @@ export default function SubmitProvider({
   );
   const save = useCallback(
     async (explicit: boolean) => {
-      if (activeSave.current || publishing.current || !form.getValues("name").trim()) return;
+      if (
+        activeSave.current ||
+        publishing.current ||
+        !form.getValues("name").trim()
+      )
+        return;
       const snapshot = structuredClone(form.getValues());
       setIsSaving(true);
       setSaveState("saving");
@@ -175,13 +217,20 @@ export default function SubmitProvider({
       activeSave.current = request;
       try {
         await request;
-        setSaveState(JSON.stringify(form.getValues()) === lastSaved.current ? "saved" : "unsaved");
-        if (explicit) toast.success("Rascunho guardado. Podes continuar mais tarde.");
+        setSaveState(
+          JSON.stringify(form.getValues()) === lastSaved.current
+            ? "saved"
+            : "unsaved",
+        );
+        if (explicit)
+          toast.success("Rascunho guardado. Podes continuar mais tarde.");
       } catch {
         failedSignature.current = JSON.stringify(snapshot);
         setSaveState("error");
         if (explicit)
-          toast.error("Não foi possível guardar. As alterações continuam neste formulário.");
+          toast.error(
+            "Não foi possível guardar. As alterações continuam neste formulário.",
+          );
       } finally {
         activeSave.current = null;
         setIsSaving(false);
@@ -190,15 +239,35 @@ export default function SubmitProvider({
     [form, persist],
   );
   useEffect(() => {
-    if (!recoveryChecked || recovery || isSaving || isPublishing || !canSave || finished.current)
+    if (
+      !recoveryChecked ||
+      recovery ||
+      isSaving ||
+      isPublishing ||
+      !canSave ||
+      finished.current
+    )
       return;
-    if (signature === lastSaved.current || signature === failedSignature.current) return;
+    if (
+      signature === lastSaved.current ||
+      signature === failedSignature.current
+    )
+      return;
     const timeout = window.setTimeout(() => void save(false), 1200);
     return () => window.clearTimeout(timeout);
-  }, [signature, recoveryChecked, recovery, isSaving, isPublishing, canSave, save]);
+  }, [
+    signature,
+    recoveryChecked,
+    recovery,
+    isSaving,
+    isPublishing,
+    canSave,
+    save,
+  ]);
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
-      if (hasWork && signature !== lastSaved.current && !finished.current) event.preventDefault();
+      if (hasWork && signature !== lastSaved.current && !finished.current)
+        event.preventDefault();
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
@@ -208,7 +277,7 @@ export default function SubmitProvider({
     if (publishing.current || recovery) return;
     startTransition(() => {
       addTransitionType(next > step ? "submit-forward" : "submit-backward");
-      setStep(Math.max(0, Math.min(next, 3)));
+      setStep(Math.max(0, Math.min(next, 4)));
     });
   }
   async function publish() {
@@ -231,11 +300,9 @@ export default function SubmitProvider({
       setSaveState("saving");
       const saved = await persist(structuredClone(form.getValues()));
       setSaveState("saved");
-      const response = await API.post<ItemResponse<SavedProject & { status: string }>>(
-        `/projects/${saved.id}/publish`,
-        undefined,
-        requestOptions,
-      );
+      const response = await API.post<
+        ItemResponse<SavedProject & { status: string }>
+      >(`/projects/${saved.id}/publish`, undefined, requestOptions);
       finished.current = true;
       if (storageKey) {
         try {
@@ -268,7 +335,9 @@ export default function SubmitProvider({
           { path: string; message: string }[] | undefined;
         if (issues?.length) {
           issues.forEach((issue) =>
-            form.setError(issue.path as keyof CreateProjectInput, { message: issue.message }),
+            form.setError(issue.path as keyof CreateProjectInput, {
+              message: issue.message,
+            }),
           );
           const root = issues[0].path.split(".")[0];
           const errorStep = stepFields.findIndex((fields) =>
@@ -312,7 +381,7 @@ export default function SubmitProvider({
         form,
         active: step,
         isFirst: step === 0,
-        isLast: step === 3,
+        isLast: step === 4,
         next: () => changeStep(step + 1),
         previous: () => changeStep(step - 1),
         goToStep: changeStep,
@@ -327,6 +396,7 @@ export default function SubmitProvider({
         resumeRecovery,
         discardRecovery,
         project,
+        savedProjectId,
       }}
     >
       {children}

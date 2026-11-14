@@ -6,13 +6,17 @@ import {
   toCreateProjectPayload,
 } from "@/modules/submit/hooks/use-create-project";
 import { useUpdateProject } from "@/modules/submit/hooks/use-update-project";
-import type { CreateProjectInput, Project } from "@/modules/submit/types/project";
+import type {
+  CreateProjectInput,
+  Project,
+} from "@/modules/submit/types/project";
 import { projectToFormValues } from "@/modules/submit/utils/draft";
 import { ProjectCategories } from "@/modules/submit/ui/container/project-categories/project-categories";
 import { LocationFields } from "@/modules/submit/ui/components/location-fields/location-fields";
 import { ProjectForm } from "@/modules/submit/ui/container/project-form/project-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, type Resolver } from "react-hook-form";
+import { ProjectCollaborators } from "@/modules/community/project-collaborators";
 
 export function EditProjectModal({
   project,
@@ -28,12 +32,20 @@ export function EditProjectModal({
       title="Editar projeto"
       className="max-h-[90dvh] max-w-none md:max-w-3xl"
     >
-      {project && <EditProjectForm key={project.id} project={project} onClose={onClose} />}
+      {project && (
+        <EditProjectForm key={project.id} project={project} onClose={onClose} />
+      )}
     </Dialog>
   );
 }
 
-function EditProjectForm({ project, onClose }: { project: Project; onClose: () => void }) {
+function EditProjectForm({
+  project,
+  onClose,
+}: {
+  project: Project;
+  onClose: () => void;
+}) {
   const form = useForm<CreateProjectInput>({
     defaultValues: projectToFormValues(project),
     resolver: zodResolver(createProjectSchema, undefined, {
@@ -53,15 +65,26 @@ function EditProjectForm({ project, onClose }: { project: Project; onClose: () =
     >
       <ProjectForm
         form={form}
-        logoPreviewUrl={toAssetUrl(form.watch("logoKey")) ?? project.logoUrl ?? undefined}
-        galleryPreviewUrls={form.watch("galleryImageKeys").map((key) => toAssetUrl(key) ?? "")}
+        projectId={project.id}
+        logoPreviewUrl={
+          toAssetUrl(form.watch("logoKey")) ?? project.logoUrl ?? undefined
+        }
+        galleryPreviewUrls={form
+          .watch("galleryImageKeys")
+          .map((key) => toAssetUrl(key) ?? "")}
       />
       <div className="border-t pt-5">
         <ProjectCategories form={form} />
       </div>
       <LocationFields form={form} />
+      <ProjectCollaborators projectId={project.id} />
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onClose}
+          disabled={isPending}
+        >
           Cancelar
         </Button>
         <Button type="submit" disabled={isPending}>

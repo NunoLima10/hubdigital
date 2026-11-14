@@ -56,13 +56,6 @@ export function SubmissionQualityChecklist({ hasLogo }: { hasLogo: boolean }) {
   const quality = getSubmissionQuality(values, hasLogo);
 
   function edit(item: ChecklistItem) {
-    if (item.step === 3) {
-      document.getElementById("ai-disclosure")?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-      return;
-    }
     goToStep(item.step);
   }
 

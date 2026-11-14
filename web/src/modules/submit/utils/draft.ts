@@ -36,7 +36,7 @@ export const draftFormSchema = projectDraftSchema.extend({
 
 export const draftRecoverySchema = z.object({
   values: draftFormSchema,
-  step: z.number().int().min(0).max(3),
+  step: z.number().int().min(0).max(4),
   projectId: z.number().int().positive().nullable(),
   creationKey: z.string().uuid(),
 });

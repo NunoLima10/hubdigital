@@ -24,5 +24,8 @@ type SubmitContextType = {
   resumeRecovery: () => void;
   discardRecovery: () => void;
   project?: Project;
+  savedProjectId: number | null;
 };
-export const SubmitContext = createContext<SubmitContextType | undefined>(undefined);
+export const SubmitContext = createContext<SubmitContextType | undefined>(
+  undefined,
+);

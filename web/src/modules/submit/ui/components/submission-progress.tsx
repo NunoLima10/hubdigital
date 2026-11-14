@@ -4,7 +4,7 @@ const steps = [
   { name: "Projeto", description: "Nome, links e imagens" },
   { name: "Detalhes", description: "Categorias e acesso" },
   { name: "Base", description: "Localização e ligação" },
-  { name: "Revisão", description: "Confirma e publica" },
+  { name: "Comunidade", description: "Feedback, IA e colaboradores" },
 ];
 
 export function SubmissionProgress({
