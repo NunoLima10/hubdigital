@@ -2,7 +2,6 @@ import { config } from '@/config';
 import { setupDB } from '@/db';
 import { RundSeeding } from '@/db/seeds';
 import { logger } from '@/utils/logger';
-import 'dotenv/config';
 
 async function main() {
   try {
