@@ -1,5 +1,5 @@
 {
-  "id": "2d61a4ee-f0f1-48db-96a4-b343a4769524",
+  "id": "e05bd207-6b40-4647-be5e-e9a1bfd01de3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -2104,6 +2104,12 @@
           "primaryKey": true,
           "notNull": true
         },
+        "membership_number": {
+          "name": "membership_number",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true
+        },
         "user_id": {
           "name": "user_id",
           "type": "text",
@@ -2222,6 +2228,21 @@
           "columns": [
             {
               "expression": "handle",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "publisher_membership_number_idx": {
+          "name": "publisher_membership_number_idx",
+          "columns": [
+            {
+              "expression": "membership_number",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -2969,8 +2990,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.project_makers": {
-      "name": "project_makers",
+    "public.project_members": {
+      "name": "project_members",
       "schema": "",
       "columns": {
         "id": {
@@ -2999,7 +3020,7 @@
         },
         "status": {
           "name": "status",
-          "type": "maker_membership_status",
+          "type": "project_member_status",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true
@@ -3019,8 +3040,8 @@
         }
       },
       "indexes": {
-        "project_makers_user_idx": {
-          "name": "project_makers_user_idx",
+        "project_members_user_idx": {
+          "name": "project_members_user_idx",
           "columns": [
             {
               "expression": "project_id",
@@ -3040,8 +3061,8 @@
           "method": "btree",
           "with": {}
         },
-        "project_makers_invitations_idx": {
-          "name": "project_makers_invitations_idx",
+        "project_members_invitations_idx": {
+          "name": "project_members_invitations_idx",
           "columns": [
             {
               "expression": "user_id",
@@ -3063,9 +3084,9 @@
         }
       },
       "foreignKeys": {
-        "project_makers_project_id_projects_id_fk": {
-          "name": "project_makers_project_id_projects_id_fk",
-          "tableFrom": "project_makers",
+        "project_members_project_id_projects_id_fk": {
+          "name": "project_members_project_id_projects_id_fk",
+          "tableFrom": "project_members",
           "tableTo": "projects",
           "columnsFrom": [
             "project_id"
@@ -3076,9 +3097,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "project_makers_user_id_users_id_fk": {
-          "name": "project_makers_user_id_users_id_fk",
-          "tableFrom": "project_makers",
+        "project_members_user_id_users_id_fk": {
+          "name": "project_members_user_id_users_id_fk",
+          "tableFrom": "project_members",
           "tableTo": "users",
           "columnsFrom": [
             "user_id"
@@ -3089,9 +3110,9 @@
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
-        "project_makers_invited_by_users_id_fk": {
-          "name": "project_makers_invited_by_users_id_fk",
-          "tableFrom": "project_makers",
+        "project_members_invited_by_users_id_fk": {
+          "name": "project_members_invited_by_users_id_fk",
+          "tableFrom": "project_members",
           "tableTo": "users",
           "columnsFrom": [
             "invited_by"
@@ -3244,6 +3265,203 @@
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
+    },
+    "public.badges": {
+      "name": "badges",
+      "schema": "",
+      "columns": {
+        "key": {
+          "name": "key",
+          "type": "varchar(40)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "award_mode": {
+          "name": "award_mode",
+          "type": "badge_award_mode",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.user_badges": {
+      "name": "user_badges",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "badge_key": {
+          "name": "badge_key",
+          "type": "varchar(40)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "awarded_at": {
+          "name": "awarded_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "awarded_by": {
+          "name": "awarded_by",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "featured": {
+          "name": "featured",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "seen_at": {
+          "name": "seen_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "user_badges_user_badge_idx": {
+          "name": "user_badges_user_badge_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "badge_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "user_badges_featured_idx": {
+          "name": "user_badges_featured_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "where": "\"user_badges\".\"featured\"",
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "user_badges_badge_idx": {
+          "name": "user_badges_badge_idx",
+          "columns": [
+            {
+              "expression": "badge_key",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "user_badges_user_id_users_id_fk": {
+          "name": "user_badges_user_id_users_id_fk",
+          "tableFrom": "user_badges",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_badges_badge_key_badges_key_fk": {
+          "name": "user_badges_badge_key_badges_key_fk",
+          "tableFrom": "user_badges",
+          "tableTo": "badges",
+          "columnsFrom": [
+            "badge_key"
+          ],
+          "columnsTo": [
+            "key"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "user_badges_awarded_by_users_id_fk": {
+          "name": "user_badges_awarded_by_users_id_fk",
+          "tableFrom": "user_badges",
+          "tableTo": "users",
+          "columnsFrom": [
+            "awarded_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
     }
   },
   "enums": {
@@ -3268,7 +3486,9 @@
         "setting.update",
         "report.resolve",
         "category.create",
-        "category.update"
+        "category.update",
+        "user.badge_grant",
+        "user.badge_revoke"
       ]
     },
     "public.moderation_target": {
@@ -3543,12 +3763,13 @@
         "rejected"
       ]
     },
-    "public.maker_membership_status": {
-      "name": "maker_membership_status",
+    "public.project_member_status": {
+      "name": "project_member_status",
       "schema": "public",
       "values": [
         "pending",
-        "accepted"
+        "accepted",
+        "declined"
       ]
     },
     "public.project_revision_status": {
@@ -3558,6 +3779,14 @@
         "pending",
         "approved",
         "rejected"
+      ]
+    },
+    "public.badge_award_mode": {
+      "name": "badge_award_mode",
+      "schema": "public",
+      "values": [
+        "automatic",
+        "manual"
       ]
     }
   },
