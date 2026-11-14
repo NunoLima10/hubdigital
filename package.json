@@ -15,6 +15,7 @@
     "api:dbml": "pnpm --filter @hubdigital/api dbml:generate",
     "api:db:seed:dev": "pnpm --filter @hubdigital/api db:seed:dev",
     "api:build": "pnpm run --filter @hubdigital/api build",
+    "api:start": "pnpm run --filter @hubdigital/api start",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down"
   },

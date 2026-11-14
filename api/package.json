@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tsx --watch src/main.ts",
     "build": "tsc && tsc-alias",
+    "start": "node dist/main.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
@@ -22,6 +23,7 @@
     "@types/node": "^22.15.23",
     "drizzle-dbml-generator": "^0.10.0",
     "drizzle-kit": "^0.31.1",
+    "tsc-alias": "^1.9.10",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },
