@@ -22,8 +22,14 @@ import {
 import { users } from "./auth";
 import { projects } from "./projects";
 
-export const announcementKindEnum = pgEnum("announcement_kind", announcementKindValues);
-export const announcementStatusEnum = pgEnum("announcement_status", announcementStatusValues);
+export const announcementKindEnum = pgEnum(
+  "announcement_kind",
+  announcementKindValues,
+);
+export const announcementStatusEnum = pgEnum(
+  "announcement_status",
+  announcementStatusValues,
+);
 export const makerMembershipStatusEnum = pgEnum(
   "maker_membership_status",
   makerMembershipStatusValues,
@@ -48,20 +54,33 @@ export const projectAnnouncements = pgTable(
     introduction: varchar("introduction", { length: 1000 }).notNull(),
     creationKey: varchar("creation_key", { length: 36 }).notNull(),
     status: announcementStatusEnum("status").notNull(),
-    publishedAt: timestamp("published_at", { withTimezone: true, mode: "string" }),
+    publishedAt: timestamp("published_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
     rejectionReason: text("rejection_reason"),
-    reviewedBy: text("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+    reviewedBy: text("reviewed_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .notNull()
       .defaultNow(),
   },
   (table) => [
-    uniqueIndex("project_announcements_creation_idx").on(table.projectId, table.creationKey),
+    uniqueIndex("project_announcements_creation_idx").on(
+      table.projectId,
+      table.creationKey,
+    ),
     uniqueIndex("project_first_release_idx")
       .on(table.projectId)
-      .where(sql`${table.kind}='first_release' and ${table.status}<>'rejected'`),
+      .where(
+        sql`${table.kind}='first_release' and ${table.status}<>'rejected'`,
+      ),
     // A weekly listing is a published_at range over published rows.
-    index("project_announcements_published_idx").on(table.status, table.publishedAt),
+    index("project_announcements_published_idx").on(
+      table.status,
+      table.publishedAt,
+    ),
   ],
 );
 
@@ -93,8 +112,11 @@ export const projectMakers = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     // Detaches rather than cascades: the inviter leaving must not remove other
     // people from the team.
-    invitedBy: text("invited_by").references(() => users.id, { onDelete: "set null" }),
+    invitedBy: text("invited_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
     status: makerMembershipStatusEnum("status").notNull(),
+    role: varchar("role", { length: 80 }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .notNull()
       .defaultNow(),
@@ -114,10 +136,15 @@ export const projectRevisions = pgTable(
       .references(() => projects.id, { onDelete: "cascade" }),
     body: jsonb("body").$type<ProjectBody>().notNull(),
     baseVersion: integer("base_version").notNull().default(0),
-    baseUpdatedAt: timestamp("base_updated_at", { withTimezone: true, mode: "string" }).notNull(),
+    baseUpdatedAt: timestamp("base_updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
     status: projectRevisionStatusEnum("status").notNull().default("pending"),
     reason: text("reason"),
-    reviewedBy: text("reviewed_by").references(() => users.id, { onDelete: "set null" }),
+    reviewedBy: text("reviewed_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .notNull()
       .defaultNow(),
@@ -126,6 +153,9 @@ export const projectRevisions = pgTable(
     uniqueIndex("project_pending_revision_idx")
       .on(table.projectId)
       .where(sql`${table.status}='pending'`),
-    index("project_revisions_project_created_idx").on(table.projectId, table.createdAt.desc()),
+    index("project_revisions_project_created_idx").on(
+      table.projectId,
+      table.createdAt.desc(),
+    ),
   ],
 );

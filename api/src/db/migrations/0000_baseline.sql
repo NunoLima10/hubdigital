@@ -1,10 +1,11 @@
--- Trigram GIN indexes on projects (free-text search) need this before the tables.
+-- Trigram GIN indexes on projects require this extension before index creation.
 CREATE EXTENSION IF NOT EXISTS pg_trgm;--> statement-breakpoint
 CREATE TYPE "public"."moderation_action" AS ENUM('project.approve', 'project.reject', 'project.unpublish', 'project.restore', 'project.shadow_ban', 'project.unshadow_ban', 'project.edit_published', 'user.shadow_ban', 'user.unshadow_ban', 'comment.hide', 'comment.unhide', 'comment.delete', 'publisher.trust', 'publisher.untrust', 'setting.update', 'report.resolve', 'category.create', 'category.update');--> statement-breakpoint
 CREATE TYPE "public"."moderation_target" AS ENUM('project', 'user', 'comment', 'publisher', 'setting', 'report');--> statement-breakpoint
 CREATE TYPE "public"."project_event_source" AS ENUM('web', 'app');--> statement-breakpoint
 CREATE TYPE "public"."project_event_type" AS ENUM('view', 'visit');--> statement-breakpoint
 CREATE TYPE "public"."project_link_kind" AS ENUM('website', 'app_store', 'repository', 'demo', 'documentation', 'other');--> statement-breakpoint
+CREATE TYPE "public"."ai_involvement" AS ENUM('none', 'assisted', 'substantial', 'primarily_ai');--> statement-breakpoint
 CREATE TYPE "public"."audience" AS ENUM('students', 'developers', 'businesses', 'government', 'general_public');--> statement-breakpoint
 CREATE TYPE "public"."availability" AS ENUM('not_available', 'waitlist', 'invite_only', 'public_beta', 'available', 'unavailable');--> statement-breakpoint
 CREATE TYPE "public"."business_model" AS ENUM('b2b', 'b2c', 'b2g', 'c2c');--> statement-breakpoint
@@ -203,6 +204,7 @@ CREATE TABLE "projects" (
 	"license_id" varchar(80),
 	"project_stage" "project_stage",
 	"audiences" "audience"[] DEFAULT '{}' NOT NULL,
+	"ai_involvement" "ai_involvement",
 	"country" varchar(2),
 	"location_details" jsonb DEFAULT '{}'::jsonb NOT NULL,
 	"additional_locations" jsonb DEFAULT '[]'::jsonb NOT NULL,
@@ -322,6 +324,7 @@ CREATE TABLE "project_makers" (
 	"user_id" text NOT NULL,
 	"invited_by" text,
 	"status" "maker_membership_status" NOT NULL,
+	"role" varchar(80),
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -421,3 +424,41 @@ CREATE UNIQUE INDEX "project_makers_user_idx" ON "project_makers" USING btree ("
 CREATE INDEX "project_makers_invitations_idx" ON "project_makers" USING btree ("user_id","status");--> statement-breakpoint
 CREATE UNIQUE INDEX "project_pending_revision_idx" ON "project_revisions" USING btree ("project_id") WHERE "project_revisions"."status"='pending';--> statement-breakpoint
 CREATE INDEX "project_revisions_project_created_idx" ON "project_revisions" USING btree ("project_id","created_at" DESC NULLS LAST);
+--> statement-breakpoint
+-- A project's primary category must remain distinct from all secondary
+-- categories. This cross-table invariant needs deferred constraint triggers so
+-- a primary-category swap can complete atomically inside one transaction.
+CREATE FUNCTION check_project_category_memberships() RETURNS trigger LANGUAGE plpgsql AS $$
+DECLARE target_id integer;
+BEGIN
+  IF TG_TABLE_NAME = 'projects' THEN
+    target_id := NEW.id;
+  ELSE
+    target_id := coalesce(NEW.project_id, OLD.project_id);
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
+    FROM projects p
+    JOIN project_secondary_categories m ON m.project_id = p.id
+    WHERE p.id = target_id
+      AND (p.category_id IS NULL OR p.category_id = m.category_id)
+  ) THEN
+    RAISE EXCEPTION 'Secondary categories require a distinct primary category'
+      USING ERRCODE = '23514',
+            CONSTRAINT = 'project_categories_distinct_primary';
+  END IF;
+
+  RETURN NULL;
+END;
+$$;
+--> statement-breakpoint
+CREATE CONSTRAINT TRIGGER project_categories_primary_check
+AFTER INSERT OR UPDATE ON projects
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION check_project_category_memberships();
+--> statement-breakpoint
+CREATE CONSTRAINT TRIGGER project_categories_secondary_check
+AFTER INSERT OR UPDATE OR DELETE ON project_secondary_categories
+DEFERRABLE INITIALLY DEFERRED
+FOR EACH ROW EXECUTE FUNCTION check_project_category_memberships();

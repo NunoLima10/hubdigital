@@ -1,5 +1,5 @@
 {
-  "id": "14c10e9c-4cea-464a-9294-fed7a1069856",
+  "id": "2d61a4ee-f0f1-48db-96a4-b343a4769524",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1654,6 +1654,13 @@
           "notNull": true,
           "default": "'{}'"
         },
+        "ai_involvement": {
+          "name": "ai_involvement",
+          "type": "ai_involvement",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
         "country": {
           "name": "country",
           "type": "varchar(2)",
@@ -2997,6 +3004,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "role": {
+          "name": "role",
+          "type": "varchar(80)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -3296,6 +3309,16 @@
         "demo",
         "documentation",
         "other"
+      ]
+    },
+    "public.ai_involvement": {
+      "name": "ai_involvement",
+      "schema": "public",
+      "values": [
+        "none",
+        "assisted",
+        "substantial",
+        "primarily_ai"
       ]
     },
     "public.audience": {
