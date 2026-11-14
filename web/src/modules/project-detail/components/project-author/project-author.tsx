@@ -21,19 +21,22 @@ export function ProjectAuthorRow({
           <UserRound className="size-4" />
         )}
       </span>
-      {author?.handle ? (
-        <Link
-          to="/makers/$handle"
-          params={{ handle: author.handle }}
-          className="font-medium hover:underline"
-        >
-          {author.name}
-        </Link>
-      ) : (
-        <span className="font-medium">
-          {author?.name ?? "Publicador desconhecido"}
-        </span>
-      )}
+      <span className="min-w-0">
+        <span className="block text-xs text-muted-foreground">Responsável</span>
+        {author?.handle ? (
+          <Link
+            to="/profiles/$handle"
+            params={{ handle: author.handle }}
+            className="block truncate font-medium hover:underline"
+          >
+            {author.name}
+          </Link>
+        ) : (
+          <span className="block truncate font-medium">
+            {author?.name ?? "Responsável desconhecido"}
+          </span>
+        )}
+      </span>
     </div>
   );
 }

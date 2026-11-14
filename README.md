@@ -2,7 +2,7 @@
 
 **Hub Digital** é uma plataforma colaborativa para descoberta, divulgação e apoio a produtos e projetos tecnológicos criados em Cabo Verde.
 
-Inspirada por iniciativas como Product Hunt, esta plataforma visa criar um ecossistema onde makers, devs, designers, estudantes e empreendedores locais possam lançar suas ideias, obter feedback e ganhar visibilidade.
+Esta plataforma cria um espaço onde os responsáveis por produtos e projetos tecnológicos cabo-verdianos podem publicar o seu próprio trabalho, receber feedback e ganhar visibilidade.
 
 O projeto está em seu estágio inicial e procura seus primeiros contribuidores. O objetivo é construir um MVP simples e, posteriormente, migrar para tecnologias mais robustas
 
@@ -15,7 +15,7 @@ Promover e fortalecer a inovação digital "made in Cabo Verde", conectando cria
 - Lançamento de projetos e produtos
 - Votação e comentários da comunidade
 - Destaques diários/semanais
-- Perfis de makers
+- Perfis dos responsáveis pelos projetos
 - Integração com redes sociais e GitHub
 
 ## 🛠️ Stack Tecnológica

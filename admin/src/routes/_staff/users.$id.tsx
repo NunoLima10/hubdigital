@@ -189,7 +189,7 @@ function RouteComponent() {
               {user.publisher && (
                 <Card withBorder padding="lg">
                   <Stack gap="xs">
-                    <Title order={5}>Perfil de maker</Title>
+                    <Title order={5}>Perfil do responsável</Title>
                     <Text size="sm">{user.publisher.bio}</Text>
                     {user.publisher.websiteUrl && (
                       <Anchor href={user.publisher.websiteUrl} size="xs">

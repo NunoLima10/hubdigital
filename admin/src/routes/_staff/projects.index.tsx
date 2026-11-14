@@ -153,7 +153,7 @@ function RouteComponent() {
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Projeto</Table.Th>
-                  <Table.Th>Autor</Table.Th>
+                  <Table.Th>Responsável</Table.Th>
                   <Table.Th>Estado</Table.Th>
                   <Table.Th>Votos</Table.Th>
                   <Table.Th>Comentários</Table.Th>

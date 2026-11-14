@@ -27,7 +27,7 @@ export function Profile() {
       </div>
       {handle && (
         <Link
-          to="/makers/$handle"
+          to="/profiles/$handle"
           params={{ handle }}
           className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-medium hover:bg-muted"
         >

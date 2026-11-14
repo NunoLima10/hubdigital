@@ -17,7 +17,7 @@ export function ProjectCommunityStep() {
       <div className="space-y-1">
         <h2 className="text-lg font-semibold">Comunidade</h2>
         <p className="text-sm text-muted-foreground">
-          Pede feedback, partilha como usaste IA e dá crédito a quem contribuiu.
+          Pede feedback, partilha como usaste IA e identifica a equipa do projeto.
         </p>
       </div>
       <ProjectRequestsFields form={form} />

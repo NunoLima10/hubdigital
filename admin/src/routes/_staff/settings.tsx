@@ -103,7 +103,7 @@ function RouteComponent() {
                     event.currentTarget.checked,
                 })
               }
-              label="Makers de confiança não passam pela fila"
+              label="Responsáveis de confiança não passam pela fila"
               description="Só tem efeito enquanto a revisão estiver ativa."
             />
           </Stack>

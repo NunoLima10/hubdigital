@@ -129,7 +129,7 @@ export function ProjectList({
             [
               project.category?.name,
               isLookingForCollaborators(project.helpWanted ?? [])
-                ? "Procura colaboradores"
+                ? "Procura apoio"
                 : undefined,
               project.pricing ? pricingLabels[project.pricing] : undefined,
               project.availability === "not_available" && project.projectStage

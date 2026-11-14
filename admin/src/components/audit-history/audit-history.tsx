@@ -14,7 +14,7 @@ const actionLabels: Record<string, string> = {
   "comment.hide": "Ocultou o comentário",
   "comment.unhide": "Reexpôs o comentário",
   "comment.delete": "Removeu o comentário",
-  "publisher.trust": "Marcou como maker de confiança",
+  "publisher.trust": "Marcou como responsável de confiança",
   "publisher.untrust": "Retirou a marca de confiança",
   "setting.update": "Alterou definições",
   "report.resolve": "Resolveu relatórios",

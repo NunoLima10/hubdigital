@@ -242,7 +242,7 @@ function RouteComponent() {
             <Stack gap="md">
               <Card withBorder padding="lg">
                 <Stack gap="sm">
-                  <Title order={5}>Autor</Title>
+                  <Title order={5}>Responsável</Title>
                   {project.publisher ? (
                     <Stack gap={4}>
                       <Group gap="xs">

@@ -121,7 +121,7 @@ export function ProjectCollaborators({
   );
   const error = change.isError && (
     <p role="alert" className="text-sm text-destructive">
-      Não foi possível atualizar os colaboradores. Tenta novamente.
+      Não foi possível atualizar a equipa. Tenta novamente.
     </p>
   );
   return (
@@ -131,7 +131,7 @@ export function ProjectCollaborators({
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="collaborators-title" className="text-sm font-semibold">
-          Colaboradores
+          Equipa do projeto
         </h2>
         <Button
           type="button"
@@ -142,12 +142,13 @@ export function ProjectCollaborators({
             setOpen(true);
           }}
         >
-          Adicionar colaborador
+          Adicionar membro
         </Button>
       </div>
       <p className="text-xs leading-5 text-muted-foreground">
-        Dá crédito a quem contribuiu. Cada pessoa aceita o convite antes de
-        aparecer no projeto. Só tu podes gerir e publicar o projeto.
+        Identifica os colegas que participaram no projeto. Cada pessoa aceita o
+        convite antes de aparecer publicamente. Só o responsável pode gerir e
+        publicar o projeto.
       </p>
       {!savedProjectId && (
         <div className="space-y-2">
@@ -167,7 +168,7 @@ export function ProjectCollaborators({
       )}
       {members.isError && (
         <div className="text-sm">
-          <p>Não foi possível carregar os colaboradores.</p>
+          <p>Não foi possível carregar a equipa.</p>
           <Button
             type="button"
             variant="ghost"
@@ -179,7 +180,7 @@ export function ProjectCollaborators({
       )}
       {members.isLoading && savedProjectId && (
         <p className="text-xs text-muted-foreground">
-          A carregar colaboradores…
+          A carregar equipa…
         </p>
       )}
       <ul className="space-y-3">
@@ -194,7 +195,7 @@ export function ProjectCollaborators({
                 <p className="truncate font-medium">{member.name}</p>
                 <p className="text-xs text-muted-foreground">
                   {member.status === "accepted"
-                    ? "Convite aceite"
+                    ? "Participação aceite"
                     : "À espera de aceitação"}
                 </p>
               </div>
@@ -228,7 +229,7 @@ export function ProjectCollaborators({
       {open && (
         <Dialog
           open
-          title="Adicionar colaborador"
+          title="Adicionar membro da equipa"
           onClose={() => setOpen(false)}
         >
           <div className="space-y-4">

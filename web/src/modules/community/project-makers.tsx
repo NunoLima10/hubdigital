@@ -42,7 +42,7 @@ export function ProjectMakers({
       className="space-y-3 border-t pt-5"
     >
       <h2 id="project-makers-title" className="text-lg font-semibold">
-        Criadores e colaboradores
+        Equipa do projeto
       </h2>
       <ul className="flex flex-wrap gap-x-6 gap-y-4">
         {people.map((maker) => {
@@ -62,7 +62,7 @@ export function ProjectMakers({
               <span className="min-w-0">
                 <span className="block text-sm font-medium">{maker.name}</span>
                 <span className="block text-xs text-muted-foreground">
-                  {maker.role || "Colaborador"}
+                  {maker.role || "Membro da equipa"}
                 </span>
               </span>
             </>
@@ -71,7 +71,7 @@ export function ProjectMakers({
             <li key={maker.userId}>
               {maker.handle ? (
                 <Link
-                  to="/makers/$handle"
+                  to="/profiles/$handle"
                   params={{ handle: maker.handle }}
                   className="flex min-h-11 items-center gap-3 rounded-md focus-visible:outline-2 focus-visible:outline-ring hover:text-primary"
                 >
@@ -86,7 +86,7 @@ export function ProjectMakers({
       </ul>
       {isError && (
         <p className="text-xs text-muted-foreground">
-          Não foi possível carregar todos os colaboradores.{" "}
+          Não foi possível carregar todos os membros da equipa.{" "}
           <button
             type="button"
             onClick={() => void refetch()}

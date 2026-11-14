@@ -188,7 +188,7 @@ function RouteComponent() {
           <Grid>
             {[
               { label: "Utilizadores", value: data.totals.users },
-              { label: "Makers", value: data.totals.publishers },
+              { label: "Responsáveis", value: data.totals.publishers },
               { label: "Projetos", value: data.totals.projects },
               { label: "Publicados", value: data.totals.published },
             ].map((total) => (

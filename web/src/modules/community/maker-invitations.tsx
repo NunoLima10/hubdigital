@@ -34,7 +34,7 @@ export function MakerInvitations() {
   return (
     <section className="mb-6 space-y-3">
       <h2 className="text-sm font-semibold">
-        Convites para participar como criador
+        Convites para participar numa equipa
       </h2>
       {data.map((invitation) => (
         <div
@@ -45,7 +45,7 @@ export function MakerInvitations() {
             {invitation.name}
             {invitation.role && (
               <span className="block text-xs text-muted-foreground">
-                Contribuição: {invitation.role}
+                Papel no projeto: {invitation.role}
               </span>
             )}
           </span>
@@ -53,7 +53,7 @@ export function MakerInvitations() {
             disabled={reply.isPending}
             onClick={() => reply.mutate({ id: invitation.id, accept: true })}
           >
-            Aceitar autoria
+            Aceitar participação
           </Button>
           <Button
             variant="outline"

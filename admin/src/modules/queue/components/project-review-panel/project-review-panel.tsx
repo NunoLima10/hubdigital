@@ -149,7 +149,7 @@ export function ProjectReviewPanel({ project }: { project: AdminProject }) {
         </>
       )}
 
-      <Divider label="Autor" labelPosition="left" />
+      <Divider label="Responsável" labelPosition="left" />
 
       <Stack gap={2}>
         <Text size="sm">

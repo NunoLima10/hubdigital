@@ -79,7 +79,7 @@ export function CommentItem({
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
           {comment.author?.handle ? (
             <Link
-              to="/makers/$handle"
+              to="/profiles/$handle"
               params={{ handle: comment.author.handle }}
               className="font-semibold hover:underline"
             >
