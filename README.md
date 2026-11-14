@@ -53,7 +53,13 @@ Promover e fortalecer a inovação digital "made in Cabo Verde", conectando cria
 
    ```bash
    cp api/.env.example api/.env
+   cp .env.example .env
    ```
+
+   Define uma password única em `HUBDIGITAL_DB_PASSWORD` no `.env` da raiz e
+   usa a mesma password em `DATABASE_URL` no `api/.env`. Uma base de dados já
+   existente mantém a password anterior: altera-a no PostgreSQL e atualiza
+   ambos os ficheiros, sem apagar o volume.
 
 3. Inicia PostgreSQL, aplica as migrações e executa a API e o website:
 

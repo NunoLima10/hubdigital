@@ -3,12 +3,12 @@ services:
     container_name: hub-digital-db
     image: postgres:17
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${HUBDIGITAL_DB_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${HUBDIGITAL_DB_PASSWORD:?Set HUBDIGITAL_DB_PASSWORD in your root .env}
       POSTGRES_DB: hubdigitaldb
 
 volumes:

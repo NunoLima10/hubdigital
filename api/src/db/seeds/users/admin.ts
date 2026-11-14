@@ -15,8 +15,8 @@ import { eq } from "drizzle-orm";
  * `createUser`, which needs an admin session to already exist — the
  * chicken-and-egg this seed exists to break.
  *
- * Idempotent: an account that is already there is promoted, never recreated,
- * so re-running the seed cannot reset a password that has since been changed.
+ * Existing admins are left alone. Never promote a pre-registered account:
+ * knowing the configured email is not proof that its owner is the operator.
  */
 export default async function seed(db: DB) {
   const { ADMIN_SEED_EMAIL, ADMIN_SEED_PASSWORD, ADMIN_SEED_NAME } = config;
@@ -31,20 +31,25 @@ export default async function seed(db: DB) {
     columns: { id: true, role: true },
   });
 
-  if (!existing) {
-    await auth.api.signUpEmail({
-      body: {
-        email: ADMIN_SEED_EMAIL,
-        password: ADMIN_SEED_PASSWORD,
-        name: ADMIN_SEED_NAME,
-      },
-    });
+  if (existing) {
+    if (existing.role !== "admin") {
+      throw new Error("Admin seed refused: the configured email belongs to a non-admin account.");
+    }
+    return;
   }
+
+  const created = await auth.api.signUpEmail({
+    body: {
+      email: ADMIN_SEED_EMAIL,
+      password: ADMIN_SEED_PASSWORD,
+      name: ADMIN_SEED_NAME,
+    },
+  });
 
   const [promoted] = await db
     .update(users)
     .set({ role: "admin", emailVerified: true })
-    .where(eq(users.email, ADMIN_SEED_EMAIL))
+    .where(eq(users.id, created.user.id))
     .returning({ id: users.id });
 
   if (!promoted) {

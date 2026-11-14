@@ -18,30 +18,33 @@ const DEMO_ADMIN = {
  *
  * Created through ordinary email sign-up and then promoted directly in the
  * database (the admin plugin's `createUser` needs an admin session), and
- * idempotent: an existing account is re-promoted, never recreated.
+ * idempotent: existing admins are left alone; existing ordinary accounts are
+ * never promoted based on their email address.
  */
 export default async function seed(db: DB) {
   if (!config.isDev) return;
 
   const existing = await db.query.users.findFirst({
     where: eq(users.email, DEMO_ADMIN.email),
-    columns: { id: true },
+    columns: { id: true, role: true },
   });
 
-  if (!existing) {
-    await auth.api.signUpEmail({
-      body: {
-        email: DEMO_ADMIN.email,
-        password: DEMO_ADMIN.password,
-        name: DEMO_ADMIN.name,
-      },
-    });
+  if (existing) {
+    if (existing.role !== "admin") throw new Error("Demo admin seed refused: email belongs to a non-admin account.");
+    return;
   }
+  const created = await auth.api.signUpEmail({
+    body: {
+      email: DEMO_ADMIN.email,
+      password: DEMO_ADMIN.password,
+      name: DEMO_ADMIN.name,
+    },
+  });
 
   const [promoted] = await db
     .update(users)
     .set({ role: "admin", emailVerified: true })
-    .where(eq(users.email, DEMO_ADMIN.email))
+    .where(eq(users.id, created.user.id))
     .returning({ id: users.id });
 
   if (!promoted) {
