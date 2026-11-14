@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch --exclude \"node_modules/**\" --exclude \"../node_modules/**\" --env-file .env src/main.ts",
     "build": "pnpm --filter @hubdigital/shared build && tsc && tsc-alias",
-    "start": "node dist/main.js",
+    "start": "node dist/src/main.js",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
