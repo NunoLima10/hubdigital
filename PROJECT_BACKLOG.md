@@ -1,122 +1,33 @@
 # Hub Digital — Product backlog
 
-This document is the source of truth for unfinished product work. Priorities are ordered within each section. Remove an item when it is complete, and record new implementation decisions under that item.
+This document tracks unfinished product work, summarizes the current delivery, and records implementation decisions. Deferred items remain out of the current work cycle.
 
-## Priority guide
+## Delivered in the current work cycle
 
-- **P0 — Now:** ready to implement and important before launch.
-- **P1 — Next:** start after the P0 work is complete.
-- **P2 — Later:** valuable, but not required for launch.
-- **Needs definition:** requires a product or technical decision before implementation.
+- **Duplicate-link validation:** normalize equivalent destinations, show inline duplicate feedback, and enforce checks during publication, live edits, moderator approval, and restoration. Existing drafts remain editable; private project details are not disclosed.
+- **Discovery filters:** category, island, availability, pricing, project stage, and community requests work together inside the search modal. Filters are shareable through the URL, with clear-all and active-filter count.
+- **Mobile map:** the map fills the available viewport. Filters and project lists open on demand, selected projects use compact previews, grouped markers expose all their projects, and camera position and selection survive returning from details. Small phones and landscape retain the map as the primary view.
+- **Map tiles:** replace the unconfigured CARTO raster layer, which now requires a key, with an OpenStreetMap default. A dedicated provider remains configurable for higher traffic.
+- **Existing-user collaboration:** search profiles, invite collaborators with contribution roles, edit roles, and remove memberships. Invitations must be accepted before collaborators receive public credit. The owner keeps publishing and management control.
+- **Maker credits and profiles:** show avatars, profile links, and contribution roles above comments; separate owned projects from accepted collaborations on profiles.
+- **Project requests:** submission and editing support feedback, testers, contributors, development, design, marketing, co-founders, mentoring, customers, partnerships, and investment. Requests appear below comments and in discovery; collaboration requests produce a quiet tag.
+- **Frontend organization:** extract duplicate-link checks, map project lists, collaborator management, public maker credits, and project requests into focused hooks/components. Reuse collaborator management in submission review, published-project editing, and community management.
 
-## P0 — Work now
+## Verification
 
-### 1. Duplicate-link validation
+During commit preparation, all 260 API tests and 46 frontend tests pass, along with TypeScript checks for the API, website, and admin. API, website, and admin production builds also pass. The browser smoke script covers mobile layouts, touch panning and pinch-to-zoom, map state restoration, shareable filters, duplicate feedback, collaborator management, maker credits, project requests, and profile sections; its syntax was checked, but the browser scenarios were not rerun during commit preparation.
 
-Prevent the same project destination from being published more than once.
+The optional collaborator role is included in `0000_baseline.sql`. The current changes consolidate earlier migrations and rewrite the baseline and journal. Fresh-database migration is covered by the API tests. Existing databases need a separately reviewed upgrade strategy before deployment; do not reapply the baseline or delete a database volume to update them. Commit preparation did not apply migrations to the application database or deploy these changes.
 
-To do:
+## Implementation decisions
 
-- [ ] Normalize submitted URLs so harmless differences such as a trailing slash do not bypass the check.
-- [ ] Add an API/database check for links already used by another non-deleted project.
-- [ ] Allow an owner to save their own unchanged link while editing a project.
-- [ ] Show a clear inline error in the submission flow with a link to the existing project when available.
-- [ ] Add API and submission-form tests for duplicate and valid links.
-
-Done when: a duplicate link cannot be published, editing the original project still works, and the user understands how to resolve the error.
-
-Decision: check duplicates only. Do not make server-side requests to arbitrary submitted URLs because of the security risk.
-
-### 2. Improve the discovery filter modal
-
-Make the existing filter modal the main place for refining project discovery. Do not add a permanent filter bar to the homepage.
-
-To do:
-
-- [ ] Confirm the API supports category, island, availability, pricing, and project stage together.
-- [ ] Add the missing controls to the existing modal.
-- [ ] Keep selected filters synchronized with the URL so results can be shared.
-- [ ] Show active-filter count, clear-all, loading, empty, and error states.
-- [ ] Verify the layout and keyboard behavior on mobile and desktop.
-- [ ] Add tests for applying, combining, clearing, and restoring filters from the URL.
-
-Done when: visitors can combine all approved filters, share the resulting URL, and reset the search without leaving the discovery view.
-
-### 3. Improve the mobile map experience
-
-Make the map the primary mobile experience, using the available screen for exploring locations and projects. The current half-screen panels take too much space away from the map.
-
-To do:
-
-- [ ] Let the map fill the available mobile viewport, accounting for browser controls and device safe areas.
-- [ ] Replace the persistent half-screen content with a compact, collapsed preview that users can expand on demand.
-- [ ] Keep search, filters, and map controls compact and reachable without covering important map content.
-- [ ] Show a small project preview when a marker is selected, with an explicit action to open full details.
-- [ ] Make expanded panels easy to collapse or dismiss and preserve the map position, zoom, and selected marker when returning.
-- [ ] Verify panning, pinch-to-zoom, marker selection, and panel gestures work together without accidental scrolling or blocked interactions.
-- [ ] Check small phones and landscape orientation so controls, previews, and the on-screen keyboard leave the map usable.
-
-Done when: mobile visitors can explore the map using most of the screen by default, select projects, and return from details without losing their place.
-
-Decision: prioritize the map. A half-screen panel must not be the default mobile layout; expanded content appears only when requested.
-
-### 4. Existing-user project collaboration
-
-Allow a project owner to add existing Hub Digital users as collaborators, record what each person contributed, and credit them on the project and profile pages. The owner keeps full control of the project.
-
-To do:
-
-- [ ] Define the project-collaborator data model, role labels, uniqueness rules, and owner permissions.
-- [ ] Add owner-only API endpoints to search users and add, update, or remove collaborators.
-- [ ] Add an **Add collaborator** action near the submission review block and open the search flow in a modal.
-- [ ] Let the owner select or enter a contribution role such as programmer, designer, co-founder, or marketer.
-- [ ] Show a **Makers** section above the comments on the project page, with each person's avatar, profile link, and contribution role.
-- [ ] Separate **Owned projects** and **Collaborations** on maker profiles.
-- [ ] Add authorization, duplicate-collaborator, API, and UI tests.
-
-Done when: an owner can credit an existing user, visitors can see that credit on the project page, and the collaborator can see the project separately on their profile.
-
-Decision: the first version supports existing platform users only. Email invitations for people without accounts remain deferred until transactional email exists.
-
-### 5. Smaller frontend modules while delivering P0 work
-
-Improve maintainability in the submission, project-detail, gallery, and profile areas touched by the P0 features.
-
-To do:
-
-- [ ] Identify components that mix data access, state management, and large UI sections.
-- [ ] Extract focused components and hooks when a P0 change touches those files.
-- [ ] Keep route components and feature entry points thin.
-- [ ] Add or preserve tests before changing behavior-heavy modules.
-- [ ] Remove dead code and duplicated option mappings discovered during the work.
-
-Done when: each P0 feature lands without making the largest modules more complex, and the affected behavior remains covered by tests.
-
-Decision: refactor incrementally alongside product work. Do not pause the launch backlog for an open-ended rewrite of the whole frontend.
-
-## P1 — Next before launch
-
-### Project requests
-
-Let makers state whether they want feedback, testers, contributors, customers, partners, or investment.
-
-To do:
-
-- [ ] Define the allowed request types and storage model.
-- [ ] Add a quiet multi-select control to submission and editing.
-- [ ] Display requests below the comments section.
-- [ ] Make request types available to discovery after the first version is validated.
-
-### Looking for collaborators
-
-Let makers specify whether they are looking for developers, designers, marketers, or co-founders.
-
-To do:
-
-- [ ] Decide whether this is a focused project-request type or a separate field; avoid two overlapping systems.
-- [ ] Add the selected roles during submission and editing.
-- [ ] Show a compact **Looking for collaborators** tag on project cards and project details.
-- [ ] Make the tag discoverable through the filter modal.
+- Duplicate validation only compares stored URLs; it never fetches arbitrary submitted URLs.
+- Extra discovery controls stay inside the modal.
+- Mobile maps do not show a persistent half-screen panel.
+- Makers appear above comments; community requests appear below comments.
+- Collaborators need an existing platform profile and must accept their invitations.
+- Email invitations remain deferred until transactional email is available.
+- Refactoring stays incremental and tied to product work.
 
 ## P2 — After launch
 
