@@ -85,7 +85,6 @@ export const envSchema = z.object({
   CLOUDFLARE_ACCESS_KEY_ID: z.string().optional(),
   CLOUDFLARE_ACCESS_KEY_SECRET: z.string().optional(),
   CLOUDFLARE_REGION: z.string().default("auto"),
-  UPLOADER_URL_EXPIRES_IN: z.coerce.number().int().positive().default(300),
 });
 
 const env = envSchema.parse(process.env);

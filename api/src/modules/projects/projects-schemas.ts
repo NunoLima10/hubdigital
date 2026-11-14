@@ -9,6 +9,7 @@ import {
   pricingValues,
   projectStageValues,
   projectDraftSchema,
+  updateProjectDraftSchema,
   createProjectDraftSchema,
   projectMinimalSchema,
   projectSchema,
@@ -45,7 +46,7 @@ export const updateProjectRouteSchema = {
   params: z.object({
     id: z.coerce.number().int().positive(),
   }),
-  body: projectDraftSchema.partial(),
+  body: updateProjectDraftSchema,
   response: {
     200: z.object({
       data: z.object({

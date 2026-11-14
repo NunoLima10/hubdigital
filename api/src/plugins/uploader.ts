@@ -7,12 +7,12 @@ import {
   UnauthorizedAccessError,
   BadRequestError,
   NotFoundError,
+  ConflictError,
 } from "@/utils/custom-errors";
-import { GetObjectCommand, HeadObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { fileUploads } from "@/db/schemas";
-import { and, eq } from "drizzle-orm";
-import { matchesImageSignature } from "@/utils/image-signature";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { and, eq, sql } from "drizzle-orm";
+import { verifyUploadImage } from "@/utils/verify-upload-image";
 import {
   allowedUploadContentTypes,
   fileUploadTypeValues,
@@ -28,7 +28,7 @@ const uploadBodySchema = z.object({
   name: z.string().min(1).max(255),
   byteSize: z.number().int().positive().max(maxUploadBytes),
   contentType: z.enum(allowedUploadContentTypes, {
-    errorMap: () => ({ message: "Tipo de ficheiro não permitido." }),
+    error: () => ({ message: "Tipo de ficheiro não permitido." }),
   }),
   type: z.enum(fileUploadTypeValues),
 }).superRefine((value, context) => {
@@ -145,16 +145,6 @@ const uploaderPlugin = async (fastify: FastifyInstance) => {
       const { name, contentType, type, byteSize } = req.body;
       const fileKey = resolveFileKey(type, name);
 
-      const uploadUrl = await getSignedUrl(
-        s3,
-        new PutObjectCommand({
-          Bucket: storage.bucket,
-          Key: fileKey,
-          ContentType: contentType,
-        }),
-        { expiresIn: config.UPLOADER_URL_EXPIRES_IN }
-      );
-
       const upload = await UploadsService.createFileUpload(req.db, {
         key: fileKey,
         type,
@@ -162,11 +152,59 @@ const uploaderPlugin = async (fastify: FastifyInstance) => {
         userId: req.user.id,
         byteSize,
       });
+      const uploadUrl = `${config.BETTER_AUTH_URL.replace(/\/$/, "")}/v1/uploads/${upload.id}/content`;
 
       return reply.status(201).send({
         data: { uploadUrl, fileKey, uploadId: upload.id },
       });
     },
+  });
+
+  // Encapsulate the binary parser so JSON routes keep their normal parser and
+  // body limit. Authenticate before reading or decoding an image.
+  await fastify.register(async (uploads) => {
+    uploads.addContentTypeParser([...allowedUploadContentTypes], { parseAs: "buffer" },
+      (_req, body, done) => done(null, body));
+    uploads.put<{ Params: { id: number }; Body: Buffer }>("/v1/uploads/:id/content", {
+      bodyLimit: maxUploadBytes,
+      onRequest: authenticate,
+      config: { rateLimit: { max: 20, timeWindow: "1 minute" } },
+      schema: { params: z.object({ id: z.coerce.number().int().positive() }) },
+      handler: async (req) => {
+        if (!s3 || !storage) throw new ServiceUnavailableError();
+        return req.db.transaction(async (tx) => {
+          // Serializes concurrent writes: no request may replace a completed
+          // object, even if it started before the first request completed.
+          await tx.execute(sql`select id from file_uploads where id=${req.params.id} and user_id=${req.user!.id} for update`);
+          const upload = await tx.query.fileUploads.findFirst({
+            where: and(eq(fileUploads.id, req.params.id), eq(fileUploads.userId, req.user!.id)),
+          });
+          if (!upload) throw new NotFoundError();
+          if (upload.completedAt) throw new ConflictError("Esta imagem já foi carregada.");
+          if (!Buffer.isBuffer(req.body) || req.body.length !== upload.byteSize ||
+              req.headers["content-type"] !== upload.contentType) {
+            throw new BadRequestError("O ficheiro não corresponde à imagem escolhida.");
+          }
+          const bytes = await verifyUploadImage(req.body, upload.contentType!);
+          try {
+            await s3.send(new PutObjectCommand({
+              Bucket: storage.bucket, Key: upload.key, Body: bytes,
+              ContentType: upload.contentType!, ContentLength: bytes.length,
+            }));
+            await tx.update(fileUploads).set({ completedAt: new Date().toISOString() })
+              .where(eq(fileUploads.id, upload.id));
+          } catch (error) {
+            // A failed storage write or DB update must not leave a public,
+            // unverified orphan. Retrying a failed cleanup is safe.
+            try { await s3.send(new DeleteObjectCommand({ Bucket: storage.bucket, Key: upload.key })); }
+            catch (cleanupError) { req.log.error({ err: cleanupError, key: upload.key }, "Upload cleanup failed"); }
+            req.log.warn({ err: error }, "Upload storage failed");
+            throw new ServiceUnavailableError();
+          }
+          return { data: { fileKey: upload.key } };
+        });
+      },
+    });
   });
 
   fastify.post<{ Params: { id: number } }>("/v1/uploads/:id/complete", {
@@ -181,22 +219,7 @@ const uploaderPlugin = async (fastify: FastifyInstance) => {
       });
       if (!upload) throw new NotFoundError();
       if (!s3 || !storage) throw new ServiceUnavailableError();
-      try {
-        const metadata = await s3.send(new HeadObjectCommand({ Bucket: storage.bucket, Key: upload.key }));
-        if (!upload.byteSize || metadata.ContentLength !== upload.byteSize || metadata.ContentLength > maxUploadBytes || metadata.ContentType !== upload.contentType) {
-          throw new BadRequestError("O ficheiro carregado não corresponde à imagem escolhida.");
-        }
-        const object = await s3.send(new GetObjectCommand({ Bucket: storage.bucket, Key: upload.key, Range: "bytes=0-15" }));
-        const bytes = await object.Body?.transformToByteArray();
-        if (!bytes || !matchesImageSignature(bytes, upload.contentType!)) throw new BadRequestError("O ficheiro não é uma imagem PNG, JPG ou WebP válida.");
-      } catch (error) {
-        if (error instanceof BadRequestError) throw error;
-        req.log.warn({ err: error }, "Upload verification failed");
-        const status = (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode;
-        if (status === 404) throw new BadRequestError("A imagem ainda não terminou de carregar. Tenta novamente.");
-        throw new ServiceUnavailableError();
-      }
-      await req.db.update(fileUploads).set({ completedAt: new Date().toISOString() }).where(eq(fileUploads.id, upload.id));
+      if (!upload.completedAt) throw new BadRequestError("A imagem ainda não terminou de carregar. Tenta novamente.");
       return reply.send({ data: { fileKey: upload.key } });
     },
   });

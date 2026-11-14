@@ -94,7 +94,7 @@ export const projectBodySchema = z.object({
   projectStage: z.enum(projectStageValues),
   audiences: z.array(z.enum(audienceValues)).default([]),
   aiInvolvement: z.enum(aiInvolvementValues, {
-    errorMap: () => ({ message: "Conta-nos como usaste IA neste projeto." }),
+    error: () => ({ message: "Conta-nos como usaste IA neste projeto." }),
   }),
   ...projectGeographyFields,
   ...projectProfileFields,
@@ -158,6 +158,21 @@ export const projectDraftSchema = projectBodySchema.extend({
 export const createProjectDraftSchema = projectDraftSchema.extend({
   creationKey: z.string().uuid().optional(),
 });
+
+// Zod 4 applies defaults inside optional fields. PATCH must preserve omitted
+// values, so remove creation defaults before making the fields optional.
+export const updateProjectDraftSchema = projectDraftSchema.extend({
+  shortDescription: projectDraftSchema.shape.shortDescription.removeDefault(),
+  links: projectDraftSchema.shape.links.removeDefault(),
+  platform: projectDraftSchema.shape.platform.removeDefault(),
+  audiences: projectDraftSchema.shape.audiences.removeDefault(),
+  galleryImageKeys: projectDraftSchema.shape.galleryImageKeys.removeDefault(),
+  secondaryCategoryIds: projectDraftSchema.shape.secondaryCategoryIds.removeDefault(),
+  languages: projectDraftSchema.shape.languages.removeDefault(),
+  helpWanted: projectDraftSchema.shape.helpWanted.removeDefault(),
+  additionalLocations: projectDraftSchema.shape.additionalLocations.removeDefault(),
+  localConnections: projectDraftSchema.shape.localConnections.removeDefault(),
+}).partial();
 
 export type ProjectDraft = z.infer<typeof projectDraftSchema>;
 

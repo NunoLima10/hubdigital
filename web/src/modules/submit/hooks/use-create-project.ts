@@ -11,7 +11,7 @@ import { CreateProjectInput } from "../types/project";
 import { draftPayloadFromForm } from "../utils/draft";
 
 export const createProjectSchema = z.preprocess(
-  (value) => draftPayloadFromForm(value as CreateProjectInput), projectPublicationSchema,
+  (value: CreateProjectInput) => draftPayloadFromForm(value), projectPublicationSchema,
 );
 export type CreateProjectPayload = ProjectBody;
 type CreateProjectResponse = { id: number; slug: string };

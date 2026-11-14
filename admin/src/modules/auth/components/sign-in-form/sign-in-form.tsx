@@ -9,7 +9,7 @@ import {
 import { useForm } from "@mantine/form";
 import { IconAlertTriangle, IconLock } from "@tabler/icons-react";
 import { useNavigate } from "@tanstack/react-router";
-import { zodResolver } from "mantine-form-zod-resolver";
+import { zod4Resolver } from "mantine-form-zod-resolver";
 import { useState } from "react";
 import {
   type EmailSignInCredentials,
@@ -39,7 +39,7 @@ export function SignInForm() {
       email: "demo.admin@hubdigital.cv",
       password: "demo1234",
     },
-    validate: zodResolver(emailSignInSchema),
+    validate: zod4Resolver(emailSignInSchema),
   });
 
   function handleSubmit(values: EmailSignInCredentials) {

@@ -54,7 +54,7 @@ export const draftLocationSchema = z
       return;
     }
     const result = locationSchema.safeParse(location);
-    if (!result.success) result.error.issues.forEach((issue) => ctx.addIssue(issue));
+    if (!result.success) result.error.issues.forEach((issue) => ctx.addIssue({ ...issue }));
   });
 
 export type DraftProjectLocation = z.infer<typeof draftLocationSchema>;

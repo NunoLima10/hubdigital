@@ -69,7 +69,7 @@ export const auditEntrySchema = z.object({
   targetType: z.enum(moderationTargetValues),
   targetId: z.string(),
   reason: z.string().nullable(),
-  metadata: z.record(z.unknown()).nullable(),
+  metadata: z.record(z.string(), z.unknown()).nullable(),
   createdAt: z.string(),
   actor: auditActorSchema,
 });

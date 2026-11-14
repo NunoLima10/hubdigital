@@ -5,14 +5,14 @@ import type { FileUploadType } from "@hubdigital/shared";
 import axios, { type AxiosProgressEvent } from "axios";
 import { useState } from "react";
 
-type PreSignedUpload = {
+type UploadAllocation = {
   uploadUrl: string;
   fileKey: string;
   uploadId: number;
 };
 
-async function getPreSignedUrl(file: File, type: FileUploadType) {
-  const response = await API.post<ItemResponse<PreSignedUpload>>(
+async function createUpload(file: File, type: FileUploadType) {
+  const response = await API.post<ItemResponse<UploadAllocation>>(
     endpoints.uploads,
     {
       name: file.name,
@@ -26,9 +26,7 @@ async function getPreSignedUrl(file: File, type: FileUploadType) {
 }
 
 /**
- * Two-step upload: the API hands out a short-lived pre-signed URL, then the file
- * goes straight to R2 without passing through our server. What the caller keeps
- * is the storage key, which is what project records store.
+ * The API validates and decodes the bounded image before storing it in R2.
  */
 export function useUpload() {
   const [percentage, setPercentage] = useState<number>();
@@ -45,10 +43,11 @@ export function useUpload() {
     setPercentage(1);
 
     try {
-      const { uploadUrl, fileKey, uploadId } = await getPreSignedUrl(file, type);
+      const { uploadUrl, fileKey, uploadId } = await createUpload(file, type);
 
       await axios.put(uploadUrl, file, {
         headers: { "Content-Type": file.type },
+        withCredentials: true,
         onUploadProgress,
       });
 

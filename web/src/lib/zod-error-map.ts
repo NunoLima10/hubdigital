@@ -1,38 +1,38 @@
 import { z } from "zod";
 
-const ptErrorMap: z.ZodErrorMap = (issue, ctx) => {
+const ptErrorMap: z.ZodErrorMap = (issue) => {
   switch (issue.code) {
     case z.ZodIssueCode.invalid_type:
-      if (issue.received === "undefined" || issue.received === "null") {
+      if (issue.input === undefined || issue.input === null) {
         return { message: "Este campo é obrigatório" };
       }
       return { message: "Valor inválido" };
     case z.ZodIssueCode.too_small:
-      if (issue.type === "string") {
+      if (issue.origin === "string") {
         return {
           message: `Deve ter pelo menos ${issue.minimum} caracteres`,
         };
       }
-      if (issue.type === "array") {
+      if (issue.origin === "array") {
         return {
           message: issue.minimum === 1 ? "Escolhe pelo menos uma opção" : `Escolhe pelo menos ${issue.minimum} opções`,
         };
       }
       return { message: `Deve ser maior ou igual a ${issue.minimum}` };
     case z.ZodIssueCode.too_big:
-      if (issue.type === "string") {
+      if (issue.origin === "string") {
         return { message: `Deve ter no máximo ${issue.maximum} caracteres` };
       }
       return { message: `Deve ser menor ou igual a ${issue.maximum}` };
-    case z.ZodIssueCode.invalid_string:
-      if (issue.validation === "url") {
+    case z.ZodIssueCode.invalid_format:
+      if (issue.format === "url") {
         return { message: "Indica um URL válido" };
       }
       return { message: "Formato inválido" };
-    case z.ZodIssueCode.invalid_enum_value:
+    case z.ZodIssueCode.invalid_value:
       return { message: "Escolhe uma opção válida" };
     default:
-      return { message: ctx.defaultError };
+      return undefined;
   }
 };
 
