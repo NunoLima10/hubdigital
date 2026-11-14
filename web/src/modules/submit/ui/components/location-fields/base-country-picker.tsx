@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { countryLabels, type Country } from "@hubdigital/shared";
-import { FormSelect } from "../form-select/form-select";
-import { CountryPicker } from "./country-picker";
+import { countryValues, type Country } from "@hubdigital/shared";
+import { CountryCombobox } from "@/components/country-combobox/country-combobox";
+import { Button } from "@/components/ui/button";
 
-// Curated shortcuts for this community; Other retains worldwide access.
+// Curated shortcuts for this community, with worldwide search in the same picker.
 const baseCountryChoices: readonly Country[] = [
   "cv",
   "pt",
@@ -24,38 +23,22 @@ export function BaseCountryPicker({
   value: Country | "";
   onChange: (value: Country | "") => void;
 }) {
-  const [other, setOther] = useState(false);
-  const isOther = other || Boolean(value && !baseCountryChoices.includes(value));
   return (
     <div className="space-y-3">
-      <label className="block space-y-1.5 text-sm font-medium">
+      <p className="text-sm font-medium">
         País <span className="font-normal text-muted-foreground">(opcional)</span>
-        <FormSelect
-          value={isOther ? "other" : value}
-          placeholder="Selecionar país"
-          options={[
-            { value: "", label: "Não informar" },
-            ...baseCountryChoices.map((country) => ({
-              value: country,
-              label: countryLabels[country],
-            })),
-            { value: "other", label: "Outro país" },
-          ]}
-          onValueChange={(country) => {
-            setOther(country === "other");
-            onChange(country === "other" ? "" : (country as Country | ""));
-          }}
-        />
-      </label>
-      {isOther && (
-        <CountryPicker
-          label="Escolher outro país"
-          value={value}
-          onChange={(country) => {
-            setOther(!country || !baseCountryChoices.includes(country));
-            onChange(country);
-          }}
-        />
+      </p>
+      <CountryCombobox
+        aria-label="País da base do projeto"
+        countries={countryValues}
+        featured={baseCountryChoices}
+        value={value}
+        onChange={onChange}
+      />
+      {value && (
+        <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")}>
+          Não informar país
+        </Button>
       )}
     </div>
   );

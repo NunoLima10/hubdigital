@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { MapPin } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import { localConnectionLabels, localConnectionValues } from "@hubdigital/shared";
@@ -7,11 +7,12 @@ import { Input } from "@/components/ui/input";
 import { islandOptions } from "../../../options";
 import type { CreateProjectInput } from "../../../types/project";
 import { emptyLocation, type LocationFormValue } from "../../../utils/location";
-import { FormSelect } from "../form-select/form-select";
+import { ResponseOption } from "@/modules/onboarding/components/response-option/response-option";
 import { BaseCountryPicker } from "./base-country-picker";
 import { PublicPinPicker } from "./public-pin-picker";
 
 export function LocationFields({ form }: { form: UseFormReturn<CreateProjectInput> }) {
+  const islandGroupName = useId();
   const location = form.watch("location");
   const connections = form.watch("localConnections");
   const [expanded, setExpanded] = useState(false);
@@ -41,26 +42,48 @@ export function LocationFields({ form }: { form: UseFormReturn<CreateProjectInpu
         />
         {location.country && (
           <>
-            <div className={`grid gap-4 ${location.country === "cv" ? "sm:grid-cols-2" : ""}`}>
+            <div className="space-y-4">
               {location.country === "cv" && (
-                <label className="block space-y-1.5 text-sm font-medium">
-                  Ilha <span className="font-normal text-muted-foreground">(opcional)</span>
-                  <FormSelect
-                    value={location.island}
-                    placeholder="Selecionar ilha"
-                    options={[{ value: "", label: "Não informar" }, ...islandOptions]}
-                    onValueChange={(island) =>
-                      setLocation({
-                        ...location,
-                        island: island as LocationFormValue["island"],
-                        municipality: "",
-                        zone: "",
-                        locality: "",
-                        publicPin: null,
-                      })
-                    }
-                  />
-                </label>
+                <fieldset className="space-y-3">
+                  <legend className="text-sm font-medium">
+                    Ilha <span className="font-normal text-muted-foreground">(opcional)</span>
+                  </legend>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {islandOptions.map((island) => (
+                      <ResponseOption
+                        key={island.value}
+                        name={islandGroupName}
+                        value={island.value}
+                        checked={location.island === island.value}
+                        onSelect={() => {
+                          if (location.island === island.value) return;
+                          setLocation({
+                            ...location,
+                            island: island.value as LocationFormValue["island"],
+                            municipality: "",
+                            zone: "",
+                            locality: "",
+                            publicPin: null,
+                          });
+                        }}
+                      >
+                        {island.label}
+                      </ResponseOption>
+                    ))}
+                  </div>
+                  {location.island && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setLocation({ ...emptyLocation, country: location.country })
+                      }
+                    >
+                      Não informar ilha
+                    </Button>
+                  )}
+                </fieldset>
               )}
               <label className="block space-y-1.5 text-sm font-medium">
                 Cidade ou localidade{" "}
