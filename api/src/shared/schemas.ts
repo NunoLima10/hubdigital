@@ -4,6 +4,7 @@ export const errorResponseSchema = z.object({
   error: z.object({
     message: z.string(),
     code: z.string().optional(),
+    issues: z.array(z.object({ path: z.string(), message: z.string() })).optional(),
   }),
 });
 

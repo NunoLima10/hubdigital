@@ -1,25 +1,13 @@
-import { MantineProvider } from "@mantine/core";
-import "@mantine/core/styles.css";
-import { Notifications } from "@mantine/notifications";
-import "@mantine/notifications/styles.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { shadcnCssVariableResolver } from "./cssVariableResolver";
-import { shadcnTheme } from "./theme";
+import { Toaster } from "sonner";
+import type { PropsWithChildren } from "react";
 
-type AppProviderProps = {
-  children: React.ReactNode;
-};
-
-const queryClient = new QueryClient({});
-
-export function AppProvider({ children }: AppProviderProps) {
+// The QueryClientProvider is not here: the router's SSR integration adds it
+// (see getRouter), so it can share the per-request client.
+export function AppProvider({ children }: PropsWithChildren) {
   return (
-    <MantineProvider
-      theme={shadcnTheme}
-      cssVariablesResolver={shadcnCssVariableResolver}
-    >
-      <Notifications autoClose={5000} position="top-center" />
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </MantineProvider>
+    <>
+      <Toaster richColors position="top-center" />
+      {children}
+    </>
   );
 }

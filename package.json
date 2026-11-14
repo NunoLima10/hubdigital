@@ -4,17 +4,42 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "pnpm docker:up && pnpm api:db:migrate && pnpm shared:build && pnpm --parallel --filter @hubdigital/api --filter @hubdigital/web dev",
+    "dev:apps": "pnpm shared:build && pnpm --parallel --filter @hubdigital/api --filter @hubdigital/web dev",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "web:dev": "pnpm run --filter @hubdigital/web dev",
+    "shared:build": "pnpm run --filter @hubdigital/shared build",
+    "web:dev": "pnpm shared:build && pnpm run --filter @hubdigital/web dev",
     "web:build": "pnpm run --filter @hubdigital/web build",
     "web:preview": "pnpm run --filter @hubdigital/web preview",
-    "api:dev": "pnpm run --filter @hubdigital/api dev",
+    "admin:dev": "pnpm shared:build && pnpm run --filter @hubdigital/admin dev",
+    "admin:build": "pnpm run --filter @hubdigital/admin build",
+    "admin:preview": "pnpm run --filter @hubdigital/admin preview",
+    "api:dev": "pnpm shared:build && pnpm run --filter @hubdigital/api dev",
+    "api:db:studio": "pnpm --filter @hubdigital/api db:studio",
+    "api:db:gen": "pnpm --filter @hubdigital/api db:generate",
+    "api:db:migrate": "pnpm --filter @hubdigital/api db:migrate",
+    "api:dbml": "pnpm --filter @hubdigital/api dbml:generate",
+    "api:db:seed": "pnpm --filter @hubdigital/api db:seed",
     "api:build": "pnpm run --filter @hubdigital/api build",
     "docker:up": "docker compose up -d",
-    "docker:down": "docker compose down"
+    "docker:down": "docker compose down",
+    "api:setup": "pnpm docker:down -v && pnpm docker:up  && pnpm api:db:gen && pnpm api:db:migrate && pnpm api:db:seed"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.8.0"
+  "packageManager": "pnpm@10.8.0",
+  "pnpm": {
+    "overrides": {
+      "esbuild@<0.25.0": "^0.25.0",
+      "fflate@<0.7.5": "^0.8.3",
+      "fast-uri@<3.1.9": "^3.1.9",
+      "fast-uri@>=4.0.0 <4.2.3": "^4.2.3",
+      "follow-redirects@<1.16.2": "^1.16.2",
+      "glob@<14.0.2": "^14.0.2",
+      "minimatch@>=7.0.0 <11.0.1": "^11.0.1",
+      "seroval@<1.6.11": "^1.8.1",
+      "undici@>=7.0.0 <7.30.1": "^7.30.1"
+    }
+  }
 }

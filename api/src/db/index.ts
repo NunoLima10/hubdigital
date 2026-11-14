@@ -2,18 +2,26 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { sql } from "drizzle-orm";
 import * as schema from "@/db/schemas";
-import { env } from "@/utils/env";
 import { logger } from "@/utils/logger";
+import { config } from "@/config";
 
-export async function setupDB(url: string) {
+type SetupDBOptions = {
+  migrating?: boolean;
+  seeding?: boolean;
+};
+
+export async function setupDB(
+  url: string = config.DATABASE_URL,
+  opts: SetupDBOptions = {}
+) {
   if (!url) {
     throw new Error("DATABASE_URL is not set");
   }
 
   try {
     const dbClient = postgres(url, {
-      max: env.DB_MIGRATING || env.DB_SEEDING ? 1 : undefined,
-      onnotice: env.DB_SEEDING ? () => {} : undefined,
+      max: opts.migrating || opts.seeding ? 1 : undefined,
+      onnotice: opts.seeding ? () => {} : undefined,
     });
 
     const db = drizzle(dbClient, {
@@ -32,6 +40,11 @@ export async function setupDB(url: string) {
 export type DB = Awaited<ReturnType<typeof setupDB>>["db"];
 
 export type DBClient = Awaited<ReturnType<typeof setupDB>>["dbClient"];
+
+export const db = drizzle({
+  connection: config.DATABASE_URL,
+  schema,
+});
 
 export async function teardownDB(dbClient: DBClient) {
   if (dbClient) {

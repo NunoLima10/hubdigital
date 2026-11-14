@@ -1,8 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { buildServer } from "./server";
-import { env } from "@/utils/env";
 import { logger } from "@/utils/logger";
 import { DBClient, setupDB, teardownDB } from "@/db";
+import { config } from "./config";
 
 async function gracefulShutdown(server: FastifyInstance, dbClient: DBClient) {
   await server.close();
@@ -11,15 +11,15 @@ async function gracefulShutdown(server: FastifyInstance, dbClient: DBClient) {
 }
 
 async function start() {
-  const { db, dbClient } = await setupDB(env.DATABASE_URL);
+  const { db, dbClient } = await setupDB(config.DATABASE_URL);
   const server = await buildServer(db);
 
   try {
     await server.listen({
-      port: env.PORT,
-      host: env.HOST,
+      port: config.PORT,
+      host: config.HOST,
     });
-    logger.info(`Server is running on port ${env.PORT}`);
+    logger.info(`Server is running on port ${config.PORT}`);
   } catch (error) {
     logger.error(error);
     await gracefulShutdown(server, dbClient);

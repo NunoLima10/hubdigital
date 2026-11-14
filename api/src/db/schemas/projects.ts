@@ -1,0 +1,157 @@
+import {
+  availabilityValues,
+  sourceModelValues,
+  audienceValues,
+  businessModelValues,
+  islandValues,
+  platformValues,
+  pricingValues,
+  projectStageValues,
+  projectStatusValues,
+  aiInvolvementValues,
+} from "@hubdigital/shared";
+import { sql } from "drizzle-orm";
+import {
+  index,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  serial,
+  text,
+  timestamp,
+  uniqueIndex,
+  varchar,
+} from "drizzle-orm/pg-core";
+import { users } from "./auth";
+import { categories } from "./categories";
+import { publishers } from "./publishers";
+import { timestamps } from "./timestamps";
+
+export const pricingEnum = pgEnum("pricing", pricingValues);
+export const platformEnum = pgEnum("platform", platformValues);
+export const businessModelEnum = pgEnum("business_model", businessModelValues);
+export const availabilityEnum = pgEnum("availability", availabilityValues);
+export const sourceModelEnum = pgEnum("source_model", sourceModelValues);
+export const projectStageEnum = pgEnum("project_stage", projectStageValues);
+export const audienceEnum = pgEnum("audience", audienceValues);
+export const projectStatusEnum = pgEnum("project_status", projectStatusValues);
+export const islandEnum = pgEnum("island", islandValues);
+export const aiInvolvementEnum = pgEnum("ai_involvement", aiInvolvementValues);
+
+export const projects = pgTable(
+  "projects",
+  {
+    id: serial("id").primaryKey(),
+    publisherId: integer("publisher_id")
+      .notNull()
+      .references(() => publishers.id, { onDelete: "cascade" }),
+    name: varchar("name").notNull(),
+    slug: text("slug").notNull().unique(),
+    shortDescription: varchar("short_description").notNull().default(""),
+    description: text("description"),
+    rowVersion: integer("row_version").notNull().default(0),
+    creationKey: varchar("creation_key", { length: 36 }),
+    // An R2 object key, not a URL: serializers turn it into one (toPublicUrl).
+    logoKey: text("logo_key"),
+    // What the maker typed, which a draft may hold half-finished; the video id
+    // is derived from it on read (getYoutubeVideoId), never stored beside it.
+    youtubeVideoUrl: text("youtube_video_url"),
+    pricing: pricingEnum("pricing"),
+    platform: platformEnum("platform").array().notNull().default([]),
+    businessModel: businessModelEnum("business_model"),
+    availability: availabilityEnum("availability"),
+    sourceModel: sourceModelEnum("source_model"),
+    licenseId: varchar("license_id", { length: 80 }),
+    projectStage: projectStageEnum("project_stage"),
+    audiences: audienceEnum("audiences").array().notNull().default([]),
+    // A transparent process disclosure, not a quality or maturity score.
+    aiInvolvement: aiInvolvementEnum("ai_involvement"),
+    // Primary public team base. Optional details and up to four further bases
+    // keep distributed teams distinct from the countries the project serves.
+    country: varchar("country", { length: 2 }),
+    locationDetails: jsonb("location_details")
+      .$type<Pick<import("@hubdigital/shared").ProjectLocation, "locality" | "publicPin">>()
+      .notNull()
+      .default({}),
+    additionalLocations: jsonb("additional_locations")
+      .$type<import("@hubdigital/shared").ProjectLocation[]>()
+      .notNull()
+      .default([]),
+    teamMode: varchar("team_mode", { length: 16 }).$type<"local" | "distributed">(),
+    localConnections: jsonb("local_connections")
+      .$type<import("@hubdigital/shared").Project["localConnections"]>()
+      .notNull()
+      .default([]),
+    serviceArea: jsonb("service_area").$type<import("@hubdigital/shared").Project["serviceArea"]>(),
+    island: islandEnum("island"),
+    municipality: varchar("municipality", { length: 5 }),
+    zone: varchar("zone", { length: 13 }),
+    languages: jsonb("languages").$type<string[]>().notNull().default([]),
+    helpWanted: jsonb("help_wanted")
+      .$type<import("@hubdigital/shared").Project["helpWanted"]>()
+      .notNull()
+      .default([]),
+    helpDescription: varchar("help_description", { length: 500 }),
+    teamDescription: varchar("team_description", { length: 500 }),
+    categoryId: integer("category_id").references(() => categories.id, { onDelete: "restrict" }),
+
+    status: projectStatusEnum("status").notNull().default("draft"),
+
+    // Review gate (specs/ADMIN.md §A3). All nullable: a project published
+    // before the gate existed, or while it was off, was never reviewed and
+    // should not pretend otherwise.
+    queuedAt: timestamp("queued_at", { withTimezone: true, mode: "string" }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true, mode: "string" }),
+    reviewedBy: text("reviewed_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    rejectionReason: text("rejection_reason"),
+
+    // Hidden from the public but visible to its owner, who is shown the reason
+    // (specs/ADMIN.md §A4). Distinct from deleted_at, which hides it from
+    // everyone including the owner.
+    shadowBannedAt: timestamp("shadow_banned_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    shadowBannedBy: text("shadow_banned_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    shadowBanReason: text("shadow_ban_reason"),
+
+    publishedAt: timestamp("published_at", { withTimezone: true, mode: "string" }),
+    // The moment the project entered a weekly ranking window. Separate from
+    // published_at so a launch can later be scheduled for a future week without
+    // changing when the record went live.
+    launchedAt: timestamp("launched_at", { withTimezone: true, mode: "string" }),
+    deletedAt: timestamp("deleted_at", { withTimezone: true, mode: "string" }),
+
+    ...timestamps,
+  },
+  (table) => [
+    uniqueIndex("projects_publisher_creation_key_idx").on(table.publisherId, table.creationKey),
+    index("projects_launched_at_idx").on(table.launchedAt.desc(), table.id),
+    // Public listings: published rows, newest first.
+    index("projects_status_published_idx").on(table.status, table.publishedAt.desc()),
+    index("projects_category_idx").on(table.categoryId),
+    // Free-text search is ILIKE on these two columns (pg_trgm, see the baseline migration).
+    index("projects_name_trgm_idx").using("gin", sql`${table.name} gin_trgm_ops`),
+    index("projects_short_description_trgm_idx").using(
+      "gin",
+      sql`${table.shortDescription} gin_trgm_ops`,
+    ),
+    // Country and island filters match further bases with `@>`.
+    index("projects_additional_locations_idx").using(
+      "gin",
+      sql`${table.additionalLocations} jsonb_path_ops`,
+    ),
+    index("projects_country_idx").on(table.country),
+    index("projects_island_idx").on(table.island),
+    // The review queue is ordered by how long something has been waiting.
+    index("projects_status_queued_idx").on(table.status, table.queuedAt),
+    index("projects_shadow_banned_idx")
+      .on(table.shadowBannedAt)
+      .where(sql`${table.shadowBannedAt} is not null`),
+  ],
+);

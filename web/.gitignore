@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+*.tsbuildinfo
 
 # Editor directories and files
 .vscode/*
@@ -22,3 +23,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+.env
+
+# Cloudflare Wrangler local state
+.wrangler
+
+# Wrangler secrets for local development
+.dev.vars*
+!.dev.vars.example

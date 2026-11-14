@@ -1,1 +1,2 @@
 export const PG_ERR_UNIQUE_VIOLATION = "23505";
+export const PG_ERR_FOREIGN_KEY_VIOLATION = "23503";

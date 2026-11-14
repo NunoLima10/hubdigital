@@ -1,12 +1,32 @@
-import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
+import {
+  PG_ERR_FOREIGN_KEY_VIOLATION,
+  PG_ERR_UNIQUE_VIOLATION,
+} from "@/utils/constants";
 import { logger } from "@/utils/logger";
-import { FastifyPluginAsync } from "fastify";
+import { FastifyError, FastifyPluginAsync } from "fastify";
 import fastifyPlugin from "fastify-plugin";
 import { hasZodFastifySchemaValidationErrors } from "fastify-type-provider-zod";
-import { PostgresError } from "postgres";
+import { getPostgresError } from "@/utils/postgres-error";
+import { z } from "zod";
+import { ProjectPublicationError } from "@/utils/project-publication";
+
+
+export const errorResponseSchema = z.object({
+  error: z.object({
+    status: z.string(),
+    message: z.string(),
+    code: z.string().optional(),
+  }),
+});
+
 
 const customErrorHandler: FastifyPluginAsync = async (fastify) => {
-  fastify.setErrorHandler((error, req, reply) => {
+  fastify.setErrorHandler((error: FastifyError, req, reply) => {
+    if (error instanceof ProjectPublicationError) {
+      return reply.code(400).send({
+        error: { message: error.message, code: error.code, issues: error.issues },
+      });
+    }
     if (hasZodFastifySchemaValidationErrors(error)) {
       logger.warn({ error }, `Zod validation error: ${error.message}`);
       return reply.code(400).send({
@@ -17,15 +37,23 @@ const customErrorHandler: FastifyPluginAsync = async (fastify) => {
       });
     }
 
-    if (
-      error instanceof PostgresError &&
-      error.code === PG_ERR_UNIQUE_VIOLATION
-    ) {
+    const databaseError = getPostgresError(error);
+    if (databaseError?.code === PG_ERR_UNIQUE_VIOLATION) {
       logger.warn({ error }, "Database unique constraint violation");
       return reply.code(409).send({
         error: {
           message: "O recurso já existe.",
-          code: error.code,
+          code: databaseError.code,
+        },
+      });
+    }
+
+    if (databaseError?.code === PG_ERR_FOREIGN_KEY_VIOLATION) {
+      logger.warn({ error }, "Database foreign key constraint violation");
+      return reply.code(400).send({
+        error: {
+          message: "Um dos recursos referenciados não existe.",
+          code: databaseError.code,
         },
       });
     }

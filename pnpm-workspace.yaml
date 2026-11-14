@@ -1,4 +1,6 @@
 packages:
  - 'web'
+ - 'admin'
  - 'api'
  - 'packages/shared'
+ - 'packages/theme'

@@ -1,0 +1,5 @@
+# Copy to .dev.vars for local development. In production set it with
+#   wrangler secret put API_INTERNAL_KEY
+# Same value as the API's API_INTERNAL_KEY (at least 32 characters). Lets the
+# API rate-limit server-side renders per visitor instead of all together.
+API_INTERNAL_KEY=

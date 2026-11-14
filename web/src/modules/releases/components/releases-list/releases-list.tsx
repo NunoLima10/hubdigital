@@ -1,0 +1,126 @@
+import { MakerInvitations } from "@/modules/community/maker-invitations";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { useDelayedLoading } from "@/hooks/use-delayed-loading";
+import type { Project } from "@/modules/submit/types/project";
+import { useState } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { Rocket } from "lucide-react";
+import { useMyProjects } from "../../hooks/use-my-projects";
+import {
+  useDeleteProject,
+  usePublishProject,
+} from "../../hooks/use-project-actions";
+import { EditProjectModal } from "../edit-project-modal/edit-project-modal";
+import { ReleasesItem } from "../releases-item/releases-item";
+
+export function ReleasesList() {
+  const navigate = useNavigate();
+  const { data, isLoading, isError, refetch } = useMyProjects();
+  const showLoading = useDelayedLoading(isLoading);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deletingProject, setDeletingProject] = useState<Project | null>(null);
+  const { publishProject, pendingProjectId: publishingId } =
+    usePublishProject();
+  const { deleteProject, pendingProjectId: deletingId } = useDeleteProject({
+    onSuccess: () => setDeletingProject(null),
+  });
+  if (isLoading)
+    return showLoading ? (
+      <div className="space-y-3">
+        {[1, 2].map((n) => (
+          <div key={n} className="h-32 animate-pulse rounded-lg bg-muted" />
+        ))}
+      </div>
+    ) : null;
+  if (isError)
+    return (
+      <div className="flex flex-col items-center gap-3 py-12 text-center">
+        <div>
+          <h2 className="font-semibold">
+            Não foi possível carregar os teus projetos
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            As tuas alterações estão seguras.
+          </p>
+        </div>
+        <Button type="button" variant="outline" onClick={() => void refetch()}>
+          Tentar novamente
+        </Button>
+      </div>
+    );
+  if (!data?.data.length)
+    return (
+      <section
+        aria-labelledby="first-launch-title"
+        className="flex min-h-[320px] flex-col items-center justify-center px-3 py-10 text-center sm:min-h-[380px] sm:px-6"
+      >
+        <MakerInvitations />
+        <div aria-hidden="true" className="mb-5 flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary">
+          <Rocket className="size-6" />
+        </div>
+        <h2 id="first-launch-title" className="w-full max-w-lg text-lg font-semibold tracking-tight sm:text-xl">
+          O teu primeiro projeto começa aqui
+        </h2>
+        <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
+          Partilha o que estás a criar com a comunidade de Cabo Verde e recebe feedback para dar o próximo passo.
+        </p>
+        <Link
+          to="/dashboard/submit"
+          className={buttonVariants({ className: "mt-6 h-auto min-h-11 whitespace-normal px-4 py-3" })}
+        >
+          Publicar o primeiro projeto
+        </Link>
+      </section>
+    );
+  return (
+    <>
+      <MakerInvitations />
+      <div className="space-y-3">
+        {data.data.map((project) => (
+          <ReleasesItem
+            key={project.id}
+            project={project}
+              onEdit={(project) => project.status === "draft" || project.status === "rejected"
+                ? void navigate({ to: "/dashboard/submit", search: { draft: project.slug } })
+                : setEditingProject(project)}
+            onPublish={() => publishProject(project.id)}
+            onDelete={setDeletingProject}
+            isPublishing={publishingId === project.id}
+            isDeleting={deletingId === project.id}
+          />
+        ))}
+      </div>
+      <EditProjectModal
+        project={editingProject}
+        onClose={() => setEditingProject(null)}
+      />
+      <Dialog
+        open={Boolean(deletingProject)}
+        onClose={() => setDeletingProject(null)}
+        title="Remover projeto"
+      >
+        <p className="text-sm">
+          Queres mesmo remover <strong>{deletingProject?.name}</strong>? Deixará
+          de aparecer no site e nos rankings.
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button
+            variant="outline"
+            disabled={Boolean(deletingId)}
+            onClick={() => setDeletingProject(null)}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={Boolean(deletingId)}
+            onClick={() => deletingProject && deleteProject(deletingProject.id)}
+          >
+            {deletingId ? "A remover..." : "Remover"}
+          </Button>
+        </div>
+      </Dialog>
+    </>
+  );
+}
