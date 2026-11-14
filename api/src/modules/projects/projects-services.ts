@@ -1,7 +1,13 @@
 import { SettingsService } from "@/modules/settings/settings-services";
 import { projectRevisions } from "@/db/schemas";
 import { DB } from "@/db";
-import { projectFavorites, projectImages, projects, projectUpvotes, publishers } from "@/db/schemas";
+import {
+  projectFavorites,
+  projectImages,
+  projects,
+  projectUpvotes,
+  publishers,
+} from "@/db/schemas";
 import { ConflictError } from "@/utils/custom-errors";
 import { sanitizeProjectDescription } from "@/utils/project-content";
 import { serializeProjectLinks, syncProjectLinks } from "@/utils/project-links";
@@ -14,8 +20,16 @@ import {
 } from "@/utils/project-categories";
 import { assertProjectMedia } from "@/utils/project-media";
 import { assertProjectReady } from "@/utils/project-publication";
+import {
+  assertUniqueProjectLinks,
+  lockProjectDestinations,
+} from "@/utils/project-duplicates";
 import { errorLogger } from "@/utils/error-logger";
-import { LocationColumns, locationToColumns, withLocation } from "@/utils/location";
+import {
+  LocationColumns,
+  locationToColumns,
+  withLocation,
+} from "@/utils/location";
 import {
   projectEngagementExtras,
   publicProjectConditions,
@@ -99,9 +113,7 @@ function toRowValues<
       ? { helpDescription: input.helpDescription?.trim() || null }
       : {}),
     ...(input.description !== undefined ? { description } : {}),
-    ...(youtubeVideoUrl !== undefined
-      ? { youtubeVideoUrl }
-      : {}),
+    ...(youtubeVideoUrl !== undefined ? { youtubeVideoUrl } : {}),
     ...(location !== undefined ? locationToColumns(location) : {}),
   };
 }
@@ -137,9 +149,13 @@ function serializeProject<T extends SerializableProject>(project: T) {
         ? sanitizeProjectDescription(project.description as string | null)
         : undefined,
     logoUrl: toPublicUrl(project.logoKey),
-    youtubeVideoId: project.youtubeVideoUrl ? getYoutubeVideoId(project.youtubeVideoUrl) : null,
+    youtubeVideoId: project.youtubeVideoUrl
+      ? getYoutubeVideoId(project.youtubeVideoUrl)
+      : null,
     galleryImageKeys: project.images.map((image) => image.storageKey),
-    galleryImageUrls: project.images.map((image) => toPublicUrl(image.storageKey)),
+    galleryImageUrls: project.images.map((image) =>
+      toPublicUrl(image.storageKey),
+    ),
   };
 }
 
@@ -185,7 +201,9 @@ async function weeklyRankForProject(
   const previousCutoff = new Date(now.getTime() - DAY_MS);
   const [current, previous] = await Promise.all([
     rankingAt(now),
-    previousCutoff >= week.start ? rankingAt(previousCutoff) : Promise.resolve([]),
+    previousCutoff >= week.start
+      ? rankingAt(previousCutoff)
+      : Promise.resolve([]),
   ]);
   const currentIndex = current.findIndex((item) => item.id === projectId);
   if (currentIndex < 0) return null;
@@ -217,7 +235,10 @@ type ModerationSource = {
  */
 function ownerModerationFields(
   project: ModerationSource,
-  owner?: { shadowBannedAt?: Date | string | null; shadowBanReason?: string | null } | null,
+  owner?: {
+    shadowBannedAt?: Date | string | null;
+    shadowBanReason?: string | null;
+  } | null,
 ) {
   const accountHiddenAt = owner?.shadowBannedAt
     ? new Date(owner.shadowBannedAt).toISOString()
@@ -246,7 +267,11 @@ async function createProject(db: DB, input: CreateProjectInput) {
   await assertProjectMedia(db, input.userId, input);
 
   return db.transaction(async (tx) => {
-    await assertProjectCategories(tx, input.categoryId, input.secondaryCategoryIds);
+    await assertProjectCategories(
+      tx,
+      input.categoryId,
+      input.secondaryCategoryIds,
+    );
     const row = toRowValues(input);
     let [result] = await tx
       .insert(projects)
@@ -265,7 +290,9 @@ async function createProject(db: DB, input: CreateProjectInput) {
         });
         if (existing) {
           if (existing.deletedAt)
-            throw new ConflictError("Este rascunho foi removido. Começa um novo projeto.");
+            throw new ConflictError(
+              "Este rascunho foi removido. Começa um novo projeto.",
+            );
           return { id: existing.id, slug: existing.slug };
         }
       }
@@ -299,8 +326,16 @@ async function updateProject(
   { bypassReview = false }: { bypassReview?: boolean } = {},
 ) {
   await assertProjectMedia(db, input.userId!, input);
+  // Read process-wide settings before reserving a transaction connection.
+  // Querying through the outer database handle while a transaction holds the
+  // destination advisory lock can starve a single-connection pool and leave
+  // every later request (including categories and health checks) queued.
+  const settings = bypassReview
+    ? null
+    : await SettingsService.getSettings(db);
 
   return db.transaction(async (tx) => {
+    await lockProjectDestinations(tx);
     await tx.execute(
       sql`select id from projects where id = ${id} and publisher_id = ${publisherId} for update`,
     );
@@ -318,6 +353,12 @@ async function updateProject(
       },
     });
     if (!existing) return undefined;
+    if (existing.status === "published" || existing.status === "pending")
+      await assertUniqueProjectLinks(
+        tx,
+        id,
+        input.links ?? serializeProjectLinks(existing.links),
+      );
     const secondaryIds =
       input.secondaryCategoryIds ??
       existing.secondaryMemberships.map((membership) => membership.categoryId);
@@ -335,14 +376,15 @@ async function updateProject(
             (existing as Record<string, unknown>)[key],
       ) ||
       (input.links !== undefined &&
-        JSON.stringify(input.links.map((link) => ({ kind: link.kind, url: link.url }))) !==
+        JSON.stringify(
+          input.links.map((link) => ({ kind: link.kind, url: link.url })),
+        ) !==
           JSON.stringify(
             serializeProjectLinks(existing.links).map((link) => ({
               kind: link.kind,
               url: link.url,
             })),
           ));
-    const settings = bypassReview ? null : await SettingsService.getSettings(db);
     const publisher = await tx.query.publishers.findFirst({
       where: eq(publishers.id, publisherId),
       columns: { trustedAt: true },
@@ -357,7 +399,9 @@ async function updateProject(
         ...nextValues,
         secondaryCategoryIds: secondaryIds,
         links: input.links ?? serializeProjectLinks(existing.links),
-        images: input.galleryImageKeys?.map((storageKey) => ({ storageKey })) ?? existing.images,
+        images:
+          input.galleryImageKeys?.map((storageKey) => ({ storageKey })) ??
+          existing.images,
       });
       await assertProjectMedia(
         tx,
@@ -366,7 +410,10 @@ async function updateProject(
         true,
       );
       const pending = await tx.query.projectRevisions.findFirst({
-        where: and(eq(projectRevisions.projectId, id), eq(projectRevisions.status, "pending")),
+        where: and(
+          eq(projectRevisions.projectId, id),
+          eq(projectRevisions.status, "pending"),
+        ),
       });
       const revision = {
         body,
@@ -400,7 +447,11 @@ async function updateProject(
       .update(projects)
       .set({ ...nextValues, rowVersion: sql`${projects.rowVersion} + 1` })
       .where(
-        and(eq(projects.id, id), eq(projects.publisherId, publisherId), isNull(projects.deletedAt)),
+        and(
+          eq(projects.id, id),
+          eq(projects.publisherId, publisherId),
+          isNull(projects.deletedAt),
+        ),
       )
       .returning({ id: projects.id, slug: projects.slug });
 
@@ -414,9 +465,11 @@ async function updateProject(
         tx,
         input.userId!,
         {
-          logoKey: input.logoKey === undefined ? existing.logoKey : input.logoKey,
+          logoKey:
+            input.logoKey === undefined ? existing.logoKey : input.logoKey,
           galleryImageKeys:
-            input.galleryImageKeys ?? existing.images.map((image) => image.storageKey),
+            input.galleryImageKeys ??
+            existing.images.map((image) => image.storageKey),
         },
         true,
       );
@@ -445,13 +498,21 @@ type EditReviewTarget = Pick<typeof projects.$inferSelect, "id" | "rowVersion">;
  * has since edited past is no longer worth showing.
  */
 async function latestEditReviews(db: DB, targets: EditReviewTarget[]) {
-  const reviews = new Map<number, typeof projectRevisions.$inferSelect | null>();
+  const reviews = new Map<
+    number,
+    typeof projectRevisions.$inferSelect | null
+  >();
   if (targets.length === 0) return reviews;
 
   const latest = await db
     .selectDistinctOn([projectRevisions.projectId])
     .from(projectRevisions)
-    .where(inArray(projectRevisions.projectId, targets.map((target) => target.id)))
+    .where(
+      inArray(
+        projectRevisions.projectId,
+        targets.map((target) => target.id),
+      ),
+    )
     .orderBy(projectRevisions.projectId, desc(projectRevisions.createdAt));
   const byProject = new Map(latest.map((review) => [review.projectId, review]));
 
@@ -459,7 +520,9 @@ async function latestEditReviews(db: DB, targets: EditReviewTarget[]) {
     const review = byProject.get(target.id);
     reviews.set(
       target.id,
-      !review || (review.status === "rejected" && review.baseVersion !== target.rowVersion)
+      !review ||
+        (review.status === "rejected" &&
+          review.baseVersion !== target.rowVersion)
         ? null
         : review,
     );
@@ -478,7 +541,10 @@ async function listMyProjects(
   { limit, offset }: { limit: number; offset: number },
   userId?: string,
 ) {
-  const where = and(eq(projects.publisherId, publisherId), isNull(projects.deletedAt));
+  const where = and(
+    eq(projects.publisherId, publisherId),
+    isNull(projects.deletedAt),
+  );
 
   const [data, [{ total }]] = await Promise.all([
     db.query.projects.findMany({
@@ -488,7 +554,9 @@ async function listMyProjects(
         // Needed only to report an account-level hide back to its owner.
         publisher: {
           columns: {},
-          with: { user: { columns: { shadowBannedAt: true, shadowBanReason: true } } },
+          with: {
+            user: { columns: { shadowBannedAt: true, shadowBanReason: true } },
+          },
         },
       },
       extras: projectEngagementExtras(userId),
@@ -525,7 +593,10 @@ export type ProjectFilters = {
 };
 
 /** Everything a visitor is allowed to see, narrowed by the caller's filters. */
-function publicProjectFilter(week?: LaunchRange | null, filters: ProjectFilters = {}) {
+function publicProjectFilter(
+  week?: LaunchRange | null,
+  filters: ProjectFilters = {},
+) {
   // A hidden project keeps its own upvote rows, so unhiding restores it with
   // its count intact.
   const conditions: (SQL | undefined)[] = [publicProjectConditions];
@@ -549,7 +620,12 @@ function publicProjectFilter(week?: LaunchRange | null, filters: ProjectFilters 
     // Trigram GIN indexes on both columns make the leading-wildcard ILIKE
     // indexable. Wildcards typed by the visitor are matched literally.
     const pattern = `%${filters.q.replace(/[\\%_]/g, "\\$&")}%`;
-    conditions.push(or(ilike(projects.name, pattern), ilike(projects.shortDescription, pattern)));
+    conditions.push(
+      or(
+        ilike(projects.name, pattern),
+        ilike(projects.shortDescription, pattern),
+      ),
+    );
   }
 
   if (filters.categoryId) {
@@ -624,12 +700,18 @@ async function listProjects(
         : sql`0`;
       const platformMatch = reference.platform.length
         ? sql`case when ${projects.platform} && array[
-            ${sql.join(reference.platform.map((value) => sql`${value}`), sql`, `)}
+            ${sql.join(
+              reference.platform.map((value) => sql`${value}`),
+              sql`, `,
+            )}
           ]::platform[] then 3 else 0 end`
         : sql`0`;
       const audienceMatch = reference.audiences.length
         ? sql`case when ${projects.audiences} && array[
-            ${sql.join(reference.audiences.map((value) => sql`${value}`), sql`, `)}
+            ${sql.join(
+              reference.audiences.map((value) => sql`${value}`),
+              sql`, `,
+            )}
           ]::audience[] then 2 else 0 end`
         : sql`0`;
       const stageMatch = reference.projectStage
@@ -659,12 +741,15 @@ async function listProjects(
       where,
       with: cardRelations,
       extras: projectEngagementExtras(userId),
-      orderBy:
-        relatedScore
-          ? [desc(relatedScore), desc(upvoteCountSql), desc(projects.updatedAt)]
-          : sort === "upvotes"
+      orderBy: relatedScore
+        ? [desc(relatedScore), desc(upvoteCountSql), desc(projects.updatedAt)]
+        : sort === "upvotes"
           ? [desc(upvoteCountSql), desc(projects.createdAt), desc(projects.id)]
-          : [desc(projects.publishedAt), desc(projects.createdAt), desc(projects.id)],
+          : [
+              desc(projects.publishedAt),
+              desc(projects.createdAt),
+              desc(projects.id),
+            ],
       limit,
       offset,
     }),
@@ -675,12 +760,19 @@ async function listProjects(
 
 async function listMapProjects(
   db: DB,
-  { limit, offset, ...filters }: ProjectFilters & { limit: number; offset: number },
+  {
+    limit,
+    offset,
+    ...filters
+  }: ProjectFilters & { limit: number; offset: number },
 ) {
   const where = publicProjectFilter(null, filters);
   return db.transaction(
     async (tx) => {
-      const [{ total }] = await tx.select({ total: count() }).from(projects).where(where);
+      const [{ total }] = await tx
+        .select({ total: count() })
+        .from(projects)
+        .where(where);
       const rows = await tx
         .select({
           id: projects.id,
@@ -773,10 +865,13 @@ async function getProjectBySlug(db: DB, slug: string, userId?: string) {
   // Hidden by staff, or belonging to a hidden maker: the owner still sees it —
   // and is told why below — while for everyone else it is a 404. A visitor must
   // not be able to tell a hidden project from one that never existed.
-  const hiddenAt = project.shadowBannedAt ?? publisher?.user?.shadowBannedAt ?? null;
+  const hiddenAt =
+    project.shadowBannedAt ?? publisher?.user?.shadowBannedAt ?? null;
 
   const isVisible =
-    !project.deletedAt && (project.status === "published" || isOwner) && (!hiddenAt || isOwner);
+    !project.deletedAt &&
+    (project.status === "published" || isOwner) &&
+    (!hiddenAt || isOwner);
 
   if (!isVisible) return null;
 
@@ -817,6 +912,7 @@ async function publishProject(
   { requireReview = false }: { requireReview?: boolean } = {},
 ) {
   return db.transaction(async (tx) => {
+    await lockProjectDestinations(tx);
     await tx.execute(
       sql`select id from projects where id = ${id} and publisher_id = ${publisherId} for update`,
     );
@@ -844,6 +940,11 @@ async function publishProject(
       tx,
       existing.categoryId,
       existing.secondaryMemberships.map((membership) => membership.categoryId),
+    );
+    await assertUniqueProjectLinks(
+      tx,
+      id,
+      serializeProjectLinks(existing.links),
     );
     assertProjectReady({
       ...existing,
@@ -901,7 +1002,11 @@ async function deleteProject(db: DB, id: number, publisherId: number) {
     .update(projects)
     .set({ deletedAt: new Date().toISOString() })
     .where(
-      and(eq(projects.id, id), eq(projects.publisherId, publisherId), isNull(projects.deletedAt)),
+      and(
+        eq(projects.id, id),
+        eq(projects.publisherId, publisherId),
+        isNull(projects.deletedAt),
+      ),
     )
     .returning({ id: projects.id });
 
@@ -932,7 +1037,12 @@ async function toggleUpvote(
   // clicks then settle on the unique index instead of failing on it.
   const removed = await db
     .delete(projectUpvotes)
-    .where(and(eq(projectUpvotes.projectId, projectId), eq(projectUpvotes.userId, userId)))
+    .where(
+      and(
+        eq(projectUpvotes.projectId, projectId),
+        eq(projectUpvotes.userId, userId),
+      ),
+    )
     .returning({ id: projectUpvotes.id });
 
   if (removed.length === 0) {
@@ -965,12 +1075,20 @@ async function toggleFavorite(db: DB, projectId: number, userId: string) {
 
   const removed = await db
     .delete(projectFavorites)
-    .where(and(eq(projectFavorites.projectId, projectId), eq(projectFavorites.userId, userId)))
+    .where(
+      and(
+        eq(projectFavorites.projectId, projectId),
+        eq(projectFavorites.userId, userId),
+      ),
+    )
     .returning({ id: projectFavorites.id });
 
   if (removed.length > 0) return { favorited: false };
 
-  await db.insert(projectFavorites).values({ projectId, userId }).onConflictDoNothing();
+  await db
+    .insert(projectFavorites)
+    .values({ projectId, userId })
+    .onConflictDoNothing();
   return { favorited: true };
 }
 
@@ -986,8 +1104,14 @@ export const ProjectsService = {
   deleteProject: errorLogger(deleteProject, "projectsService.deleteProject"),
   listMyProjects: errorLogger(listMyProjects, "projectsService.listMyProjects"),
   listProjects: errorLogger(listProjects, "projectsService.listProjects"),
-  listFavoriteProjects: errorLogger(listFavoriteProjects, "projectsService.listFavoriteProjects"),
-  getProjectBySlug: errorLogger(getProjectBySlug, "projectsService.getProjectBySlug"),
+  listFavoriteProjects: errorLogger(
+    listFavoriteProjects,
+    "projectsService.listFavoriteProjects",
+  ),
+  getProjectBySlug: errorLogger(
+    getProjectBySlug,
+    "projectsService.getProjectBySlug",
+  ),
   toggleUpvote: errorLogger(toggleUpvote, "projectsService.toggleUpvote"),
   toggleFavorite: errorLogger(toggleFavorite, "projectsService.toggleFavorite"),
 };

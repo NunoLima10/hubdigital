@@ -6,6 +6,7 @@ import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { setupDB, teardownDB } from "@/db";
 import {
   projects,
+  projectLinks,
   publishers,
   projectRevisions,
   projectAnnouncements,
@@ -221,6 +222,159 @@ describe("community announcements, makers and reviewed edits", () => {
     expect(visible.json().data[0]).not.toHaveProperty("email");
     const profile = await server.inject({ method: "GET", url: `/v1/makers/${other!.handle}` });
     expect(profile.json().data.projectCount).toBe(1);
+  });
+  it("blocks duplicate publication while retaining editable drafts and unchanged original links", async () => {
+    await db
+      .update(projectLinks)
+      .set({ url: "https://duplicate.example/tool" })
+      .where(eq(projectLinks.projectId, projectId));
+    const category = await db.query.categories.findFirst();
+    const copy = await insertProject(db, {
+      publisherId,
+      categoryId: category!.id,
+      slug: "duplicate-copy",
+      status: "draft",
+    });
+    await db
+      .update(projectLinks)
+      .set({ url: "http://www.duplicate.example/tool/?utm_source=test#demo" })
+      .where(eq(projectLinks.projectId, copy.id));
+    const check = await server.inject({
+      method: "POST",
+      url: "/v1/projects/check-links",
+      payload: {
+        projectId: copy.id,
+        links: [
+          { kind: "website", url: "duplicate.example/tool/", isPrimary: true },
+        ],
+      },
+    });
+    expect(check.json().data[0]).toMatchObject({ index: 0, project: { slug } });
+    const blocked = await server.inject({
+      method: "POST",
+      url: `/v1/projects/${copy.id}/publish`,
+    });
+    expect(blocked.statusCode).toBe(400);
+    expect(blocked.json().error.issues[0].path).toBe("links.0.url");
+    expect(
+      (
+        await server.inject({
+          method: "PATCH",
+          url: `/v1/projects/${copy.id}`,
+          payload: { name: "Keep my draft" },
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect(
+      (
+        await server.inject({
+          method: "PATCH",
+          url: `/v1/projects/${projectId}`,
+          payload: {
+            links: [
+              {
+                kind: "website",
+                url: "https://duplicate.example/tool",
+                isPrimary: true,
+              },
+            ],
+          },
+        })
+      ).statusCode,
+    ).toBe(200);
+    await db
+      .update(projects)
+      .set({ shadowBannedAt: new Date().toISOString() })
+      .where(eq(projects.id, projectId));
+    const hidden = await server.inject({
+      method: "POST",
+      url: "/v1/projects/check-links",
+      payload: { links: [{ kind: "website", url: "duplicate.example/tool" }] },
+    });
+    expect(hidden.json().data[0].project).toBeNull();
+    await db
+      .update(projects)
+      .set({ deletedAt: new Date().toISOString() })
+      .where(eq(projects.id, projectId));
+    expect(
+      (
+        await server.inject({
+          method: "POST",
+          url: `/v1/projects/${copy.id}/publish`,
+        })
+      ).statusCode,
+    ).toBe(200);
+  });
+  it("rechecks duplicate destinations during moderator approval and restoration", async () => {
+    const category = await db.query.categories.findFirst();
+    const copy = await insertProject(db, {
+      publisherId,
+      categoryId: category!.id,
+      slug: "moderated-duplicate",
+      status: "pending",
+    });
+    const original = await db.query.projectLinks.findFirst({
+      where: eq(projectLinks.projectId, projectId),
+    });
+    await db
+      .update(projectLinks)
+      .set({ url: original!.url })
+      .where(eq(projectLinks.projectId, copy.id));
+    sign(adminId, "admin");
+    expect(
+      (
+        await server.inject({
+          method: "POST",
+          url: `/v1/admin/projects/${copy.id}/approve`,
+        })
+      ).statusCode,
+    ).toBe(400);
+    await db
+      .update(projects)
+      .set({ status: "published", deletedAt: new Date().toISOString() })
+      .where(eq(projects.id, copy.id));
+    expect(
+      (
+        await server.inject({
+          method: "POST",
+          url: `/v1/admin/projects/${copy.id}/restore`,
+        })
+      ).statusCode,
+    ).toBe(400);
+    const stored = await db.query.projects.findFirst({
+      where: eq(projects.id, copy.id),
+    });
+    expect(stored!.deletedAt).not.toBeNull();
+    expect(await db.query.moderationActions.findMany()).toHaveLength(0);
+  });
+  it("serializes concurrent claims to the same destination", async () => {
+    const category = await db.query.categories.findFirst();
+    const drafts = await Promise.all(
+      ["race-one", "race-two"].map(async (slug) => {
+        const draft = await insertProject(db, {
+          publisherId,
+          categoryId: category!.id,
+          slug,
+          status: "draft",
+        });
+        await db
+          .update(projectLinks)
+          .set({ url: "https://race.example/tool" })
+          .where(eq(projectLinks.projectId, draft.id));
+        return draft;
+      }),
+    );
+    const results = await Promise.all(
+      drafts.map((draft) =>
+        server.inject({
+          method: "POST",
+          url: `/v1/projects/${draft.id}/publish`,
+        }),
+      ),
+    );
+    expect(results.map((result) => result.statusCode).sort()).toEqual([
+      200, 400,
+    ]);
   });
   it("keeps the approved page live while material edits wait, then applies approval atomically", async () => {
     await gate();

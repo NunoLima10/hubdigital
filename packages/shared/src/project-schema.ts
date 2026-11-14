@@ -1,10 +1,21 @@
 import { projectProfileFields } from "./project-profile";
 import { countryValues as importCountryValues } from "./location-options";
 import { z } from "zod";
-import { draftLocationSchema, locationSchema, projectGeographyFields } from "./location-schema";
-import { projectRevisionStatusValues, projectStatusValues } from "./project-status";
+import {
+  draftLocationSchema,
+  locationSchema,
+  projectGeographyFields,
+} from "./location-schema";
+import {
+  projectRevisionStatusValues,
+  projectStatusValues,
+} from "./project-status";
 import { youtubeVideoUrlSchema } from "./youtube";
-import { projectDraftLinkSchema, projectLinkSchema, projectLinkHref } from "./project-links";
+import {
+  projectDraftLinkSchema,
+  projectLinkSchema,
+  normalizedProjectLink,
+} from "./project-links";
 import {
   availabilityValues,
   sourceModelValues,
@@ -21,7 +32,10 @@ import {
 // field from being pointed at an arbitrary host, and keeps path traversal out.
 const uploadKeySchema = z
   .string()
-  .regex(/^project_logo\/[^/\\]+$/, "Imagem inválida. Carregue o ficheiro novamente.");
+  .regex(
+    /^project_logo\/[^/\\]+$/,
+    "Imagem inválida. Carregue o ficheiro novamente.",
+  );
 
 const galleryUploadKeySchema = z
   .string()
@@ -47,14 +61,20 @@ export const projectAuthorSchema = z.object({
 export const secondaryCategoryIdsSchema = z
   .array(z.number().int().positive())
   .max(2, "Escolhe no máximo duas categorias adicionais.")
-  .refine((ids) => new Set(ids).size === ids.length, "Escolhe categorias diferentes.")
+  .refine(
+    (ids) => new Set(ids).size === ids.length,
+    "Escolhe categorias diferentes.",
+  )
   .default([]);
 
 export function refineProjectCategories(
   value: { categoryId?: number | null; secondaryCategoryIds?: number[] },
   context: z.RefinementCtx,
 ) {
-  if (value.categoryId && value.secondaryCategoryIds?.includes(value.categoryId)) {
+  if (
+    value.categoryId &&
+    value.secondaryCategoryIds?.includes(value.categoryId)
+  ) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["secondaryCategoryIds"],
@@ -114,15 +134,17 @@ export function refineProjectPublication(
   const primary = value.links.filter((link) => link.isPrimary);
   if (
     primary.length > 1 ||
-    (!["not_available", "unavailable"].includes(value.availability) && primary.length !== 1)
+    (!["not_available", "unavailable"].includes(value.availability) &&
+      primary.length !== 1)
   ) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["links"],
-      message: "Escolhe um único link principal para experimentar, instalar ou pedir acesso.",
+      message:
+        "Escolhe um único link principal para experimentar, instalar ou pedir acesso.",
     });
   }
-  const hrefs = value.links.map(projectLinkHref).filter(Boolean);
+  const hrefs = value.links.map(normalizedProjectLink).filter(Boolean);
   if (new Set(hrefs).size !== hrefs.length)
     context.addIssue({
       code: z.ZodIssueCode.custom,
@@ -130,7 +152,9 @@ export function refineProjectPublication(
       message: "O mesmo destino não precisa de aparecer mais do que uma vez.",
     });
 }
-export const projectPublicationSchema = projectBodySchema.superRefine(refineProjectPublication);
+export const projectPublicationSchema = projectBodySchema.superRefine(
+  refineProjectPublication,
+);
 
 // Drafts preserve unfinished text/URLs and unanswered questions. Only publication
 // uses projectBodySchema; a draft is never an implicit public submission.

@@ -28,11 +28,15 @@ export const projectDraftLinkSchema = z.object({
 export type ProjectLinkInput = z.input<typeof projectDraftLinkSchema>;
 
 /** Produce an executable HTTP(S) destination; reject other schemes and credentials. */
-export function projectLinkHref(link: Pick<ProjectLinkInput, "kind" | "url">): string | null {
+export function projectLinkHref(
+  link: Pick<ProjectLinkInput, "kind" | "url">,
+): string | null {
   const input = link.url.trim();
   if (!input || /[\r\n\x00]/.test(input)) return null;
   if (input.startsWith("//")) return null;
-  const candidate = /^[a-z][a-z\d+.-]*:/i.test(input) ? input : `https://${input}`;
+  const candidate = /^[a-z][a-z\d+.-]*:/i.test(input)
+    ? input
+    : `https://${input}`;
   try {
     const url = new URL(candidate);
     if (
@@ -48,20 +52,46 @@ export function projectLinkHref(link: Pick<ProjectLinkInput, "kind" | "url">): s
   }
 }
 
-export const projectLinkSchema = projectDraftLinkSchema.superRefine((link, context) => {
-  if (!projectLinkHref(link))
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["url"],
-      message: "Indica um endereço HTTP ou HTTPS válido, sem credenciais.",
-    });
-});
+export const projectLinkSchema = projectDraftLinkSchema.superRefine(
+  (link, context) => {
+    if (!projectLinkHref(link))
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["url"],
+        message: "Indica um endereço HTTP ou HTTPS válido, sem credenciais.",
+      });
+  },
+);
+
+/** Compare destinations locally. Keep meaningful paths and query values distinct. */
+export function normalizedProjectLink(
+  link: Pick<ProjectLinkInput, "kind" | "url">,
+): string | null {
+  const href = projectLinkHref(link);
+  if (!href) return null;
+  const url = new URL(href);
+  url.hash = "";
+  url.hostname = url.hostname.replace(/^www\./, "");
+  const keys: string[] = [];
+  url.searchParams.forEach((_, key) => keys.push(key));
+  for (const key of keys) {
+    if (/^utm_/i.test(key) || ["fbclid", "gclid"].includes(key.toLowerCase()))
+      url.searchParams.delete(key);
+  }
+  url.searchParams.sort();
+  return `${url.host}${url.pathname.replace(/\/+$/, "")}${url.search}`;
+}
 
 export type ProjectAppStore = "apple" | "google_play";
-const appStoreLabels: Record<ProjectAppStore, string> = { apple: "App Store", google_play: "Google Play" };
+const appStoreLabels: Record<ProjectAppStore, string> = {
+  apple: "App Store",
+  google_play: "Google Play",
+};
 
 /** Recognise the store behind an app_store link from its host; null for other stores or kinds. */
-export function projectAppStore(link: Pick<ProjectLinkInput, "kind" | "url">): ProjectAppStore | null {
+export function projectAppStore(
+  link: Pick<ProjectLinkInput, "kind" | "url">,
+): ProjectAppStore | null {
   if (link.kind !== "app_store") return null;
   const href = projectLinkHref(link);
   if (!href) return null;
@@ -72,13 +102,17 @@ export function projectAppStore(link: Pick<ProjectLinkInput, "kind" | "url">): P
 }
 
 /** Secondary-link text: the builder's label, else the recognised store, else the kind. */
-export function projectLinkDisplayLabel(link: Pick<ProjectLinkInput, "kind" | "url" | "label">) {
+export function projectLinkDisplayLabel(
+  link: Pick<ProjectLinkInput, "kind" | "url" | "label">,
+) {
   if (link.label) return link.label;
   const store = projectAppStore(link);
   return store ? appStoreLabels[store] : projectLinkKindLabels[link.kind];
 }
 
-export function primaryProjectLink<T extends ProjectLinkInput>(links: T[]): T | undefined {
+export function primaryProjectLink<T extends ProjectLinkInput>(
+  links: T[],
+): T | undefined {
   return links.find((link) => link.isPrimary && projectLinkHref(link));
 }
 
@@ -102,7 +136,8 @@ export function projectLinkActionLabel(
 /** Opt-in attribution only on plain website URLs; never rewrite signed/query URLs. */
 export function projectLinkReferralHref(link: ProjectLinkInput): string | null {
   const href = projectLinkHref(link);
-  if (!href || !link.referralAttribution || link.kind !== "website") return href;
+  if (!href || !link.referralAttribution || link.kind !== "website")
+    return href;
   const url = new URL(href);
   if (url.search) return href;
   url.searchParams.set("utm_source", "hubdigital");

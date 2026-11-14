@@ -16,6 +16,7 @@ import { toPublicUrl } from "@/utils/public-url";
 import { SettingsService } from "@/modules/settings/settings-services";
 import { ProjectsService } from "@/modules/projects/projects-services";
 import type { Announcement } from "@hubdigital/shared";
+import { lockProjectDestinations } from "@/utils/project-duplicates";
 
 /** Published inside a weekly window; the week is derived from `published_at`. */
 function publishedDuring(week: Pick<LaunchRange, "start" | "end">) {
@@ -365,6 +366,7 @@ export async function reviewRevision(
 ) {
   return db.transaction(async (trx) => {
     const tx = trx as unknown as DB;
+    await lockProjectDestinations(tx);
     const pointer = await tx.query.projectRevisions.findFirst({
       where: eq(projectRevisions.id, id),
       columns: { projectId: true },

@@ -37,7 +37,7 @@ export async function resetDb(db: DB) {
 
 export async function insertUser(
   db: DB,
-  overrides: Partial<typeof users.$inferInsert> = {}
+  overrides: Partial<typeof users.$inferInsert> = {},
 ) {
   const { id: requestedId, ...rest } = overrides;
   const id = requestedId ?? randomUUID();
@@ -81,7 +81,7 @@ export async function insertCategory(db: DB) {
 
 export function projectFixture(
   overrides: Partial<typeof projects.$inferInsert> &
-    Pick<typeof projects.$inferInsert, "publisherId" | "categoryId" | "slug">
+    Pick<typeof projects.$inferInsert, "publisherId" | "categoryId" | "slug">,
 ): typeof projects.$inferInsert {
   return {
     name: "Meu Projeto",
@@ -103,13 +103,21 @@ export function projectFixture(
 
 export async function insertProject(
   db: DB,
-  overrides: Parameters<typeof projectFixture>[0]
+  overrides: Parameters<typeof projectFixture>[0],
 ) {
   const [project] = await db
     .insert(projects)
     .values(projectFixture(overrides))
     .returning({ id: projects.id, slug: projects.slug });
 
-  await db.insert(projectLinks).values({ projectId: project.id, kind: "website", url: "https://hubdigital.cv", isPrimary: true, position: 0 });
+  await db
+    .insert(projectLinks)
+    .values({
+      projectId: project.id,
+      kind: "website",
+      url: `https://projects.example/${project.slug}`,
+      isPrimary: true,
+      position: 0,
+    });
   return project;
 }

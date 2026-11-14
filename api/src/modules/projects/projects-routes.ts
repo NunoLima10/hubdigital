@@ -1,10 +1,17 @@
 import { z } from "zod";
-import { countryValues, islandValues, projectMapRecordSchema } from "@hubdigital/shared";
+import {
+  countryValues,
+  islandValues,
+  projectMapRecordSchema,
+} from "@hubdigital/shared";
 import { ProjectsService } from "./projects-services";
 import { authenticate } from "@/hooks/autenticate";
 import { requirePublisher } from "@/hooks/require-publisher";
 import { FastifyInstance } from "fastify";
 import { projectsController } from "./projects-controllers";
+import { findDuplicateProjectLinks } from "@/utils/project-duplicates";
+import { projectDraftLinkSchema } from "@hubdigital/shared";
+import { ownerProject } from "../community/community-services";
 import {
   createProjectRouteSchema,
   deleteProjectRouteSchema,
@@ -20,6 +27,25 @@ import {
 } from "./projects-schemas";
 
 export async function projectsRoutes(server: FastifyInstance) {
+  server.post("/check-links", {
+    preHandler: requirePublisher,
+    schema: {
+      body: z.object({
+        links: z.array(projectDraftLinkSchema).max(8),
+        projectId: z.number().int().positive().optional(),
+      }),
+    },
+    handler: async (req) => {
+      const { links, projectId } = req.body as {
+        links: z.infer<typeof projectDraftLinkSchema>[];
+        projectId?: number;
+      };
+      if (projectId) await ownerProject(req.db, projectId, req.publisher.id);
+      return {
+        data: await findDuplicateProjectLinks(req.db, links, projectId),
+      };
+    },
+  });
   server.post("/", {
     schema: createProjectRouteSchema,
     preHandler: requirePublisher,
@@ -80,7 +106,11 @@ export async function projectsRoutes(server: FastifyInstance) {
       response: {
         200: z.object({
           data: z.array(projectMapRecordSchema),
-          meta: z.object({ total: z.number(), limit: z.number(), offset: z.number() }),
+          meta: z.object({
+            total: z.number(),
+            limit: z.number(),
+            offset: z.number(),
+          }),
         }),
       },
     },

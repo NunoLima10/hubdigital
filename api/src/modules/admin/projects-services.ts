@@ -1,8 +1,16 @@
-import { serializeProjectCategories, secondaryCategoriesWith, projectCategoryFilter } from "@/utils/project-categories";
+import {
+  serializeProjectCategories,
+  secondaryCategoriesWith,
+  projectCategoryFilter,
+} from "@/utils/project-categories";
 import { DB } from "@/db";
 import { comments, projectImages, projects, publishers } from "@/db/schemas";
 import { errorLogger } from "@/utils/error-logger";
 import { serializeProjectLinks } from "@/utils/project-links";
+import {
+  assertUniqueProjectLinks,
+  lockProjectDestinations,
+} from "@/utils/project-duplicates";
 import { sanitizeProjectDescription } from "@/utils/project-content";
 import { withLocation } from "@/utils/location";
 import { toPublicUrl } from "@/utils/public-url";
@@ -28,7 +36,8 @@ const liveCommentIds = {
 } as const;
 
 const projectWith = {
-  category: true, secondaryMemberships: secondaryCategoriesWith,
+  category: true,
+  secondaryMemberships: secondaryCategoriesWith,
   links: true,
   upvotes: { columns: { userId: true } },
   comments: liveCommentIds,
@@ -36,17 +45,25 @@ const projectWith = {
   images: { orderBy: asc(projectImages.position) },
 } as const;
 
-type ProjectRow = Awaited<
-  ReturnType<typeof queryProjects>
->[number];
+type ProjectRow = Awaited<ReturnType<typeof queryProjects>>[number];
 
-function queryProjects(db: DB, args: Parameters<DB["query"]["projects"]["findMany"]>[0]) {
+function queryProjects(
+  db: DB,
+  args: Parameters<DB["query"]["projects"]["findMany"]>[0],
+) {
   return db.query.projects.findMany({ ...args, with: projectWith });
 }
 
 /** The admin view: nothing is filtered out, and moderation state is explicit. */
 function serializeAdminProject(project: ProjectRow) {
-  const { upvotes, comments: projectComments, publisher, images, secondaryMemberships, ...rest } = project;
+  const {
+    upvotes,
+    comments: projectComments,
+    publisher,
+    images,
+    secondaryMemberships,
+    ...rest
+  } = project;
 
   return {
     ...withLocation(rest),
@@ -54,7 +71,9 @@ function serializeAdminProject(project: ProjectRow) {
     links: serializeProjectLinks(project.links),
     description: sanitizeProjectDescription(project.description),
     logoUrl: toPublicUrl(project.logoKey),
-    youtubeVideoId: project.youtubeVideoUrl ? getYoutubeVideoId(project.youtubeVideoUrl) : null,
+    youtubeVideoId: project.youtubeVideoUrl
+      ? getYoutubeVideoId(project.youtubeVideoUrl)
+      : null,
     galleryImageKeys: images.map((image) => image.storageKey),
     galleryImageUrls: images.map((image) => toPublicUrl(image.storageKey)),
     upvoteCount: upvotes.length,
@@ -103,8 +122,8 @@ function adminProjectFilter(filters: AdminProjectFilters) {
       or(
         ilike(projects.name, pattern),
         ilike(projects.shortDescription, pattern),
-        ilike(projects.slug, pattern)
-      )
+        ilike(projects.slug, pattern),
+      ),
     );
   }
 
@@ -120,14 +139,16 @@ function adminProjectFilter(filters: AdminProjectFilters) {
     conditions.push(
       filters.hidden
         ? isNotNull(projects.shadowBannedAt)
-        : isNull(projects.shadowBannedAt)
+        : isNull(projects.shadowBannedAt),
     );
   }
 
   // Deleted rows are excluded unless asked for: the admin list is a working
   // surface, not an archive.
   conditions.push(
-    filters.deleted ? isNotNull(projects.deletedAt) : isNull(projects.deletedAt)
+    filters.deleted
+      ? isNotNull(projects.deletedAt)
+      : isNull(projects.deletedAt),
   );
 
   if (filters.from) conditions.push(gte(projects.createdAt, filters.from));
@@ -145,7 +166,7 @@ type ListOptions = AdminProjectFilters & {
 
 async function listProjects(
   db: DB,
-  { limit, offset, sort, ...filters }: ListOptions
+  { limit, offset, sort, ...filters }: ListOptions,
 ) {
   const where = adminProjectFilter(filters);
 
@@ -180,38 +201,58 @@ async function getProject(db: DB, id: number) {
  * weekly ranking because a review took a few days.
  */
 async function approveProject(db: DB, id: number, reviewerId: string) {
-  const now = new Date().toISOString();
+  return db.transaction(async (trx) => {
+    const db = trx as unknown as DB;
+    await lockProjectDestinations(db);
+    const now = new Date().toISOString();
 
-  const existing = await db.query.projects.findFirst({
-    where: and(eq(projects.id, id), isNull(projects.deletedAt)),
-    columns: { id: true, status: true, availability: true, launchedAt: true, publishedAt: true },
+    const existing = await db.query.projects.findFirst({
+      where: and(eq(projects.id, id), isNull(projects.deletedAt)),
+      columns: {
+        id: true,
+        status: true,
+        availability: true,
+        launchedAt: true,
+        publishedAt: true,
+      },
+      with: { links: true },
+    });
+
+    if (!existing || existing.status !== "pending") return null;
+    await assertUniqueProjectLinks(
+      db,
+      id,
+      serializeProjectLinks(existing.links),
+    );
+
+    const [updated] = await db
+      .update(projects)
+      .set({
+        status: "published",
+        publishedAt: existing.publishedAt ?? now,
+        launchedAt: existing.launchedAt,
+        reviewedAt: now,
+        reviewedBy: reviewerId,
+        rejectionReason: null,
+        queuedAt: null,
+        updatedAt: now,
+      })
+      .where(eq(projects.id, id))
+      .returning({
+        id: projects.id,
+        slug: projects.slug,
+        status: projects.status,
+      });
+
+    return updated ?? null;
   });
-
-  if (!existing || existing.status !== "pending") return null;
-
-  const [updated] = await db
-    .update(projects)
-    .set({
-      status: "published",
-      publishedAt: existing.publishedAt ?? now,
-      launchedAt: existing.launchedAt,
-      reviewedAt: now,
-      reviewedBy: reviewerId,
-      rejectionReason: null,
-      queuedAt: null,
-      updatedAt: now,
-    })
-    .where(eq(projects.id, id))
-    .returning({ id: projects.id, slug: projects.slug, status: projects.status });
-
-  return updated ?? null;
 }
 
 async function rejectProject(
   db: DB,
   id: number,
   reviewerId: string,
-  reason: string
+  reason: string,
 ) {
   const now = new Date().toISOString();
 
@@ -229,10 +270,14 @@ async function rejectProject(
       and(
         eq(projects.id, id),
         eq(projects.status, "pending"),
-        isNull(projects.deletedAt)
-      )
+        isNull(projects.deletedAt),
+      ),
     )
-    .returning({ id: projects.id, slug: projects.slug, status: projects.status });
+    .returning({
+      id: projects.id,
+      slug: projects.slug,
+      status: projects.status,
+    });
 
   return updated ?? null;
 }
@@ -253,29 +298,52 @@ async function unpublishProject(db: DB, id: number, reviewerId: string) {
       and(
         eq(projects.id, id),
         eq(projects.status, "published"),
-        isNull(projects.deletedAt)
-      )
+        isNull(projects.deletedAt),
+      ),
     )
-    .returning({ id: projects.id, slug: projects.slug, status: projects.status });
+    .returning({
+      id: projects.id,
+      slug: projects.slug,
+      status: projects.status,
+    });
 
   return updated ?? null;
 }
 
 async function restoreProject(db: DB, id: number) {
-  const [updated] = await db
-    .update(projects)
-    .set({ deletedAt: null, updatedAt: new Date().toISOString() })
-    .where(and(eq(projects.id, id), isNotNull(projects.deletedAt)))
-    .returning({ id: projects.id, slug: projects.slug, status: projects.status });
+  return db.transaction(async (trx) => {
+    const db = trx as unknown as DB;
+    await lockProjectDestinations(db);
+    const existing = await db.query.projects.findFirst({
+      where: and(eq(projects.id, id), isNotNull(projects.deletedAt)),
+      with: { links: true },
+    });
+    if (!existing) return null;
+    if (existing.status === "published" || existing.status === "pending")
+      await assertUniqueProjectLinks(
+        db,
+        id,
+        serializeProjectLinks(existing.links),
+      );
+    const [updated] = await db
+      .update(projects)
+      .set({ deletedAt: null, updatedAt: new Date().toISOString() })
+      .where(and(eq(projects.id, id), isNotNull(projects.deletedAt)))
+      .returning({
+        id: projects.id,
+        slug: projects.slug,
+        status: projects.status,
+      });
 
-  return updated ?? null;
+    return updated ?? null;
+  });
 }
 
 async function setProjectHidden(
   db: DB,
   id: number,
   actorId: string,
-  reason: string | null
+  reason: string | null,
 ) {
   const now = new Date().toISOString();
   const hiding = reason !== null;
@@ -295,8 +363,8 @@ async function setProjectHidden(
         // changes nothing and must not write an audit row.
         hiding
           ? isNull(projects.shadowBannedAt)
-          : isNotNull(projects.shadowBannedAt)
-      )
+          : isNotNull(projects.shadowBannedAt),
+      ),
     )
     .returning({ id: projects.id, slug: projects.slug });
 
@@ -313,8 +381,10 @@ async function setPublisherTrusted(db: DB, id: number, trusted: boolean) {
     .where(
       and(
         eq(publishers.id, id),
-        trusted ? isNull(publishers.trustedAt) : isNotNull(publishers.trustedAt)
-      )
+        trusted
+          ? isNull(publishers.trustedAt)
+          : isNotNull(publishers.trustedAt),
+      ),
     )
     .returning({ id: publishers.id, handle: publishers.handle });
 
@@ -345,24 +415,27 @@ export const AdminProjectsService = {
   getProject: errorLogger(getProject, "adminProjectsService.getProject"),
   approveProject: errorLogger(
     approveProject,
-    "adminProjectsService.approveProject"
+    "adminProjectsService.approveProject",
   ),
-  rejectProject: errorLogger(rejectProject, "adminProjectsService.rejectProject"),
+  rejectProject: errorLogger(
+    rejectProject,
+    "adminProjectsService.rejectProject",
+  ),
   unpublishProject: errorLogger(
     unpublishProject,
-    "adminProjectsService.unpublishProject"
+    "adminProjectsService.unpublishProject",
   ),
   restoreProject: errorLogger(
     restoreProject,
-    "adminProjectsService.restoreProject"
+    "adminProjectsService.restoreProject",
   ),
   setProjectHidden: errorLogger(
     setProjectHidden,
-    "adminProjectsService.setProjectHidden"
+    "adminProjectsService.setProjectHidden",
   ),
   setPublisherTrusted: errorLogger(
     setPublisherTrusted,
-    "adminProjectsService.setPublisherTrusted"
+    "adminProjectsService.setPublisherTrusted",
   ),
   countPending: errorLogger(countPending, "adminProjectsService.countPending"),
   countDrafts: errorLogger(countDrafts, "adminProjectsService.countDrafts"),
