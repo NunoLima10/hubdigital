@@ -1,9 +1,17 @@
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
-import { pricingLabels, availabilityLabels, projectStageLabels } from "@/modules/submit/options";
+import {
+  pricingLabels,
+  availabilityLabels,
+  projectStageLabels,
+} from "@/modules/submit/options";
 import type { ProjectMinimal } from "@/modules/submit/types/project";
-import type { ListPeriod, ListSort } from "@hubdigital/shared";
+import {
+  isLookingForCollaborators,
+  type ListPeriod,
+  type ListSort,
+} from "@hubdigital/shared";
 import { useEffect, useState } from "react";
 import { ProjectCard } from "./components/project-card/project-card";
 import type { ProjectFilterValues } from "./components/project-filters/project-filters";
@@ -74,15 +82,13 @@ export function ProjectList({
   }
   const hasFilters = Object.values(filters).some(Boolean);
   if (isLoading)
-    return (
-      showLoading ? (
-        <div className="space-y-3" aria-label="A carregar projetos">
-          {[1, 2, 3].map((n) => (
-            <div key={n} className="h-24 animate-pulse rounded-lg bg-muted" />
-          ))}
-        </div>
-      ) : null
-    );
+    return showLoading ? (
+      <div className="space-y-3" aria-label="A carregar projetos">
+        {[1, 2, 3].map((n) => (
+          <div key={n} className="h-24 animate-pulse rounded-lg bg-muted" />
+        ))}
+      </div>
+    ) : null;
   if (isError)
     return (
       <div className="flex flex-col items-center gap-3 py-12 text-center">
@@ -94,7 +100,8 @@ export function ProjectList({
         </Button>
       </div>
     );
-  const projects = data?.data.filter((project) => project.id !== excludeProjectId) ?? [];
+  const projects =
+    data?.data.filter((project) => project.id !== excludeProjectId) ?? [];
   if (!projects.length) {
     if (hideWhenEmpty) return null;
     return (
@@ -119,10 +126,18 @@ export function ProjectList({
           description={project.shortDescription}
           iconUrl={project.logoUrl ?? undefined}
           topis={
-            [project.category?.name, (project.pricing ? pricingLabels[project.pricing] : undefined),
-                      (project.availability === "not_available" && project.projectStage ? projectStageLabels[project.projectStage] : project.availability ? availabilityLabels[project.availability] : undefined)].filter(
-              Boolean,
-            ) as string[]
+            [
+              project.category?.name,
+              isLookingForCollaborators(project.helpWanted ?? [])
+                ? "Procura colaboradores"
+                : undefined,
+              project.pricing ? pricingLabels[project.pricing] : undefined,
+              project.availability === "not_available" && project.projectStage
+                ? projectStageLabels[project.projectStage]
+                : project.availability
+                  ? availabilityLabels[project.availability]
+                  : undefined,
+            ].filter(Boolean) as string[]
           }
           upCount={project.upvoteCount}
           hasUpvoted={project.hasUpvoted}

@@ -8,7 +8,19 @@ import {
 } from "@/components/ui/select";
 import { useCategories } from "@/modules/submit/hooks/use-categories";
 import { islandOptions, pricingOptions } from "@/modules/submit/options";
-import type { Island, ProjectPricing } from "@hubdigital/shared";
+import {
+  availabilityValues,
+  helpWantedLabels,
+  helpWantedValues,
+  projectStageValues,
+  type Island,
+  type ProjectPricing,
+  type Project,
+} from "@hubdigital/shared";
+import {
+  availabilityLabels,
+  projectStageLabels,
+} from "@/modules/submit/options";
 import { Search } from "lucide-react";
 import { useEffect, useRef, useState, type RefObject } from "react";
 
@@ -17,6 +29,9 @@ export type ProjectFilterValues = {
   island?: Island;
   categoryId?: number;
   pricing?: ProjectPricing;
+  availability?: NonNullable<Project["availability"]>;
+  projectStage?: NonNullable<Project["projectStage"]>;
+  helpWanted?: Project["helpWanted"][number];
 };
 
 type FilterOption = { value: string; label: string };
@@ -89,7 +104,10 @@ export function ProjectFilters({
     const frame = requestAnimationFrame(() => searchInput.current?.focus());
     return () => cancelAnimationFrame(frame);
   }, [autoFocusSearch]);
-  useEffect(() => setQuery(value.q ?? ""), [value.q]);
+  useEffect(() => {
+    if (timer.current) clearTimeout(timer.current);
+    setQuery(value.q ?? "");
+  }, [value.q]);
   useEffect(
     () => () => {
       if (timer.current) clearTimeout(timer.current);
@@ -175,6 +193,45 @@ export function ProjectFilters({
           portalContainer={portalContainer}
         />
       </div>
+      {(
+        [
+          {
+            field: "availability",
+            label: "Disponibilidade",
+            options: availabilityValues.map((value) => ({
+              value,
+              label: availabilityLabels[value],
+            })),
+          },
+          {
+            field: "projectStage",
+            label: "Fase do projeto",
+            options: projectStageValues.map((value) => ({
+              value,
+              label: projectStageLabels[value],
+            })),
+          },
+          {
+            field: "helpWanted",
+            label: "Procura ajuda com",
+            options: helpWantedValues.map((value) => ({
+              value,
+              label: helpWantedLabels[value],
+            })),
+          },
+        ] as const
+      ).map(({ field, label, options }) => (
+        <FilterSelect
+          key={field}
+          label={label}
+          value={value[field] ?? "all"}
+          options={[{ value: "all", label }, ...options]}
+          onChange={(next) =>
+            onChange({ ...value, [field]: next === "all" ? undefined : next })
+          }
+          portalContainer={portalContainer}
+        />
+      ))}
     </div>
   );
 }

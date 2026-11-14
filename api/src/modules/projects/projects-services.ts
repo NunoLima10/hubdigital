@@ -586,6 +586,8 @@ export type ProjectFilters = {
   country?: string;
   island?: (typeof projects.$inferSelect)["island"];
   pricing?: (typeof projects.$inferSelect)["pricing"];
+  availability?: (typeof projects.$inferSelect)["availability"];
+  helpWanted?: import("@hubdigital/shared").Project["helpWanted"][number];
   projectStage?: (typeof projects.$inferSelect)["projectStage"];
   platform?: (typeof projects.$inferSelect)["platform"];
   /** Rank by similarity to this project instead of by recency or votes alone. */
@@ -642,6 +644,12 @@ function publicProjectFilter(
   if (filters.pricing) {
     conditions.push(eq(projects.pricing, filters.pricing));
   }
+  if (filters.availability)
+    conditions.push(eq(projects.availability, filters.availability));
+  if (filters.helpWanted)
+    conditions.push(
+      sql`${projects.helpWanted} @> ${JSON.stringify([filters.helpWanted])}::jsonb`,
+    );
   if (filters.projectStage) {
     conditions.push(eq(projects.projectStage, filters.projectStage));
   }

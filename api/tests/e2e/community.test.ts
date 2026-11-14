@@ -536,6 +536,33 @@ describe("community announcements, makers and reviewed edits", () => {
       200, 400,
     ]);
   });
+  it("combines availability, stage, category and help-request discovery filters", async () => {
+    await db
+      .update(projects)
+      .set({ helpWanted: ["marketing", "investment"] })
+      .where(eq(projects.id, projectId));
+    const category = await db.query.categories.findFirst();
+    const response = await server.inject({
+      method: "GET",
+      url: `/v1/projects?availability=public_beta&projectStage=prototype&helpWanted=marketing&categoryId=${category!.id}`,
+    });
+    expect(response.statusCode).toBe(200);
+    expect(
+      response.json().data.map((project: { id: number }) => project.id),
+    ).toEqual([projectId]);
+    expect(response.json().data[0].helpWanted).toEqual([
+      "marketing",
+      "investment",
+    ]);
+    expect(
+      (
+        await server.inject({
+          method: "GET",
+          url: "/v1/projects?helpWanted=cofounders",
+        })
+      ).json().data,
+    ).toHaveLength(0);
+  });
   it("keeps the approved page live while material edits wait, then applies approval atomically", async () => {
     await gate();
     const patch = await server.inject({

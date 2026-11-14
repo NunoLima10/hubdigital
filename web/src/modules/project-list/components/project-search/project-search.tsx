@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import type { ListPeriod } from "@hubdigital/shared";
 import { useRef, useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { ProjectList } from "../..";
 import { projectPeriodOptions } from "../../options";
 import {
@@ -11,16 +12,39 @@ import {
 
 export function ProjectSearch({ onClose }: { onClose: () => void }) {
   const dialogRef = useRef<HTMLDivElement>(null);
-  const [filters, setFilters] = useState<ProjectFilterValues>({});
-  const [period, setPeriod] = useState<ListPeriod>("all");
+  const search = useSearch({ strict: false });
+  const navigate = useNavigate();
+  const filters: ProjectFilterValues = {
+    q: search.q,
+    island: search.island,
+    categoryId: search.categoryId,
+    pricing: search.pricing,
+    availability: search.availability,
+    projectStage: search.projectStage,
+    helpWanted: search.helpWanted,
+  };
+  const period: ListPeriod = search.period ?? "all";
+  const setFilters = (next: ProjectFilterValues) =>
+    void navigate({
+      to: ".",
+      search: (previous) => ({ ...previous, ...next }),
+      replace: true,
+    });
+  const setPeriod = (next: ListPeriod) =>
+    void navigate({
+      to: ".",
+      search: (previous) => ({
+        ...previous,
+        period: next === "all" ? undefined : next,
+      }),
+      replace: true,
+    });
   const [resetKey, setResetKey] = useState(0);
   const hasFilters = Boolean(
-    filters.q ||
-    filters.island ||
-    filters.categoryId ||
-    filters.pricing ||
-    period !== "all",
+    Object.values(filters).some(Boolean) || period !== "all",
   );
+  const activeFilterCount =
+    Object.values(filters).filter(Boolean).length + Number(period !== "all");
 
   return (
     <Dialog
@@ -31,7 +55,7 @@ export function ProjectSearch({ onClose }: { onClose: () => void }) {
       className="max-h-[min(90dvh,48rem)] max-w-3xl"
       bodyClassName="min-h-0 flex-1 overflow-y-auto p-0"
     >
-      <div className="sticky top-0 z-10 space-y-3 border-b bg-card p-4 sm:p-5">
+      <div className="top-0 z-10 space-y-3 border-b bg-card p-4 sm:p-5 [@media(min-height:600px)]:sticky">
         <ProjectFilters
           key={resetKey}
           value={filters}
@@ -63,8 +87,21 @@ export function ProjectSearch({ onClose }: { onClose: () => void }) {
               variant="ghost"
               size="sm"
               onClick={() => {
-                setFilters({});
-                setPeriod("all");
+                void navigate({
+                  to: ".",
+                  search: (previous) => ({
+                    ...previous,
+                    q: undefined,
+                    island: undefined,
+                    categoryId: undefined,
+                    pricing: undefined,
+                    availability: undefined,
+                    projectStage: undefined,
+                    helpWanted: undefined,
+                    period: undefined,
+                  }),
+                  replace: true,
+                });
                 setResetKey((key) => key + 1);
               }}
             >
@@ -76,8 +113,16 @@ export function ProjectSearch({ onClose }: { onClose: () => void }) {
       <div className="p-4 sm:p-5">
         <h3 className="mb-2 text-sm font-semibold text-muted-foreground">
           Resultados
+          {activeFilterCount
+            ? ` · ${activeFilterCount} ${activeFilterCount === 1 ? "filtro ativo" : "filtros ativos"}`
+            : ""}
         </h3>
-        <ProjectList period={period} filters={filters} onSelect={onClose} transitionScope="search" />
+        <ProjectList
+          period={period}
+          filters={filters}
+          onSelect={onClose}
+          transitionScope="search"
+        />
       </div>
     </Dialog>
   );

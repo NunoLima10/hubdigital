@@ -7,6 +7,8 @@ import {
   listSortValues,
   platformValues,
   pricingValues,
+  availabilityValues,
+  helpWantedValues,
   projectStageValues,
   projectDraftSchema,
   updateProjectDraftSchema,
@@ -52,7 +54,7 @@ export const updateProjectRouteSchema = {
       data: z.object({
         id: z.number(),
         slug: z.string(),
-        pendingReview:z.boolean().optional(),
+        pendingReview: z.boolean().optional(),
       }),
     }),
     403: errorResponseSchema,
@@ -97,6 +99,8 @@ const listProjectsQuerySchema = paginationQuerySchema.extend({
   country: z.enum(countryValues).optional(),
   island: z.enum(islandValues).optional(),
   pricing: z.enum(pricingValues).optional(),
+  availability: z.enum(availabilityValues).optional(),
+  helpWanted: z.enum(helpWantedValues).optional(),
   projectStage: z.enum(projectStageValues).optional(),
   relatedTo: z.coerce.number().int().positive().optional(),
   // Repeatable query parameter: ?platform=web&platform=mobile
@@ -138,7 +142,8 @@ type ListFavoriteProjectsGeneric = {
 
 export type ListFavoriteProjectsRequest =
   FastifyRequest<ListFavoriteProjectsGeneric>;
-export type ListFavoriteProjectsReply = FastifyReply<ListFavoriteProjectsGeneric>;
+export type ListFavoriteProjectsReply =
+  FastifyReply<ListFavoriteProjectsGeneric>;
 
 type ListMyProjectsGeneric = {
   Querystring: z.infer<typeof listMyProjectsRouteSchema.querystring>;

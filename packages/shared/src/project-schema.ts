@@ -272,6 +272,7 @@ export const projectSchema = z.object({
 });
 
 export const projectMinimalFields = {
+  helpWanted: true,
   id: true,
   slug: true,
   name: true,

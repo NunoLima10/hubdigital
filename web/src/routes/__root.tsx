@@ -2,6 +2,7 @@ import { AppProvider } from "@/app/provider";
 import "@/index.css";
 import { analyticsScripts } from "@/lib/analytics";
 import { seo } from "@/lib/seo";
+import { discoverySearchSchema } from "@/modules/project-list/search-params";
 import type { QueryClient } from "@tanstack/react-query";
 import {
   HeadContent,
@@ -16,6 +17,7 @@ interface RouterContext {
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
+  validateSearch: discoverySearchSchema,
   // Site-wide defaults. Routes that have something more specific to say
   // override them with their own head(), built from the same seo() helper.
   head: () => ({

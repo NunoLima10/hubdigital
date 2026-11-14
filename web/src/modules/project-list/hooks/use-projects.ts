@@ -1,9 +1,15 @@
 import { API } from "@/api/api";
 import { authClient } from "@/lib/auth-client";
 import { ProjectMinimal } from "@/modules/submit/types/project";
-import type { Island, ListPeriod, ListSort, ProjectPricing } from "@hubdigital/shared";
+import type {
+  Island,
+  ListPeriod,
+  ListSort,
+  ProjectPricing,
+} from "@hubdigital/shared";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
+import type { ProjectFilterValues } from "../components/project-filters/project-filters";
 
 export type ProjectsMeta = {
   limit: number;
@@ -18,7 +24,7 @@ export type ProjectsResponse = {
   meta: ProjectsMeta;
 };
 
-export type ProjectsQuery = {
+export type ProjectsQuery = ProjectFilterValues & {
   period?: ListPeriod;
   sort?: ListSort;
   limit?: number;
@@ -50,6 +56,9 @@ export function projectsQueryKey({
   island,
   categoryId,
   pricing,
+  availability,
+  projectStage,
+  helpWanted,
   relatedTo,
 }: ProjectsQueryKeyInput = {}) {
   return [
@@ -64,6 +73,9 @@ export function projectsQueryKey({
       island: island ?? null,
       categoryId: categoryId ?? null,
       pricing: pricing ?? null,
+      availability: availability ?? null,
+      projectStage: projectStage ?? null,
+      helpWanted: helpWanted ?? null,
       relatedTo: relatedTo ?? null,
     },
   ] as const;
@@ -92,6 +104,9 @@ async function fetchProjects(query: ProjectsQuery) {
       island: query.island,
       categoryId: query.categoryId,
       pricing: query.pricing,
+      availability: query.availability,
+      projectStage: query.projectStage,
+      helpWanted: query.helpWanted,
       relatedTo: query.relatedTo,
     },
   });
@@ -108,10 +123,16 @@ export async function fetchAllPublishedProjects() {
   const projects: ProjectMinimal[] = [];
   for (let page = 0; page < ALL_MAX_PAGES; page++) {
     const { data } = await API.get<ProjectsResponse>("/projects", {
-      params: { period: "all", sort: "newest", limit: ALL_PAGE_SIZE, offset: page * ALL_PAGE_SIZE },
+      params: {
+        period: "all",
+        sort: "newest",
+        limit: ALL_PAGE_SIZE,
+        offset: page * ALL_PAGE_SIZE,
+      },
     });
     projects.push(...data.data);
-    if (data.data.length < ALL_PAGE_SIZE || projects.length >= data.meta.total) break;
+    if (data.data.length < ALL_PAGE_SIZE || projects.length >= data.meta.total)
+      break;
   }
   return projects;
 }

@@ -2,7 +2,7 @@ import { BrandLogo } from "@/components/brand-logo/brand-logo";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { MobileBottomNav } from "./mobile-bottom-nav";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import {
   Compass,
   LayoutDashboard,
@@ -12,7 +12,7 @@ import {
   Sun,
   UserRound,
 } from "lucide-react";
-import { lazy, Suspense, useEffect, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useState } from "react";
 
 const ProjectSearch = lazy(() =>
   import("@/modules/project-list/components/project-search/project-search").then(
@@ -20,7 +20,13 @@ const ProjectSearch = lazy(() =>
   ),
 );
 
-function ThemeToggle({ dark, onToggle }: { dark: boolean; onToggle: () => void }) {
+function ThemeToggle({
+  dark,
+  onToggle,
+}: {
+  dark: boolean;
+  onToggle: () => void;
+}) {
   return (
     <Button
       variant="ghost"
@@ -40,9 +46,23 @@ export function Header({
   context?: "explorer" | "dashboard";
 }) {
   const { data: session, isPending: sessionPending } = authClient.useSession();
-  const [searchOpen, setSearchOpen] = useState(false);
+  const searchParams = useSearch({ strict: false });
+  const navigate = useNavigate();
+  const searchOpen = Boolean(searchParams.search);
+  const setSearchOpen = useCallback(
+    (open: boolean) =>
+      void navigate({
+        to: ".",
+        search: (previous) => ({ ...previous, search: open || undefined }),
+        replace: true,
+      }),
+    [navigate],
+  );
   const [dark, setDark] = useState(false);
-  useEffect(() => setDark(document.documentElement.classList.contains("dark")), []);
+  useEffect(
+    () => setDark(document.documentElement.classList.contains("dark")),
+    [],
+  );
   function toggleTheme() {
     const next = !dark;
     document.documentElement.classList.toggle("dark", next);
@@ -62,9 +82,15 @@ export function Header({
   const avatar = (
     <span className="flex size-8 items-center justify-center overflow-hidden rounded-full border bg-muted text-xs font-semibold">
       {session?.user.image ? (
-        <img src={session.user.image} alt="" className="size-full object-cover" />
+        <img
+          src={session.user.image}
+          alt=""
+          className="size-full object-cover"
+        />
       ) : (
-        session?.user.name?.[0]?.toUpperCase() ?? <UserRound className="size-4" />
+        (session?.user.name?.[0]?.toUpperCase() ?? (
+          <UserRound className="size-4" />
+        ))
       )}
     </span>
   );
@@ -79,109 +105,112 @@ export function Header({
     }
     document.addEventListener("keydown", handleSearchShortcut);
     return () => document.removeEventListener("keydown", handleSearchShortcut);
-  }, [isDashboard]);
+  }, [isDashboard, setSearchOpen]);
   return (
     <>
-    <header className="border-b bg-background/95">
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-0 px-4 md:gap-4 md:px-6">
-        <Link
-          to="/"
-          aria-label="Hub Digital, página inicial"
-          className="mr-auto shrink-0 rounded focus-visible:outline-2 focus-visible:outline-ring"
-        >
-          <BrandLogo />
-        </Link>
-        {!isDashboard && (
-        <Link
-          to="/map"
-          className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:inline-flex"
-          aria-label="Mapa de projetos"
-          title="Mapa de projetos"
-        >
-          <Map className="size-4" />
-          <span className="hidden md:inline">Mapa</span>
-        </Link>
-        )}
-        {showContextLink && (
+      <header className="border-b bg-background/95">
+        <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-0 px-4 md:gap-4 md:px-6">
           <Link
-            to={contextLink.to}
-            className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:inline-flex"
-            aria-label={contextLink.label}
-            title={contextLink.label}
+            to="/"
+            aria-label="Hub Digital, página inicial"
+            className="mr-auto shrink-0 rounded focus-visible:outline-2 focus-visible:outline-ring"
           >
-            <ContextIcon className="size-4" />
-            <span className="hidden md:inline">{contextLink.label}</span>
+            <BrandLogo />
           </Link>
-        )}
-        <div>
-          <ThemeToggle dark={dark} onToggle={toggleTheme} />
+          {!isDashboard && (
+            <Link
+              to="/map"
+              className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:inline-flex"
+              aria-label="Mapa de projetos"
+              title="Mapa de projetos"
+            >
+              <Map className="size-4" />
+              <span className="hidden md:inline">Mapa</span>
+            </Link>
+          )}
+          {showContextLink && (
+            <Link
+              to={contextLink.to}
+              className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:inline-flex"
+              aria-label={contextLink.label}
+              title={contextLink.label}
+            >
+              <ContextIcon className="size-4" />
+              <span className="hidden md:inline">{contextLink.label}</span>
+            </Link>
+          )}
+          <div>
+            <ThemeToggle dark={dark} onToggle={toggleTheme} />
+          </div>
+          <button
+            type="button"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Procurar projetos"
+            aria-keyshortcuts="Control+K Meta+K"
+            className={`${isDashboard ? "md:hidden" : ""} inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-md border focus-visible:outline-2 focus-visible:outline-ring border-transparent text-sm text-muted-foreground hover:bg-muted hover:text-foreground lg:w-44 lg:justify-start lg:border-input lg:px-3 xl:w-52`}
+          >
+            <Search className="size-4" />
+            <span className="hidden lg:inline">Procurar projetos</span>
+          </button>
+          {sessionPending ? (
+            // The server cannot see the session cookie (it belongs to the API's
+            // origin), so until the browser has asked, show neither the guest
+            // buttons nor the avatar — either would flash into the other.
+            <span
+              aria-hidden
+              className="mx-1.5 size-8 shrink-0 animate-pulse rounded-full bg-muted"
+            />
+          ) : (
+            <>
+              <Link
+                to={session ? "/dashboard/profile" : "/sign-in"}
+                aria-label={session ? "Abrir perfil" : "Entrar"}
+                title={session ? session.user.name : "Entrar"}
+                className={
+                  session
+                    ? "inline-flex size-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-ring md:hidden"
+                    : "inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-foreground px-3 text-sm font-medium text-background hover:bg-foreground/85 focus-visible:outline-2 focus-visible:outline-ring md:hidden"
+                }
+              >
+                {session ? avatar : "Entrar"}
+              </Link>
+              {!isDashboard &&
+                (session ? (
+                  <Link
+                    to="/dashboard/profile"
+                    className="hidden size-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-ring md:flex"
+                    aria-label="Abrir perfil"
+                    title={session.user.name}
+                  >
+                    {avatar}
+                  </Link>
+                ) : (
+                  <Link
+                    to="/sign-in"
+                    className="hidden text-sm font-medium hover:text-primary md:block"
+                  >
+                    Entrar
+                  </Link>
+                ))}
+              {!hasAuthenticatedActions && (
+                <Link
+                  to="/sign-up"
+                  className="hidden h-11 shrink-0 items-center gap-2 md:inline-flex rounded-md bg-foreground px-3 text-sm font-medium text-background hover:bg-foreground/85"
+                >
+                  <UserRound className="size-4" />
+                  Criar conta
+                </Link>
+              )}
+            </>
+          )}
         </div>
-        <button
-          type="button"
-          onClick={() => setSearchOpen(true)}
-          aria-label="Procurar projetos"
-          aria-keyshortcuts="Control+K Meta+K"
-          className={`${isDashboard ? "md:hidden" : ""} inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-md border focus-visible:outline-2 focus-visible:outline-ring border-transparent text-sm text-muted-foreground hover:bg-muted hover:text-foreground lg:w-44 lg:justify-start lg:border-input lg:px-3 xl:w-52`}
-        >
-          <Search className="size-4" />
-          <span className="hidden lg:inline">Procurar projetos</span>
-        </button>
-        {sessionPending ? (
-          // The server cannot see the session cookie (it belongs to the API's
-          // origin), so until the browser has asked, show neither the guest
-          // buttons nor the avatar — either would flash into the other.
-          <span
-            aria-hidden
-            className="mx-1.5 size-8 shrink-0 animate-pulse rounded-full bg-muted"
-          />
-        ) : (
-          <>
-          <Link
-            to={session ? "/dashboard/profile" : "/sign-in"}
-              aria-label={session ? "Abrir perfil" : "Entrar"}
-            title={session ? session.user.name : "Entrar"}
-            className={session
-              ? "inline-flex size-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-ring md:hidden"
-              : "inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-foreground px-3 text-sm font-medium text-background hover:bg-foreground/85 focus-visible:outline-2 focus-visible:outline-ring md:hidden"}
-          >
-            {session ? avatar : "Entrar"}
-          </Link>
-        {!isDashboard && (session ? (
-          <Link
-            to="/dashboard/profile"
-            className="hidden size-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-ring md:flex"
-            aria-label="Abrir perfil"
-            title={session.user.name}
-          >
-            {avatar}
-          </Link>
-        ) : (
-          <Link
-            to="/sign-in"
-            className="hidden text-sm font-medium hover:text-primary md:block"
-          >
-            Entrar
-          </Link>
-        ))}
-        {!hasAuthenticatedActions && (
-          <Link
-            to="/sign-up"
-            className="hidden h-11 shrink-0 items-center gap-2 md:inline-flex rounded-md bg-foreground px-3 text-sm font-medium text-background hover:bg-foreground/85"
-          >
-            <UserRound className="size-4" />
-            Criar conta
-          </Link>
+        {searchOpen && (
+          <Suspense fallback={null}>
+            <ProjectSearch onClose={() => setSearchOpen(false)} />
+          </Suspense>
         )}
-          </>
-        )}
-      </div>
-      {searchOpen && (
-        <Suspense fallback={null}>
-          <ProjectSearch onClose={() => setSearchOpen(false)} />
-        </Suspense>
-      )}
-    </header>
-    <MobileBottomNav />
+      </header>
+      <MobileBottomNav />
     </>
   );
 }
