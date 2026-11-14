@@ -2,8 +2,22 @@ import * as z from "zod";
 
 const createEnv = () => {
   const EnvSchema = z.object({
-    API_URL: z.string().optional().default("http://localhost:3000/v1"),
-    CLERK_PUBLISHABLE_KEY: z.string(),
+    API_URL: z.string().optional().default("http://localhost:3001/v1"),
+    // Public R2 bucket URL, matching the API's CLOUDFLARE_PUBLIC_URL. Only needed
+    // to preview an image before the project is saved — once saved, the API
+    // returns fully resolved URLs.
+    ASSETS_URL: z.string().optional().default(""),
+    // Public origin of this site, without a trailing slash. Crawlers only
+    // accept absolute URLs in og:image, og:url, canonical and the sitemap.
+    SITE_URL: z.string().optional().default("http://localhost:5173"),
+    // Optional raster tile provider for the maps (Leaflet URL template) and its
+    // attribution. Unset uses OpenStreetMap for modest interactive traffic.
+    MAP_TILE_URL: z.string().optional().default(""),
+    MAP_TILE_ATTRIBUTION: z.string().optional().default(""),
+    // Umami analytics (cookieless). No website id keeps the script off; the
+    // URL only changes when Umami is self-hosted.
+    UMAMI_WEBSITE_ID: z.string().optional().default(""),
+    UMAMI_SCRIPT_URL: z.string().optional().default("https://cloud.umami.is/script.js"),
   });
 
   const envVars = Object.entries(import.meta.env).reduce<

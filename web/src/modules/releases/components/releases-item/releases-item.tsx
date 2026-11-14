@@ -1,42 +1,211 @@
+import { ProjectCommunityManager } from "@/modules/community/project-community-manager";
+import { primaryProjectLink, projectLinkHref, projectLinkActionLabel } from "@hubdigital/shared";
+import { ProjectSummary } from "@/components/project-summary/project-summary";
+import { Badge } from "@/components/ui/badge";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { SparkBurst, type SparkBurstHandle } from "@/components/spark-burst/spark-burst";
+import { useToggleAnimation } from "@/hooks/use-toggle-animation";
+import { POP_KEYFRAMES, prefersReducedMotion, replay } from "@/lib/motion";
+import { cn } from "@/lib/utils";
+import { takeLaunchCelebration } from "@/modules/releases/utils/launch-celebration";
+import { ModerationNotice } from "@/modules/releases/components/moderation-notice/moderation-notice";
+import type { Project } from "@/modules/submit/types/project";
+import { Menu } from "@base-ui/react/menu";
+import { Link } from "@tanstack/react-router";
 import {
-  ActionIcon,
-  Avatar,
-  Flex,
-  Paper,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
-import { IconLink, IconPencil, IconRocket } from "@tabler/icons-react";
+  Ellipsis,
+  ExternalLink,
+  Eye,
+  Pencil,
+  Rocket,
+  Trash2,
+} from "lucide-react";
+import { useCallback, useEffect, useRef } from "react";
 
-type ReleasesItemProps = {};
+type Props = {
+  project: Project;
+  onEdit: (project: Project) => void;
+  onPublish: (project: Project) => void;
+  onDelete: (project: Project) => void;
+  isPublishing?: boolean;
+  isDeleting?: boolean;
+};
+const statusLabels: Record<Project["status"], string> = {
+  draft: "Rascunho",
+  pending: "Em revisão",
+  published: "No ar",
+  rejected: "Rejeitado",
+};
 
-export function ReleasesItem({}: ReleasesItemProps) {
+const statusClasses: Record<Project["status"], string> = {
+  draft: "bg-muted text-muted-foreground",
+  pending:
+    "bg-amber-500/10 text-amber-700 dark:text-amber-400",
+  published:
+    "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+  rejected: "bg-destructive/10 text-destructive",
+};
+export function ReleasesItem({
+  project,
+  onEdit,
+  onPublish,
+  onDelete,
+  isPublishing,
+  isDeleting,
+}: Props) {
+  const primaryLink = primaryProjectLink(project.links);
+  const canPublish =
+    project.status === "draft" || project.status === "rejected";
+  const hasPublicPage = project.status === "published" && !project.hidden;
+
+  // Launch moment: the status badge pops with sparks and the card glows,
+  // whether the project was published here or from the submit form.
+  const launched = project.status === "pending" || project.status === "published";
+  const card = useRef<HTMLElement>(null);
+  const badge = useRef<HTMLSpanElement>(null);
+  const sparks = useRef<SparkBurstHandle>(null);
+  const celebrate = useCallback(() => {
+    card.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    replay(badge.current, POP_KEYFRAMES, { duration: 500, easing: "ease-out" });
+    sparks.current?.burst();
+    replay(
+      card.current,
+      [
+        { boxShadow: "0 0 0 4px color-mix(in oklch, var(--primary) 35%, transparent)" },
+        { boxShadow: "0 0 0 4px transparent" },
+      ],
+      { duration: 1400, easing: "ease-out" },
+    );
+  }, []);
+  const armLaunch = useToggleAnimation(launched, { onActivate: celebrate });
+  useEffect(() => {
+    if (!takeLaunchCelebration(project.id)) return;
+    // The list may still show the cached draft; then wait for the refetch.
+    if (!launched) armLaunch();
+    else if (!prefersReducedMotion()) celebrate();
+  }, [project.id, launched, armLaunch, celebrate]);
+
   return (
-    <Paper withBorder p="lg" radius="md">
-      <Stack justify="space-between" h={"100%"}>
-        <Stack gap={"xxs"}>
-          <Flex>
-            <Avatar>
-              <IconRocket size={18} />
-            </Avatar>
-            <Flex w={"100%"} justify={"end"} gap={"xxs"}>
-              <ActionIcon variant="default" size={"lg"}>
-                <IconLink size={18} />
-              </ActionIcon>
-              <ActionIcon variant="default" size={"lg"}>
-                <IconPencil size={18} />
-              </ActionIcon>
-            </Flex>
-          </Flex>
-          <Title order={4} lineClamp={1}>
-            Notifika
-          </Title>
-          <Text size="sm" lineClamp={2} c={"dimmed"}>
-            Alguam descrição simpleficado sobre o que é o projeto e mais aalguma
-          </Text>
-        </Stack>
-      </Stack>
-    </Paper>
+    <article ref={card} className="rounded-lg border bg-card p-3 sm:p-5">
+      {project.editReview?.status === "pending" && <p className="mb-3 text-sm text-muted-foreground">Alterações em revisão. A versão aprovada continua pública.</p>}
+      {project.editReview?.status === "rejected" && <p className="mb-3 text-sm text-destructive">Alterações rejeitadas: {project.editReview.reason}. Podes corrigir e reenviar.</p>}
+      <ProjectSummary
+        iconUrl={project.logoUrl}
+        className="flex-wrap items-start sm:flex-nowrap sm:items-center"
+        actionsClassName="ml-auto w-full flex-wrap justify-end gap-2 sm:w-auto sm:flex-nowrap"
+        title={
+          <div className="flex flex-wrap items-center gap-2">
+            {hasPublicPage ? (
+              <Link
+                to="/projects/$slug"
+                params={{ slug: project.slug }}
+                className="font-semibold hover:text-primary hover:underline"
+              >
+                {project.name}
+              </Link>
+            ) : (
+              <h2 className="font-semibold">{project.name}</h2>
+            )}
+            <span ref={badge} className="inline-flex">
+              <Badge
+                className={cn(
+                  "relative overflow-visible",
+                  project.hidden
+                    ? "bg-destructive/10 text-destructive"
+                    : statusClasses[project.status],
+                )}
+              >
+                {project.hidden ? "Oculto" : statusLabels[project.status]}
+                <SparkBurst ref={sparks} count={10} distance={34} delay={100} />
+              </Badge>
+            </span>
+          </div>
+        }
+        description={project.shortDescription}
+        topics={[...(project.category ? [project.category.name] : []), ...project.secondaryCategories.map((category) => category.name)]}
+        actions={
+          <>
+            {canPublish && (
+              <Button
+                size="sm"
+                disabled={isPublishing}
+                onClick={() => {
+                  armLaunch();
+                  onPublish(project);
+                }}
+              >
+                <Rocket />
+                {isPublishing
+                  ? "A publicar..."
+                  : project.status === "rejected"
+                    ? "Voltar a publicar"
+                    : "Publicar"}
+              </Button>
+            )}
+            {hasPublicPage && (
+              <Link
+                to="/projects/$slug"
+                params={{ slug: project.slug }}
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                )}
+              >
+                <Eye />
+                Ver página
+              </Link>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEdit(project)}
+            >
+              <Pencil />
+              Editar
+            </Button>
+            <Menu.Root>
+              <Menu.Trigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    aria-label={`Mais ações para ${project.name}`}
+                  />
+                }
+              >
+                <Ellipsis />
+              </Menu.Trigger>
+              <Menu.Portal>
+                <Menu.Positioner sideOffset={6} align="end">
+                  <Menu.Popup className="z-50 min-w-44 rounded-lg border bg-popover p-1 text-popover-foreground shadow-lg outline-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0">
+                    {primaryLink && <Menu.LinkItem
+                      href={primaryLink ? projectLinkHref(primaryLink)! : undefined}
+                      target="_blank"
+                      rel="noreferrer"
+                      closeOnClick
+                      className="flex cursor-default items-center gap-2 rounded-md px-3 py-2 text-sm outline-none data-highlighted:bg-muted"
+                    >
+                      <ExternalLink className="size-4" />
+                      {primaryLink ? projectLinkActionLabel(primaryLink, project.availability) : "Abrir projeto"}
+                    </Menu.LinkItem>}
+                    <Menu.Separator className="my-1 h-px bg-border" />
+                    <Menu.Item
+                      disabled={isDeleting}
+                      onClick={() => onDelete(project)}
+                      className="flex cursor-default items-center gap-2 rounded-md px-3 py-2 text-sm text-destructive outline-none data-highlighted:bg-muted data-disabled:opacity-50"
+                    >
+                      <Trash2 className="size-4" />
+                      Remover projeto
+                    </Menu.Item>
+                  </Menu.Popup>
+                </Menu.Positioner>
+              </Menu.Portal>
+            </Menu.Root>
+          </>
+        }
+      />
+      <ModerationNotice project={project} />
+      {project.status === "published" && !project.hidden && <ProjectCommunityManager project={project} />}
+    </article>
   );
 }

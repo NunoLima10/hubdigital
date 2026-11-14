@@ -1,3 +1,143 @@
+enum moderation_action {
+  "project.approve"
+  "project.reject"
+  "project.unpublish"
+  "project.restore"
+  "project.shadow_ban"
+  "project.unshadow_ban"
+  "project.edit_published"
+  "user.shadow_ban"
+  "user.unshadow_ban"
+  "comment.hide"
+  "comment.unhide"
+  "comment.delete"
+  "publisher.trust"
+  "publisher.untrust"
+  "setting.update"
+  "report.resolve"
+  "category.create"
+  "category.update"
+  "user.badge_grant"
+  "user.badge_revoke"
+}
+
+enum moderation_target {
+  project
+  user
+  comment
+  publisher
+  setting
+  report
+}
+
+enum project_event_source {
+  web
+  app
+}
+
+enum project_event_type {
+  view
+  visit
+}
+
+enum project_link_kind {
+  website
+  app_store
+  repository
+  demo
+  documentation
+  other
+}
+
+enum ai_involvement {
+  none
+  assisted
+  substantial
+  primarily_ai
+}
+
+enum audience {
+  students
+  developers
+  businesses
+  government
+  general_public
+}
+
+enum availability {
+  not_available
+  waitlist
+  invite_only
+  public_beta
+  available
+  unavailable
+}
+
+enum business_model {
+  b2b
+  b2c
+  b2g
+  c2c
+}
+
+enum island {
+  CV1
+  CV2
+  CV3
+  CV4
+  CV5
+  CV6
+  CV7
+  CV8
+  CV9
+}
+
+enum platform {
+  web
+  android
+  ios
+  desktop
+  api
+  cli
+  library
+  browser_extension
+  hardware
+  other
+}
+
+enum pricing {
+  free
+  freemium
+  paid
+  contact_for_quote
+  not_decided
+  not_applicable
+}
+
+enum project_stage {
+  idea
+  building
+  prototype
+  live
+  paused
+  discontinued
+}
+
+enum project_status {
+  draft
+  published
+  pending
+  rejected
+}
+
+enum source_model {
+  open_source
+  source_available
+  proprietary
+  not_applicable
+  not_disclosed
+}
+
 enum found_us_by_responses {
   "social-media"
   friends
@@ -32,26 +172,567 @@ enum profile_responses {
   investor
 }
 
+enum report_reason {
+  spam
+  offensive
+  misleading
+  not_cabo_verde
+  broken_link
+  other
+}
+
+enum report_status {
+  open
+  reviewing
+  resolved
+  dismissed
+}
+
+enum report_target {
+  project
+  comment
+  user
+}
+
+enum file_upload_type {
+  project_logo
+  project_gallery
+  user_avatar
+}
+
+enum link_click_surface {
+  detail
+  card
+  map
+}
+
+enum announcement_kind {
+  presentation
+  first_release
+  major_update
+}
+
+enum announcement_status {
+  pending
+  published
+  rejected
+}
+
+enum project_member_status {
+  pending
+  accepted
+  declined
+}
+
+enum project_revision_status {
+  pending
+  approved
+  rejected
+}
+
+enum badge_award_mode {
+  automatic
+  manual
+}
+
+table app_settings {
+  key varchar(100) [pk, not null]
+  value jsonb [not null]
+  updated_by text
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+}
+
 table accounts {
+  id text [pk, not null]
+  account_id text [not null]
+  provider_id text [not null]
+  user_id text [not null]
+  access_token text
+  refresh_token text
+  id_token text
+  access_token_expires_at "timestamp with time zone"
+  refresh_token_expires_at "timestamp with time zone"
+  scope text
+  password text
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+
+  indexes {
+    user_id [name: 'accounts_user_id_idx']
+  }
+}
+
+table sessions {
+  id text [pk, not null]
+  expires_at "timestamp with time zone" [not null]
+  token text [not null, unique]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null]
+  ip_address text
+  user_agent text
+  user_id text [not null]
+  impersonated_by text
+
+  indexes {
+    user_id [name: 'sessions_user_id_idx']
+  }
+}
+
+table users {
+  id text [pk, not null]
+  name text [not null]
+  email text [not null, unique]
+  email_verified boolean [not null, default: false]
+  image text
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+  role text
+  banned boolean [default: false]
+  ban_reason text
+  ban_expires "timestamp with time zone"
+  onboarded_at "timestamp with time zone"
+  shadow_banned_at "timestamp with time zone"
+  shadow_banned_by text
+  shadow_ban_reason text
+
+  indexes {
+    shadow_banned_at [name: 'users_shadow_banned_idx']
+  }
+}
+
+table verifications {
+  id text [pk, not null]
+  identifier text [not null]
+  value text [not null]
+  expires_at "timestamp with time zone" [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    identifier [name: 'verifications_identifier_idx']
+  }
+}
+
+table categories {
   id serial [pk, not null, increment]
-  clerk_user_id text [not null]
-  profile_id integer [not null]
-  email text [not null]
-  fullName text [not null]
-  avatar_url text
+  key varchar [not null, unique]
+  name varchar [not null]
   created_at "timestamp with time zone" [not null, default: `now()`]
   updated_at "timestamp with time zone" [not null, default: `now()`]
 }
 
-table profiles {
+table comments {
   id serial [pk, not null, increment]
+  project_id integer [not null]
+  user_id text [not null]
+  parent_id integer
+  body text [not null]
+  deleted_at "timestamp with time zone"
+  hidden_at "timestamp with time zone"
+  hidden_by text
+  moderation_reason text
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (project_id, created_at) [name: 'comments_project_created_idx']
+    parent_id [name: 'comments_parent_idx']
+    user_id [name: 'comments_user_idx']
+  }
+}
+
+table moderation_actions {
+  id serial [pk, not null, increment]
+  actor_id text
+  actor_email varchar(255)
+  action moderation_action [not null]
+  target_type moderation_target [not null]
+  target_id varchar(64) [not null]
+  reason text
+  metadata jsonb
+  created_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (target_type, target_id, created_at) [name: 'moderation_actions_target_idx']
+    (actor_id, created_at) [name: 'moderation_actions_actor_idx']
+    created_at [name: 'moderation_actions_created_idx']
+  }
+}
+
+table project_event_visitors {
+  project_id integer [not null]
+  type project_event_type [not null]
+  source project_event_source [not null]
+  day date [not null]
+  visitor varchar(32) [not null]
+
+  indexes {
+    (project_id, type, source, day, visitor) [pk]
+    day [name: 'project_event_visitors_day_idx']
+  }
+}
+
+table project_events {
+  project_id integer [not null]
+  type project_event_type [not null]
+  source project_event_source [not null, default: 'web']
+  day date [not null]
+  count integer [not null, default: 0]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (project_id, type, source, day) [pk]
+    (project_id, day) [name: 'project_events_project_day_idx']
+  }
+}
+
+table project_images {
+  id serial [pk, not null, increment]
+  project_id integer [not null]
+  storage_key text [not null]
+  position integer [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (project_id, position) [name: 'project_images_project_position_idx', unique]
+    storage_key [name: 'project_images_storage_key_idx', unique]
+  }
+}
+
+table project_links {
+  id serial [pk, not null, increment]
+  project_id integer [not null]
+  kind project_link_kind [not null]
+  url text [not null]
+  label varchar(80)
+  position integer [not null]
+  referral_attribution boolean [not null, default: false]
+  is_primary boolean [not null, default: false]
+
+  indexes {
+    project_id [name: 'project_links_primary_idx', unique]
+    (project_id, position) [name: 'project_links_position_idx', unique]
+  }
+}
+
+table project_favorites {
+  id serial [pk, not null, increment]
+  project_id integer [not null]
+  user_id text [not null]
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (project_id, user_id) [name: 'project_favorites_project_user_idx', unique]
+    (user_id, created_at) [name: 'project_favorites_user_created_idx']
+  }
+}
+
+table project_upvotes {
+  id serial [pk, not null, increment]
+  project_id integer [not null]
+  user_id text [not null]
+  ip_address varchar(64)
+  user_agent text
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (project_id, user_id) [name: 'project_upvotes_project_user_idx', unique]
+    user_id [name: 'project_upvotes_user_idx']
+  }
+}
+
+table projects {
+  id serial [pk, not null, increment]
+  publisher_id integer [not null]
+  name varchar [not null]
+  slug text [not null, unique]
+  short_description varchar [not null, default: '']
+  description text
+  row_version integer [not null, default: 0]
+  creation_key varchar(36)
+  logo_key text
+  youtube_video_url text
+  pricing pricing
+  platform platform[] [not null, default: `[]`]
+  business_model business_model
+  availability availability
+  source_model source_model
+  license_id varchar(80)
+  project_stage project_stage
+  audiences audience[] [not null, default: `[]`]
+  ai_involvement ai_involvement
+  country varchar(2)
+  location_details jsonb [not null, default: `{}`]
+  additional_locations jsonb [not null, default: `[]`]
+  team_mode varchar(16)
+  local_connections jsonb [not null, default: `[]`]
+  service_area jsonb
+  island island
+  municipality varchar(5)
+  zone varchar(13)
+  languages jsonb [not null, default: `[]`]
+  help_wanted jsonb [not null, default: `[]`]
+  help_description varchar(500)
+  team_description varchar(500)
+  category_id integer
+  status project_status [not null, default: 'draft']
+  queued_at "timestamp with time zone"
+  reviewed_at "timestamp with time zone"
+  reviewed_by text
+  rejection_reason text
+  shadow_banned_at "timestamp with time zone"
+  shadow_banned_by text
+  shadow_ban_reason text
+  published_at "timestamp with time zone"
+  launched_at "timestamp with time zone"
+  deleted_at "timestamp with time zone"
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (publisher_id, creation_key) [name: 'projects_publisher_creation_key_idx', unique]
+    (launched_at, id) [name: 'projects_launched_at_idx']
+    (status, published_at) [name: 'projects_status_published_idx']
+    category_id [name: 'projects_category_idx']
+    name [name: 'projects_name_trgm_idx']
+    short_description [name: 'projects_short_description_trgm_idx']
+    additional_locations [name: 'projects_additional_locations_idx']
+    country [name: 'projects_country_idx']
+    island [name: 'projects_island_idx']
+    (status, queued_at) [name: 'projects_status_queued_idx']
+    shadow_banned_at [name: 'projects_shadow_banned_idx']
+  }
+}
+
+table publishers {
+  id serial [pk, not null, increment]
+  membership_number serial [not null, increment]
+  user_id text [not null]
+  handle varchar(30) [not null]
   bio varchar [not null]
+  website_url text
+  github_url text
+  linkedin_url text
+  instagram_url text
   profile_response profile_responses [not null]
   objective_response objective_responses [not null]
   location_response location_responses [not null]
+  diaspora_country varchar(5)
   found_us_by_response found_us_by_responses [not null]
+  trusted_at "timestamp with time zone"
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    user_id [name: 'publisher_user_idx', unique]
+    handle [name: 'publisher_handle_idx', unique]
+    membership_number [name: 'publisher_membership_number_idx', unique]
+    
+  }
+}
+
+table reports {
+  id serial [pk, not null, increment]
+  reporter_id text [not null]
+  target_type report_target [not null]
+  target_id varchar(64) [not null]
+  reason report_reason [not null]
+  details text
+  status report_status [not null, default: 'open']
+  resolved_by text
+  resolved_at "timestamp with time zone"
+  resolution_note text
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (reporter_id, target_type, target_id) [name: 'reports_reporter_target_idx', unique]
+    (target_type, target_id) [name: 'reports_target_idx']
+    (status, created_at) [name: 'reports_status_idx']
+  }
+}
+
+table file_uploads {
+  id serial [pk, not null, increment]
+  key text [not null, unique]
+  user_id text [not null]
+  type file_upload_type [not null]
+  content_type varchar(100)
+  byte_size integer
+  completed_at "timestamp with time zone"
+  created_at "timestamp with time zone" [not null, default: `now()`]
+  updated_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    user_id [name: 'file_uploads_user_id_idx']
+  }
+}
+
+table project_secondary_categories {
+  project_id integer [not null]
+  category_id integer [not null]
+  position integer [not null]
+
+  indexes {
+    (project_id, category_id) [pk]
+    (project_id, position) [name: 'project_secondary_categories_position_idx', unique]
+    (category_id, project_id) [name: 'project_secondary_categories_category_idx']
+    
+  }
+}
+
+table project_link_clicks {
+  link_id integer [not null]
+  day date [not null]
+  surface link_click_surface [not null]
+  count integer [not null, default: 0]
+
+  indexes {
+    (link_id, day, surface) [pk]
+  }
+}
+
+table announcement_votes {
+  announcement_id integer [not null]
+  user_id text [not null]
+
+  indexes {
+    (announcement_id, user_id) [pk]
+    user_id [name: 'announcement_votes_user_idx']
+  }
+}
+
+table project_announcements {
+  id serial [pk, not null, increment]
+  project_id integer [not null]
+  kind announcement_kind [not null]
+  introduction varchar(1000) [not null]
+  creation_key varchar(36) [not null]
+  status announcement_status [not null]
+  published_at "timestamp with time zone"
+  rejection_reason text
+  reviewed_by text
+  created_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (project_id, creation_key) [name: 'project_announcements_creation_idx', unique]
+    project_id [name: 'project_first_release_idx', unique]
+    (status, published_at) [name: 'project_announcements_published_idx']
+  }
+}
+
+table project_members {
+  id serial [pk, not null, increment]
+  project_id integer [not null]
+  user_id text [not null]
+  invited_by text
+  status project_member_status [not null]
+  role varchar(80)
+  created_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (project_id, user_id) [name: 'project_members_user_idx', unique]
+    (user_id, status) [name: 'project_members_invitations_idx']
+  }
+}
+
+table project_revisions {
+  id serial [pk, not null, increment]
+  project_id integer [not null]
+  body jsonb [not null]
+  base_version integer [not null, default: 0]
+  base_updated_at "timestamp with time zone" [not null]
+  status project_revision_status [not null, default: 'pending']
+  reason text
+  reviewed_by text
+  created_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    project_id [name: 'project_pending_revision_idx', unique]
+    (project_id, created_at) [name: 'project_revisions_project_created_idx']
+  }
+}
+
+table badges {
+  key varchar(40) [pk, not null]
+  award_mode badge_award_mode [not null]
+  sort_order integer [not null, default: 0]
   created_at "timestamp with time zone" [not null, default: `now()`]
   updated_at "timestamp with time zone" [not null, default: `now()`]
 }
 
-ref: accounts.profile_id - profiles.id
+table user_badges {
+  id serial [pk, not null, increment]
+  user_id text [not null]
+  badge_key varchar(40) [not null]
+  awarded_at "timestamp with time zone" [not null, default: `now()`]
+  awarded_by text
+  featured boolean [not null, default: false]
+  seen_at "timestamp with time zone"
+
+  indexes {
+    (user_id, badge_key) [name: 'user_badges_user_badge_idx', unique]
+    user_id [name: 'user_badges_featured_idx', unique]
+    badge_key [name: 'user_badges_badge_idx']
+  }
+}
+
+ref: announcement_votes.announcement_id > project_announcements.id
+
+ref: announcement_votes.user_id - users.id
+
+ref: comments.project_id > projects.id
+
+ref: comments.user_id > users.id
+
+ref: comments.parent_id > comments.id
+
+ref: file_uploads.user_id > users.id
+
+ref: moderation_actions.actor_id - users.id
+
+ref: project_announcements.project_id > projects.id
+
+ref: project_events.project_id > projects.id
+
+ref: project_favorites.project_id > projects.id
+
+ref: project_favorites.user_id > users.id
+
+ref: project_images.project_id > projects.id
+
+ref: project_link_clicks.link_id > project_links.id
+
+ref: project_links.project_id > projects.id
+
+ref: project_members.project_id > projects.id
+
+ref: project_members.user_id > users.id
+
+ref: projects.category_id > categories.id
+
+ref: projects.publisher_id > publishers.id
+
+ref: project_revisions.project_id > projects.id
+
+ref: project_secondary_categories.project_id > projects.id
+
+ref: project_secondary_categories.category_id > categories.id
+
+ref: project_upvotes.project_id > projects.id
+
+ref: project_upvotes.user_id > users.id
+
+ref: users.id - publishers.user_id
+
+ref: reports.reporter_id - users.id
+
+ref: reports.resolved_by - users.id
+
+ref: user_badges.user_id > users.id
+
+ref: user_badges.badge_key > badges.key

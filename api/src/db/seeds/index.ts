@@ -1,0 +1,28 @@
+import { config } from "@/config";
+import { logger } from "@/utils/logger";
+import { DB } from "../index";
+import badges from "./badges";
+import categories from "./categories";
+import admin from "./users/admin";
+import demoAdmin from "./users/demo-admin";
+import publishers from "./users/publishers";
+import airtableProjects from "./airtable-projects";
+
+export async function RundSeeding(db: DB) {
+  logger.info("Seeding Started");
+
+  if (config.isDev) {
+    await publishers();
+    await demoAdmin(db);
+  }
+
+  // Runs in every environment, not just dev: production needs a first admin
+  // too, and the seed no-ops unless ADMIN_SEED_* are set.
+  await admin(db);
+
+  await categories(db);
+  await badges(db);
+  if (config.isDev) {
+    await airtableProjects(db);
+  }
+}

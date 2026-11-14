@@ -1,3 +1,10 @@
+import {
+  foundUsByQuestionValues,
+  locationQuestionValues,
+  objectiveQuestionValues,
+  profileQuestionValues,
+} from "@hubdigital/shared";
+
 export const PG_ERR_UNIQUE_VIOLATION = "23505";
 
 type Reponse = {
@@ -10,43 +17,24 @@ type Question = {
   reponses: Reponse[];
 };
 
-export const profileQuestionValues = [
-  "student",
-  "technology-professional",
-  "founder",
-  "investor",
-] as const;
+export {
+  foundUsByQuestionValues,
+  locationQuestionValues,
+  objectiveQuestionValues,
+  profileQuestionValues,
+} from "@hubdigital/shared";
 
-export const objectiveQuestionValues = [
-  "discover-products",
-  "launch-product",
-  "networking",
-  "explore",
-] as const;
+export {
+  abroadCountryValues as diasporaCountryValues,
+  countryLabels as diasporaCountryLabels,
+} from "@hubdigital/shared";
 
-export const locationQuestionValues = [
-  "CV1",
-  "CV2",
-  "CV3",
-  "CV4",
-  "CV5",
-  "CV6",
-  "CV7",
-  "CV8",
-  "CV9",
-  "diaspora",
-] as const;
-
-export const foundUsByQuestionValues = [
-  "social-media",
-  "friends",
-  "event",
-  "online-search",
-] as const;
+// Where most of the diaspora lives; listed first in the country picker.
+export const featuredDiasporaCountries = ["pt", "us", "fr", "nl", "lu", "sn", "br", "es", "it"] as const;
 
 export const onBoardingQuestions: Question[] = [
   {
-    title: "Com qual perfil você mais se identifica?",
+    title: "Com que perfil mais te identificas?",
     reponses: [
       {
         display: "Estudante",
@@ -67,18 +55,18 @@ export const onBoardingQuestions: Question[] = [
     ],
   },
   {
-    title: "Qual é o seu principal objetivo na plataforma?",
+    title: "Qual é o teu principal objetivo na plataforma?",
     reponses: [
       {
         display: "Descobrir novos produtos",
         value: objectiveQuestionValues[0],
       },
       {
-        display: "Lançar meu próprio produto",
+        display: "Lançar o meu próprio produto",
         value: objectiveQuestionValues[1],
       },
       {
-        display: "Conectar-se com inovadores",
+        display: "Conhecer outros inovadores",
         value: objectiveQuestionValues[2],
       },
       {
@@ -88,7 +76,7 @@ export const onBoardingQuestions: Question[] = [
     ],
   },
   {
-    title: "Atualmente, onde você vive?",
+    title: "Onde vives atualmente?",
     reponses: [
       {
         display: "Santo Antão",
@@ -133,7 +121,7 @@ export const onBoardingQuestions: Question[] = [
     ],
   },
   {
-    title: "Como você conheceu nossa plataforma?",
+    title: "Como conheceste o Hub Digital?",
     reponses: [
       {
         display: "Redes sociais",

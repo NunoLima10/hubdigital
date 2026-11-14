@@ -1,9 +1,11 @@
 export type Project = {
   id: number;
-  iconUrl: string;
-  website: string;
+  slug: string;
+  iconUrl?: string;
   title: string;
   description: string;
   topis: string[];
   upCount: number;
+  hasUpvoted: boolean;
+  commentCount: number;
 };

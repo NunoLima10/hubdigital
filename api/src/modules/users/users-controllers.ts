@@ -1,49 +1,83 @@
-import { InvalidOAuth, InvalidTokenError } from "@/utils/custom-errors";
-import { clerkClient, getAuth } from "@clerk/fastify";
+import { BadgesService } from "@/modules/badges/badges-services";
+import { MakersService } from "@/modules/makers/makers-services";
+import { BadRequestError, UnauthorizedAccessError } from "@/utils/custom-errors";
 import { FastifyReply, FastifyRequest } from "fastify";
-import { OnboardingBody, OnboardingResponse } from "./users-schemas";
-import { usersService } from "./users-services";
+import { onboardingRouteSchema, updateAvatarRouteSchema } from "./users-schemas";
+import { UserService } from "./users-services";
+import { fromNodeHeaders } from "better-auth/node";
+import { z } from "zod";
+import { auth } from "@/lib/auth";
 
 async function onboardingHandler(
-  req: FastifyRequest<{ Body: OnboardingBody }>,
+  req: FastifyRequest<{ Body: z.infer<typeof onboardingRouteSchema.body> }>,
   reply: FastifyReply
 ) {
-  const { userId } = getAuth(req);
+  if (!req.user) throw new UnauthorizedAccessError();
 
-  if (!userId) throw new InvalidTokenError();
+  const {
+    bio,
+    foundUsByResponse,
+    locationResponse,
+    diasporaCountry,
+    objectiveResponse,
+    profileResponse,
+  } = req.body;
 
-  const user = await clerkClient.users.getUser(userId);
+  // Every publisher gets a profile URL from the moment they onboard, derived
+  // from their display name.
+  const name = await MakersService.findUserName(req.db, req.user.id);
+  const handle = await MakersService.generateUniqueHandle(req.db, name);
 
-  const profile = await usersService.createProfile(req.db, req.body);
-
-  const email = user.emailAddresses.pop()?.emailAddress;
-  const fullName = user.fullName;
-
-  if (!email || !fullName) throw new InvalidOAuth();
-
-  const account = await usersService.createAccount(req.db, {
-    clerk_user_id: userId,
-    profileId: profile.id,
-    email: email,
-    fullName: fullName,
-    avatarUrl: user.imageUrl,
+  const publisher = await UserService.createPublisher(req.db, {
+    bio,
+    foundUsByResponse,
+    locationResponse,
+    diasporaCountry: locationResponse === "diaspora" ? diasporaCountry : undefined,
+    objectiveResponse,
+    profileResponse,
+    handle,
+    userId: req.user.id,
   });
 
-  await clerkClient.users.updateUserMetadata(userId, {
-    publicMetadata: {
-      onboarded: true,
+  // Early members earn their founding badge the moment they join; the client
+  // reveals it on the welcome screen.
+  const foundingBadge = await BadgesService.awardFoundingBadge(
+    req.db,
+    req.user.id,
+    publisher.membershipNumber,
+  );
+
+  await auth.api.updateUser({
+    headers: fromNodeHeaders(req.headers),
+    body: {
+      onboardedAt: new Date(),
     },
   });
 
-  const response: OnboardingResponse = {
+  return reply.status(201).send({
     data: {
-      id: account.id,
+      id: publisher.id,
+      membershipNumber: publisher.membershipNumber,
+      badges: foundingBadge ? [foundingBadge] : [],
     },
-  };
+  });
+}
 
-  return reply.status(201).send(response);
+async function updateAvatarHandler(
+  req: FastifyRequest<{ Body: z.infer<typeof updateAvatarRouteSchema.body> }>,
+  reply: FastifyReply
+) {
+  if (!req.user) throw new UnauthorizedAccessError();
+
+  const image = await UserService.updateAvatar(req.db, req.user.id, req.body.key);
+  if (image === undefined) {
+    throw new BadRequestError("Imagem inválida. Carrega o ficheiro novamente.");
+  }
+
+  return reply.status(200).send({ data: { image } });
 }
 
 export const usersController = {
   onboardingHandler,
+  updateAvatarHandler,
 };

@@ -1,0 +1,64 @@
+import {
+  foundUsByQuestionValues,
+  locationQuestionValues,
+  objectiveQuestionValues,
+  profileQuestionValues,
+} from "@hubdigital/shared";
+import { InferInsertModel } from "drizzle-orm";
+import type { AbroadCountry } from "@hubdigital/shared";
+import { check, pgEnum, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import { timestamps } from "./timestamps";
+import { users } from "./auth";
+import { uniqueIndex } from "drizzle-orm/pg-core";
+
+export const profileResponseEnum = pgEnum(
+  "profile_responses",
+  profileQuestionValues
+);
+export const objectiveResponseEnum = pgEnum(
+  "objective_responses",
+  objectiveQuestionValues
+);
+export const locationResponseEnum = pgEnum(
+  "location_responses",
+  locationQuestionValues
+);
+export const foundUsByResponseEnum = pgEnum(
+  "found_us_by_responses",
+  foundUsByQuestionValues
+);
+
+export const publishers = pgTable("publishers", {
+  id: serial("id").primaryKey(),
+  // Immutable public join order used by the founding-member profile badges.
+  membershipNumber: serial("membership_number").notNull(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  // Public identifier for the maker's profile page (/makers/:handle). Always
+  // lowercase (handleSchema), which the check below holds the database to, so
+  // the plain unique index is also case-insensitive in practice.
+  handle: varchar("handle", { length: 30 }).notNull(),
+  bio: varchar("bio").notNull(),
+  websiteUrl: text("website_url"),
+  githubUrl: text("github_url"),
+  linkedinUrl: text("linkedin_url"),
+  instagramUrl: text("instagram_url"),
+  profileResponse: profileResponseEnum("profile_response").notNull(),
+  objectiveResponse: objectiveResponseEnum("objective_response").notNull(),
+  locationResponse: locationResponseEnum("location_response").notNull(),
+  diasporaCountry: varchar("diaspora_country", { length: 5 }).$type<AbroadCountry>(),
+  foundUsByResponse: foundUsByResponseEnum("found_us_by_response").notNull(),
+  // A maker staff has vouched for: their publishes skip the review queue while
+  // `moderation.auto_approve_trusted` is on.
+  trustedAt: timestamp("trusted_at", { withTimezone: true, mode: "string" }),
+  ...timestamps,
+}, (table) => [
+  uniqueIndex('publisher_user_idx').on(table.userId),
+  uniqueIndex('publisher_handle_idx').on(table.handle),
+  uniqueIndex('publisher_membership_number_idx').on(table.membershipNumber),
+  check("publisher_handle_lowercase", sql`${table.handle} = lower(${table.handle})`),
+]);
+
+export type PublisherInsertModel = InferInsertModel<typeof publishers>;

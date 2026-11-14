@@ -1,113 +1,131 @@
 import {
-  Anchor,
-  Badge,
-  Button,
-  Flex,
-  Group,
-  Skeleton,
-  Stack,
-  Text,
-} from "@mantine/core";
-import { IconConfetti } from "@tabler/icons-react";
-import classes from "./project-card.module.css";
+  ProjectSummary,
+  ProjectVoteButton,
+} from "@/components/project-summary/project-summary";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Link, useLocation } from "@tanstack/react-router";
+import {
+  projectViewTransitionName,
+  selectProjectViewTransition,
+  useProjectViewTransition,
+} from "@/lib/project-view-transition";
+import { useRef, useState, type MouseEvent } from "react";
+import { MessageSquare } from "lucide-react";
+import { FavoriteHeart, type FavoriteHeartHandle } from "@/components/favorite-heart/favorite-heart";
+import { Button } from "@/components/ui/button";
+import type { Project } from "../../types/project";
 
-import { useMediaQuery } from "@mantine/hooks";
-import { useState } from "react";
-import { useReward } from "react-rewards";
-import { Project } from "../../types/project";
+type Props = Project & {
+  rank?: number;
+  onUpvote?: () => boolean | void;
+  isUpvotePending?: boolean;
+  onSelect?: () => void;
+  favorited?: boolean;
+  onFavorite?: () => void;
+  isFavoritePending?: boolean;
+  transitionScope?: string;
+};
 
-export function Projectcard({
+export function ProjectCard({
   id,
+  slug,
   title,
   description,
   iconUrl,
   topis,
   upCount,
-  website,
-}: Project) {
-  // Equivalent to $mantine-breakpoint-xs -> 36em
-  const rewardId = "rewardId" + id.toString();
+  hasUpvoted,
+  commentCount,
+  rank,
+  onUpvote,
+  isUpvotePending,
+  onSelect,
+  favorited,
+  onFavorite,
+  isFavoritePending,
+  transitionScope = "projects",
+}: Props) {
+  const pathname = useLocation({ select: (location) => location.pathname });
+  // Router updates the location before capturing the old route. Its source
+  // identity must remain attached to the page this card was mounted on.
+  const [sourcePathname] = useState(pathname);
+  const selected = useProjectViewTransition();
+  const source = `${sourcePathname}:${transitionScope}:${id}`;
+  const heart = useRef<FavoriteHeartHandle>(null);
 
-  const isRowButton = useMediaQuery("(min-width: 36em)");
-  const [up, setUp] = useState(upCount);
-
-  const { reward, isAnimating } = useReward(rewardId, "confetti", {
-    lifetime: 2000,
-  });
-
-  function onClickUp() {
-    setUp((prev) => prev + 1);
-    reward();
+  function select(event: MouseEvent<HTMLAnchorElement>) {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    selectProjectViewTransition({ projectId: id, source, slug, title, description, iconUrl, topics: topis });
+    onSelect?.();
   }
 
   return (
-    <Flex className={classes.card}>
-      <Flex gap={"xs"}>
-        <img src={iconUrl} className={classes.icon}></img>
-        <Stack gap={0}>
-          <Anchor className={classes.titleLink} href={website} target="_blank">
-            <Text className={classes.title}>{title}</Text>
-          </Anchor>
-          <Text lh={"sm"} fz="xs">
-            {description}
-          </Text>
-          <Group gap={5} mt={5} className={classes.topics}>
-            {topis.map((topic, index) => {
-              return (
-                <Badge key={index} size="xs" variant="light">
-                  {topic}
-                </Badge>
-              );
-            })}
-          </Group>
-        </Stack>
-      </Flex>
-      {!isRowButton && <span id={rewardId} />}
-
-      <Button
-        variant="default"
-        className={classes.upvotetest}
-        leftSection={isRowButton ? <span id={rewardId} /> : null}
-        rightSection={<IconConfetti size={18} className={classes.upvoteIcon} />}
-        classNames={{
-          inner: classes.inner,
-          root: classes.root,
-          section: classes.section,
-          label: classes.label,
-        }}
-        onClick={onClickUp}
-        disabled={isAnimating}
-      >
-        <Text size="sm">{up}</Text>
-      </Button>
-    </Flex>
+    <article className="group relative rounded-lg px-2 py-3 sm:py-4">
+      <ProjectSummary
+        viewTransitionName={selected?.source === source ? projectViewTransitionName(id) : undefined}
+        iconUrl={iconUrl}
+        description={description}
+        topics={topis}
+        title={
+          <Link
+            to="/projects/$slug"
+            viewTransition
+            params={{ slug }}
+            onClick={select}
+            className="font-semibold leading-6 after:absolute after:inset-0 after:rounded-lg group-hover:text-primary group-hover:underline focus-visible:rounded focus-visible:outline-2 focus-visible:outline-ring focus-visible:after:outline-2 focus-visible:after:outline-ring"
+          >
+            {rank !== undefined && `${rank}. `}
+            {title}
+          </Link>
+        }
+        actions={
+          <>
+            {onFavorite && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn(
+                  "size-[52px] flex-col gap-0 overflow-visible p-0 text-xs disabled:opacity-100",
+                  favorited && "border-red-500/60",
+                )}
+                disabled={isFavoritePending}
+                aria-label={favorited ? `Remover ${title} dos favoritos` : `Guardar ${title} nos favoritos`}
+                aria-pressed={favorited}
+                onClick={() => {
+                  heart.current?.arm();
+                  onFavorite();
+                }}
+              >
+                <FavoriteHeart ref={heart} active={Boolean(favorited)} />
+              </Button>
+            )}
+            <Link
+              to="/projects/$slug"
+              params={{ slug }}
+              hash="comments-title"
+              onClick={onSelect}
+              aria-label={`Ver ${commentCount} comentários de ${title}`}
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "hidden size-[52px] flex-col gap-0 p-0 text-xs sm:inline-flex",
+              )}
+            >
+              <MessageSquare />
+              <span>{commentCount}</span>
+            </Link>
+            <ProjectVoteButton
+              title={title}
+              count={upCount}
+              active={hasUpvoted}
+              disabled={isUpvotePending}
+              onClick={() => onUpvote?.()}
+            />
+          </>
+        }
+      />
+      <span className="sr-only">Projeto {id}</span>
+    </article>
   );
 }
-
-function Loading() {
-  return (
-    <Flex className={classes.card}>
-      <Flex gap={"xs"}>
-        <Skeleton className={classes.icon} animate={false} />
-        <Stack gap={0}>
-          <Skeleton
-            height={15}
-            mt={"sm"}
-            width={100}
-            radius="xs"
-            animate={false}
-          />
-          <Skeleton
-            height={15}
-            mt={"sm"}
-            width={150}
-            radius="xs"
-            animate={false}
-          />
-        </Stack>
-      </Flex>
-      <Skeleton h={40} className={classes.root} animate={false} />
-    </Flex>
-  );
-}
-Projectcard.Loading = Loading;

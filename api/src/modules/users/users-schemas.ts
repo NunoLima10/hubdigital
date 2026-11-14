@@ -1,17 +1,13 @@
 import { errorResponseSchema } from "@/plugins/error-handler";
+import { routeErrorResponses } from "@/shared/schemas";
 import {
   foundUsByQuestionValues,
   locationQuestionValues,
   objectiveQuestionValues,
   profileQuestionValues,
-} from "@/utils/constants";
+} from "@hubdigital/shared";
 import { z } from "zod";
-
-const onboardingResponseSchema = z.object({
-  data: z.object({
-    id: z.number(),
-  }),
-});
+import { abroadCountryValues, badgeKeySchema } from "@hubdigital/shared";
 
 export const onboardingRouteSchema = {
   tags: ["users"],
@@ -20,15 +16,33 @@ export const onboardingRouteSchema = {
     profileResponse: z.enum(profileQuestionValues),
     objectiveResponse: z.enum(objectiveQuestionValues),
     locationResponse: z.enum(locationQuestionValues),
+    diasporaCountry: z.enum(abroadCountryValues).optional(),
     foundUsByResponse: z.enum(foundUsByQuestionValues),
   }),
   response: {
-    201: onboardingResponseSchema,
-    400: errorResponseSchema,
-    401: errorResponseSchema,
-    500: errorResponseSchema,
+    201: z.object({
+      data: z.object({
+        id: z.number(),
+        membershipNumber: z.number(),
+        /** Badges earned by joining, for the welcome screen to reveal. */
+        badges: z.array(badgeKeySchema),
+      }),
+    }),
+    ...routeErrorResponses
   },
 };
 
-export type OnboardingResponse = z.infer<typeof onboardingResponseSchema>;
-export type OnboardingBody = z.infer<typeof onboardingRouteSchema.body>;
+export const updateAvatarRouteSchema = {
+  tags: ["users"],
+  body: z.object({
+    // The key of a finished `user_avatar` upload, or null to remove the photo.
+    key: z
+      .string()
+      .regex(/^user_avatar\/[^/\\]+$/, "Imagem inválida. Carrega o ficheiro novamente.")
+      .nullable(),
+  }),
+  response: {
+    200: z.object({ data: z.object({ image: z.string().nullable() }) }),
+    ...routeErrorResponses,
+  },
+};

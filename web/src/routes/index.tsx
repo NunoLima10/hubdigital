@@ -1,32 +1,96 @@
-import { Footer } from "@/components/footer/footer";
+import { Announcements } from "@/modules/community/project-community";
 import { Header } from "@/components/header/header";
 import { Page } from "@/layouts/page";
 import { ProjectList } from "@/modules/project-list";
-import { Container, Stack, Text, Title } from "@mantine/core";
+import { projectsQueryOptions, useProjects } from "@/modules/project-list/hooks/use-projects";
+import { AnnouncementBanner } from "@/modules/settings/components/announcement-banner/announcement-banner";
+import { noop } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { seo } from "@/lib/seo";
+import { HomeSidebar } from "@/modules/project-list/components/home-sidebar/home-sidebar";
+
+const launchSections = [
+  {
+    period: "this_week",
+    sort: "upvotes",
+    limit: 12,
+    title: "Lançamentos desta semana",
+    description: "Os projetos que a comunidade está a descobrir e apoiar agora.",
+    id: "weekly-projects-title",
+    showRank: true,
+  },
+  {
+    period: "all",
+    sort: "newest",
+    limit: 12,
+    title: "Projetos recentes",
+    description: undefined,
+    id: "recent-projects-title",
+    showRank: false,
+  },
+  {
+    period: "all",
+    sort: "upvotes",
+    limit: 5,
+    title: "Mais apoiados",
+    description: "Projetos que mais receberam apoio da comunidade.",
+    id: "supported-projects-title",
+    showRank: true,
+  },
+] as const;
 
 export const Route = createFileRoute("/")({
-  component: RouteComponent,
+  head: () => seo({ path: "/" }),
+  loader: async ({ context }) => {
+    await Promise.all(
+      launchSections.map(({ period, sort, limit }) =>
+        context.queryClient
+          .query(projectsQueryOptions({ period, sort, limit }))
+          .catch(noop),
+      ),
+    );
+  },
+  component: Home,
 });
 
-function RouteComponent() {
+function LaunchSection({
+  period,
+  sort,
+  limit,
+  title,
+  description,
+  id,
+  showRank,
+}: (typeof launchSections)[number]) {
+  const { data, isLoading, isError } = useProjects({ period, sort, limit });
+  if (!isLoading && !isError && !data?.data.length) return null;
   return (
-    <Page>
-      <Header/>
-      <Stack mt={100}>
-        <Title ta={"center"} order={1}>
-          HubDigital Cabo Verde
-        </Title>
-        <Container p={0} size={600}>
-          <Text ta={"center"} size="md" c="dimmed">
-            Um Hub digital de código aberto para impulsionar a inovação em Cabo
-            Verde, meio para descrobir partilhar e apoiar projetos e produtos
-            criados em por caboverdianos para caboverdianos.
-          </Text>
-        </Container>
-        <ProjectList />
-      </Stack>
-      <Footer />
+    <section aria-labelledby={id} className="space-y-3">
+      <div>
+        <h2 id={id} className="text-lg font-semibold">{title}</h2>
+        {description && (
+          <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+        )}
+      </div>
+      <ProjectList period={period} sort={sort} limit={limit} showRank={showRank} />
+    </section>
+  );
+}
+
+function Home() {
+  return (
+    <Page
+      viewTransition
+      banner={<AnnouncementBanner />}
+      header={<Header />}
+      rightSection={<HomeSidebar />}
+    >
+      <div className="space-y-10">
+        <Announcements limit={3} showLoadMore={false} hideWhenEmpty />
+        {launchSections.map((section) => (
+          <LaunchSection key={section.id} {...section} />
+        ))}
+      </div>
     </Page>
   );
 }

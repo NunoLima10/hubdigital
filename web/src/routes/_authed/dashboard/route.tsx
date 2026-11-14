@@ -1,5 +1,5 @@
 import { Page } from "@/layouts/page";
-import { DashboardHeader } from "@/modules/dashboard/components/hearder/header";
+import { DashboardHeader } from "@/modules/dashboard/components/header/header";
 import { SideBar } from "@/modules/dashboard/components/side-bar/side-bar";
 import { ForceOnboarding } from "@/modules/onboarding/components/force-onboarding/force-onboarding";
 import { createFileRoute, Outlet } from "@tanstack/react-router";
