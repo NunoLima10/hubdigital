@@ -6,11 +6,13 @@ export function NavLink({
   icon,
   to,
   disabled,
+  badge,
 }: {
   title: string;
   icon: ReactNode;
   to: LinkProps["to"];
   disabled?: boolean;
+  badge?: number;
 }) {
   return (
     <Link
@@ -21,6 +23,14 @@ export function NavLink({
     >
       {icon}
       {title}
+      {badge ? (
+        <span
+          aria-label={`${badge} por responder`}
+          className="ml-auto rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold leading-none text-primary-foreground"
+        >
+          {badge}
+        </span>
+      ) : null}
     </Link>
   );
 }

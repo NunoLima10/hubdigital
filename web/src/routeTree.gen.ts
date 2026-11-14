@@ -24,6 +24,7 @@ import { Route as PlaygroundBadgesRouteImport } from './routes/playground/badges
 import { Route as ProfilesHandleRouteImport } from './routes/profiles/$handle'
 import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
 import { Route as RankingsWeekRouteImport } from './routes/rankings/$week'
+import { Route as AuthedDashboardCommunityRouteImport } from './routes/_authed/dashboard/community'
 import { Route as AuthedDashboardFavoritesRouteImport } from './routes/_authed/dashboard/favorites'
 import { Route as AuthedDashboardMetricsRouteImport } from './routes/_authed/dashboard/metrics'
 import { Route as AuthedDashboardPreferencesRouteImport } from './routes/_authed/dashboard/preferences'
@@ -105,6 +106,12 @@ const RankingsWeekRoute = RankingsWeekRouteImport.update({
   path: '/rankings/$week',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthedDashboardCommunityRoute =
+  AuthedDashboardCommunityRouteImport.update({
+    id: '/community',
+    path: '/community',
+    getParentRoute: () => AuthedDashboardRouteRoute,
+  } as any)
 const AuthedDashboardFavoritesRoute =
   AuthedDashboardFavoritesRouteImport.update({
     id: '/favorites',
@@ -153,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
+  '/dashboard/community': typeof AuthedDashboardCommunityRoute
   '/dashboard/favorites': typeof AuthedDashboardFavoritesRoute
   '/dashboard/metrics': typeof AuthedDashboardMetricsRoute
   '/dashboard/preferences': typeof AuthedDashboardPreferencesRoute
@@ -175,6 +183,7 @@ export interface FileRoutesByTo {
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
+  '/dashboard/community': typeof AuthedDashboardCommunityRoute
   '/dashboard/favorites': typeof AuthedDashboardFavoritesRoute
   '/dashboard/metrics': typeof AuthedDashboardMetricsRoute
   '/dashboard/preferences': typeof AuthedDashboardPreferencesRoute
@@ -199,6 +208,7 @@ export interface FileRoutesById {
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
+  '/_authed/dashboard/community': typeof AuthedDashboardCommunityRoute
   '/_authed/dashboard/favorites': typeof AuthedDashboardFavoritesRoute
   '/_authed/dashboard/metrics': typeof AuthedDashboardMetricsRoute
   '/_authed/dashboard/preferences': typeof AuthedDashboardPreferencesRoute
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
+    | '/dashboard/community'
     | '/dashboard/favorites'
     | '/dashboard/metrics'
     | '/dashboard/preferences'
@@ -245,6 +256,7 @@ export interface FileRouteTypes {
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
+    | '/dashboard/community'
     | '/dashboard/favorites'
     | '/dashboard/metrics'
     | '/dashboard/preferences'
@@ -268,6 +280,7 @@ export interface FileRouteTypes {
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
+    | '/_authed/dashboard/community'
     | '/_authed/dashboard/favorites'
     | '/_authed/dashboard/metrics'
     | '/_authed/dashboard/preferences'
@@ -399,6 +412,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RankingsWeekRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authed/dashboard/community': {
+      id: '/_authed/dashboard/community'
+      path: '/community'
+      fullPath: '/dashboard/community'
+      preLoaderRoute: typeof AuthedDashboardCommunityRouteImport
+      parentRoute: typeof AuthedDashboardRouteRoute
+    }
     '/_authed/dashboard/favorites': {
       id: '/_authed/dashboard/favorites'
       path: '/favorites'
@@ -445,6 +465,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthedDashboardRouteRouteChildren {
+  AuthedDashboardCommunityRoute: typeof AuthedDashboardCommunityRoute
   AuthedDashboardFavoritesRoute: typeof AuthedDashboardFavoritesRoute
   AuthedDashboardMetricsRoute: typeof AuthedDashboardMetricsRoute
   AuthedDashboardPreferencesRoute: typeof AuthedDashboardPreferencesRoute
@@ -454,6 +475,7 @@ interface AuthedDashboardRouteRouteChildren {
 }
 
 const AuthedDashboardRouteRouteChildren: AuthedDashboardRouteRouteChildren = {
+  AuthedDashboardCommunityRoute: AuthedDashboardCommunityRoute,
   AuthedDashboardFavoritesRoute: AuthedDashboardFavoritesRoute,
   AuthedDashboardMetricsRoute: AuthedDashboardMetricsRoute,
   AuthedDashboardPreferencesRoute: AuthedDashboardPreferencesRoute,

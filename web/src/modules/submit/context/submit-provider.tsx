@@ -23,6 +23,7 @@ import {
   draftRecoverySchema,
   projectToFormValues,
   toDraftPayload,
+  type TeamInvite,
 } from "../utils/draft";
 import {
   invalidateProjectCaches,
@@ -80,6 +81,7 @@ export default function SubmitProvider({
     project ? "saved" : "unsaved",
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [teamInvites, setTeamInvites] = useState<TeamInvite[]>([]);
   const [isPublishing, setIsPublishing] = useState(false);
   const [recovery, setRecovery] = useState<Recovery | null>(null);
   const [recoveryChecked, setRecoveryChecked] = useState(false);
@@ -111,7 +113,9 @@ export default function SubmitProvider({
   const signature = JSON.stringify(values);
   const canSave = Boolean(values.name.trim()) && !recovery;
   const hasWork = Boolean(
-    projectId.current || signature !== JSON.stringify(initialProjectValues),
+    projectId.current ||
+      teamInvites.length ||
+      signature !== JSON.stringify(initialProjectValues),
   );
 
   useEffect(() => {
@@ -129,15 +133,19 @@ export default function SubmitProvider({
     setRecoveryChecked(true);
   }, [storageKey]);
   useEffect(() => {
-    if (
-      !storageKey ||
-      !recoveryChecked ||
-      recovery ||
-      finished.current ||
-      !hasWork
-    )
+    if (!storageKey || !recoveryChecked || recovery || finished.current)
       return;
-    if (project && signature === lastSaved.current) {
+    // Everything was undone (e.g. the last picked team member removed): a stale
+    // copy would otherwise offer to restore it on the next visit.
+    if (!hasWork) {
+      try {
+        window.localStorage.removeItem(storageKey);
+      } catch {
+        /* optional recovery */
+      }
+      return;
+    }
+    if (project && signature === lastSaved.current && !teamInvites.length) {
       try {
         window.localStorage.removeItem(storageKey);
       } catch {
@@ -153,12 +161,14 @@ export default function SubmitProvider({
           step,
           projectId: projectId.current,
           creationKey: creationKey.current,
+          teamInvites,
         }),
       );
     } catch {
       /* Never block saving because a local recovery copy failed. */
     }
   }, [
+    teamInvites,
     storageKey,
     recoveryChecked,
     recovery,
@@ -300,6 +310,28 @@ export default function SubmitProvider({
       setSaveState("saving");
       const saved = await persist(structuredClone(form.getValues()));
       setSaveState("saved");
+      // The team is invited only now. Each person sees the invitation in their
+      // Comunidade tab once the project is public.
+      if (teamInvites.length) {
+        const results = await Promise.allSettled(
+          teamInvites.map((invite) =>
+            API.post(
+              `/projects/${saved.id}/members`,
+              { handle: invite.handle, role: invite.role },
+              requestOptions,
+            ),
+          ),
+        );
+        const failed = teamInvites.filter(
+          (_, index) => results[index].status === "rejected",
+        );
+        setTeamInvites(failed);
+        if (failed.length)
+          toast.error(
+            `Não foi possível convidar ${failed.map((invite) => invite.name).join(", ")}. Podes convidar mais tarde ao editar o projeto.`,
+          );
+        void queryClient.invalidateQueries({ queryKey: queryKeys.invitations.all });
+      }
       const response = await API.post<
         ItemResponse<SavedProject & { status: string }>
       >(`/projects/${saved.id}/publish`, undefined, requestOptions);
@@ -359,6 +391,7 @@ export default function SubmitProvider({
     projectId.current = project?.id ?? recovery.projectId;
     creationKey.current = recovery.creationKey;
     form.reset(recovery.values as CreateProjectInput);
+    setTeamInvites(recovery.teamInvites);
     setStep(recovery.step);
     lastSaved.current = "";
     failedSignature.current = null;
@@ -397,6 +430,8 @@ export default function SubmitProvider({
         discardRecovery,
         project,
         savedProjectId,
+        teamInvites,
+        setTeamInvites,
       }}
     >
       {children}

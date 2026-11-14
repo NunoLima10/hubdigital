@@ -10,23 +10,22 @@ import { ProjectCollaborators } from "@/modules/community/project-collaborators"
 import { ProjectRequestsFields } from "../../components/project-requests-fields";
 
 export function ProjectCommunityStep() {
-  const { form, savedProjectId, saveDraft, isSaving, canSave } = useSubmitForm();
+  const { form, savedProjectId, teamInvites, setTeamInvites } =
+    useSubmitForm();
   const values = form.watch();
   return (
     <div className="space-y-6">
       <div className="space-y-1">
         <h2 className="text-lg font-semibold">Comunidade</h2>
         <p className="text-sm text-muted-foreground">
-          Pede feedback, partilha como usaste IA e identifica a equipa do projeto.
+          Identifica a equipa do projeto, pede feedback e partilha como usaste IA.
         </p>
       </div>
-      <ProjectRequestsFields form={form} />
       <ProjectCollaborators
         projectId={savedProjectId}
-        saveDraft={saveDraft}
-        isSaving={isSaving}
-        canSave={canSave}
+        selection={{ invites: teamInvites, onChange: setTeamInvites }}
       />
+      <ProjectRequestsFields form={form} />
       <fieldset
         id="ai-disclosure"
         className="space-y-3 rounded-lg border bg-muted/25 p-4"

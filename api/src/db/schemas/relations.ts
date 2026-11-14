@@ -13,7 +13,7 @@ import { projectUpvotes } from "./project-upvotes";
 import {
   announcementVotes,
   projectAnnouncements,
-  projectMakers,
+  projectMembers,
   projectRevisions,
 } from "./project-community";
 import { projectLinkClicks } from "./project-link-clicks";
@@ -31,7 +31,7 @@ export const userRelations = relations(users, ({ one, many }) => ({
   favorites: many(projectFavorites),
   comments: many(comments),
   uploads: many(fileUploads),
-  makerMemberships: many(projectMakers, { relationName: "makerMember" }),
+  projectMemberships: many(projectMembers, { relationName: "projectMember" }),
   badges: many(userBadges, { relationName: "badgeHolder" }),
 }));
 
@@ -76,7 +76,7 @@ export const projectRelations = relations(projects, ({ one, many }) => ({
   links: many(projectLinks),
   secondaryMemberships: many(projectSecondaryCategories),
   announcements: many(projectAnnouncements),
-  makers: many(projectMakers),
+  members: many(projectMembers),
   revisions: many(projectRevisions),
 }));
 
@@ -107,12 +107,12 @@ export const announcementVoteRelations = relations(announcementVotes, ({ one }) 
   user: one(users, { fields: [announcementVotes.userId], references: [users.id] }),
 }));
 
-export const projectMakerRelations = relations(projectMakers, ({ one }) => ({
-  project: one(projects, { fields: [projectMakers.projectId], references: [projects.id] }),
+export const projectMemberRelations = relations(projectMembers, ({ one }) => ({
+  project: one(projects, { fields: [projectMembers.projectId], references: [projects.id] }),
   user: one(users, {
-    fields: [projectMakers.userId],
+    fields: [projectMembers.userId],
     references: [users.id],
-    relationName: "makerMember",
+    relationName: "projectMember",
   }),
 }));
 

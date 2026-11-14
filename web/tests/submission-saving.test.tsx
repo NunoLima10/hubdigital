@@ -209,6 +209,42 @@ describe("submission saving", () => {
       params: { slug: "saving-test" },
     });
   });
+  it("keeps picked team members local and invites them only when publishing", async () => {
+    const invite = {
+      userId: "u-ana",
+      handle: "ana",
+      name: "Ana",
+      image: null,
+      role: "Designer",
+    };
+    await act(async () => {
+      state.setTeamInvites([invite]);
+    });
+    // Picking needs no saved project and sends nothing yet.
+    expect(mocks.post).not.toHaveBeenCalled();
+    expect(
+      JSON.parse(localStorage.getItem("hd:submission:saving-test:new")!).teamInvites,
+    ).toEqual([invite]);
+    mocks.post.mockImplementation(async (url: string) =>
+      url === "/projects/42/publish"
+        ? { data: { data: { ...saved.data.data, status: "published" } } }
+        : saved,
+    );
+    await act(async () => {
+      state.form.setValue("name", "Team project");
+      state.form.setValue("shortDescription", "A useful project for builders");
+      state.form.setValue("categoryId", 1);
+      state.form.setValue("projectStage", "idea");
+      state.form.setValue("availability", "not_available");
+      state.form.setValue("aiInvolvement", "assisted");
+      state.publish();
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    const urls = mocks.post.mock.calls.map((call) => call[0]);
+    expect(urls).toEqual(["/projects", "/projects/42/members", "/projects/42/publish"]);
+    expect(mocks.post.mock.calls[1][1]).toEqual({ handle: "ana", role: "Designer" });
+    expect(state.teamInvites).toEqual([]);
+  });
   it("opens review after Community and resumes recovery on the review screen", async () => {
     await act(async () => {
       state.goToStep(3);

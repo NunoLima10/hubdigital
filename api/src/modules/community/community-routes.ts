@@ -5,8 +5,10 @@ import { requirePublisher } from "@/hooks/require-publisher";
 import {
   announcementBodySchema,
   announcementSchema,
-  makerMembershipSchema,
-  makerContributionRoleSchema,
+  projectMemberSchema,
+  receivedInvitationSchema,
+  sentInvitationSchema,
+  memberContributionRoleSchema,
   WEEK_ID_PATTERN,
 } from "@hubdigital/shared";
 import { currentWeek, weekFromId } from "@/utils/week";
@@ -81,30 +83,30 @@ export async function communityRoutes(server: FastifyInstance) {
       ),
     }),
   });
-  server.get("/projects/:id/makers", {
+  server.get("/projects/:id/members", {
     schema: {
       params: projectParams,
-      response: { 200: z.object({ data: z.array(makerMembershipSchema) }) },
+      response: { 200: z.object({ data: z.array(projectMemberSchema) }) },
     },
     handler: async (req) => ({
-      data: await service.listMakers(
+      data: await service.listMembers(
         req.db,
         (req.params as { id: number }).id,
         req.user?.id,
       ),
     }),
   });
-  server.post("/projects/:id/makers", {
+  server.post("/projects/:id/members", {
     preHandler: requirePublisher,
     schema: {
       params: projectParams,
       body: z.object({
         handle: z.string().trim().min(1).max(80),
-        role: makerContributionRoleSchema.optional(),
+        role: memberContributionRoleSchema.optional(),
       }),
     },
     handler: async (req) => ({
-      data: await service.inviteMaker(
+      data: await service.inviteMember(
         req.db,
         req.publisher,
         (req.params as { id: number }).id,
@@ -113,14 +115,27 @@ export async function communityRoutes(server: FastifyInstance) {
       ),
     }),
   });
-  server.get("/projects/:id/makers/search", {
+  server.get("/members/search", {
+    preHandler: requirePublisher,
+    schema: {
+      querystring: z.object({ q: z.string().trim().min(2).max(80) }),
+    },
+    handler: async (req) => ({
+      data: await service.searchAccounts(
+        req.db,
+        req.publisher.id,
+        (req.query as { q: string }).q,
+      ),
+    }),
+  });
+  server.get("/projects/:id/members/search", {
     preHandler: requirePublisher,
     schema: {
       params: projectParams,
       querystring: z.object({ q: z.string().trim().min(2).max(80) }),
     },
     handler: async (req) => ({
-      data: await service.searchMakers(
+      data: await service.searchMembers(
         req.db,
         (req.params as { id: number }).id,
         req.publisher.id,
@@ -131,11 +146,11 @@ export async function communityRoutes(server: FastifyInstance) {
   const membershipParams = projectParams.extend({
     membershipId: z.coerce.number().int().positive(),
   });
-  server.patch("/projects/:id/makers/:membershipId", {
+  server.patch("/projects/:id/members/:membershipId", {
     preHandler: requirePublisher,
     schema: {
       params: membershipParams,
-      body: z.object({ role: makerContributionRoleSchema }),
+      body: z.object({ role: memberContributionRoleSchema }),
     },
     handler: async (req) => {
       const { id, membershipId } = req.params as {
@@ -143,7 +158,7 @@ export async function communityRoutes(server: FastifyInstance) {
         membershipId: number;
       };
       return {
-        data: await service.updateMakerRole(
+        data: await service.updateMemberRole(
           req.db,
           id,
           req.publisher.id,
@@ -153,7 +168,7 @@ export async function communityRoutes(server: FastifyInstance) {
       };
     },
   });
-  server.delete("/projects/:id/makers/:membershipId", {
+  server.delete("/projects/:id/members/:membershipId", {
     preHandler: requirePublisher,
     schema: { params: membershipParams },
     handler: async (req) => {
@@ -162,7 +177,7 @@ export async function communityRoutes(server: FastifyInstance) {
         membershipId: number;
       };
       return {
-        data: await service.removeMaker(
+        data: await service.removeMember(
           req.db,
           id,
           req.publisher.id,
@@ -171,17 +186,29 @@ export async function communityRoutes(server: FastifyInstance) {
       };
     },
   });
-  server.get("/maker-invitations", {
+  server.get("/invitations", {
     preHandler: authenticate,
+    schema: {
+      response: { 200: z.object({ data: z.array(receivedInvitationSchema) }) },
+    },
     handler: async (req) => ({
-      data: await service.makerInvitations(req.db, req.user!.id),
+      data: await service.receivedInvitations(req.db, req.user!.id),
     }),
   });
-  server.post("/maker-invitations/:id", {
+  server.get("/invitations/sent", {
+    preHandler: requirePublisher,
+    schema: {
+      response: { 200: z.object({ data: z.array(sentInvitationSchema) }) },
+    },
+    handler: async (req) => ({
+      data: await service.sentInvitations(req.db, req.publisher),
+    }),
+  });
+  server.post("/invitations/:id", {
     preHandler: authenticate,
     schema: { params: projectParams, body: z.object({ accept: z.boolean() }) },
     handler: async (req) => ({
-      data: await service.replyToMakerInvitation(
+      data: await service.replyToInvitation(
         req.db,
         (req.params as { id: number }).id,
         req.user!.id,

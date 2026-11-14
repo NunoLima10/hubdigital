@@ -1,7 +1,7 @@
 import {
   announcementKindValues,
   announcementStatusValues,
-  makerMembershipStatusValues,
+  projectMemberStatusValues,
   projectRevisionStatusValues,
   type ProjectBody,
 } from "@hubdigital/shared";
@@ -30,9 +30,9 @@ export const announcementStatusEnum = pgEnum(
   "announcement_status",
   announcementStatusValues,
 );
-export const makerMembershipStatusEnum = pgEnum(
-  "maker_membership_status",
-  makerMembershipStatusValues,
+export const projectMemberStatusEnum = pgEnum(
+  "project_member_status",
+  projectMemberStatusValues,
 );
 export const projectRevisionStatusEnum = pgEnum(
   "project_revision_status",
@@ -100,8 +100,12 @@ export const announcementVotes = pgTable(
   ],
 );
 
-export const projectMakers = pgTable(
-  "project_makers",
+/**
+ * A project team member. Rows are invitations until the invited account
+ * accepts; declined rows stay so the owner can see the answer and re-invite.
+ */
+export const projectMembers = pgTable(
+  "project_members",
   {
     id: serial("id").primaryKey(),
     projectId: integer("project_id")
@@ -115,15 +119,15 @@ export const projectMakers = pgTable(
     invitedBy: text("invited_by").references(() => users.id, {
       onDelete: "set null",
     }),
-    status: makerMembershipStatusEnum("status").notNull(),
+    status: projectMemberStatusEnum("status").notNull(),
     role: varchar("role", { length: 80 }),
     createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
       .notNull()
       .defaultNow(),
   },
   (table) => [
-    uniqueIndex("project_makers_user_idx").on(table.projectId, table.userId),
-    index("project_makers_invitations_idx").on(table.userId, table.status),
+    uniqueIndex("project_members_user_idx").on(table.projectId, table.userId),
+    index("project_members_invitations_idx").on(table.userId, table.status),
   ],
 );
 

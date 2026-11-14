@@ -2,7 +2,7 @@ import type { DB } from "@/db";
 import {
   projectAnnouncements,
   announcementVotes,
-  projectMakers,
+  projectMembers,
   projectRevisions,
   projects,
   publishers,
@@ -21,6 +21,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import {
   BadRequestError,
   ConflictError,
@@ -274,7 +275,29 @@ export async function toggleAnnouncementVote(
     return { hasVoted: !deleted.length };
   });
 }
-export async function listMakers(db: DB, projectId: number, viewerId?: string) {
+const memberPerson = {
+  userId: users.id,
+  name: users.name,
+  handle: publishers.handle,
+  image: users.image,
+};
+const invitationProject = {
+  id: projects.id,
+  name: projects.name,
+  slug: projects.slug,
+  logoKey: projects.logoKey,
+};
+function withLogo<T extends { project: { logoKey: string | null } }>(row: T) {
+  const { logoKey, ...project } = row.project;
+  return { ...row, project: { ...project, logoUrl: toPublicUrl(logoKey) } };
+}
+
+/** The owner sees every invitation; everyone else only accepted members. */
+export async function listMembers(
+  db: DB,
+  projectId: number,
+  viewerId?: string,
+) {
   const project = await db.query.projects.findFirst({
     where: and(eq(projects.id, projectId), isNull(projects.deletedAt)),
     with: {
@@ -291,32 +314,34 @@ export async function listMakers(db: DB, projectId: number, viewerId?: string) {
     (project.status !== "published" && project.publisher.userId !== viewerId)
   )
     throw new NotFoundError();
-  const rows = await db
+  return db
     .select({
-      id: projectMakers.id,
-      projectId: projectMakers.projectId,
-      status: projectMakers.status,
-      userId: users.id,
-      name: users.name,
-      handle: publishers.handle,
-      image: users.image,
-      role: projectMakers.role,
+      id: projectMembers.id,
+      projectId: projectMembers.projectId,
+      status: projectMembers.status,
+      ...memberPerson,
+      role: projectMembers.role,
     })
-    .from(projectMakers)
-    .innerJoin(users, eq(users.id, projectMakers.userId))
+    .from(projectMembers)
+    .innerJoin(users, eq(users.id, projectMembers.userId))
     .innerJoin(publishers, eq(publishers.userId, users.id))
     .where(
       and(
-        eq(projectMakers.projectId, projectId),
+        eq(projectMembers.projectId, projectId),
         isNull(users.shadowBannedAt),
         project.publisher.userId === viewerId
           ? undefined
-          : eq(projectMakers.status, "accepted"),
+          : eq(projectMembers.status, "accepted"),
       ),
-    );
-  return rows;
+    )
+    .orderBy(projectMembers.createdAt);
 }
-export async function inviteMaker(
+
+/**
+ * Invites an existing account by handle. Inviting someone who declined before
+ * turns their answer back into a pending invitation.
+ */
+export async function inviteMember(
   db: DB,
   publisher: typeof publishers.$inferSelect,
   projectId: number,
@@ -331,7 +356,7 @@ export async function inviteMaker(
   if (!target || target.user.banned || target.user.shadowBannedAt)
     throw new NotFoundError();
   const [membership] = await db
-    .insert(projectMakers)
+    .insert(projectMembers)
     .values({
       projectId,
       userId: target.userId,
@@ -339,56 +364,129 @@ export async function inviteMaker(
       status: target.userId === publisher.userId ? "accepted" : "pending",
       role: role ?? null,
     })
-    .onConflictDoNothing()
+    .onConflictDoUpdate({
+      target: [projectMembers.projectId, projectMembers.userId],
+      set: {
+        status: "pending",
+        invitedBy: publisher.userId,
+        role: role ?? null,
+        createdAt: sql`now()`,
+      },
+      setWhere: eq(projectMembers.status, "declined"),
+    })
     .returning();
   return (
     membership ??
-    (await db.query.projectMakers.findFirst({
+    (await db.query.projectMembers.findFirst({
       where: and(
-        eq(projectMakers.projectId, projectId),
-        eq(projectMakers.userId, target.userId),
+        eq(projectMembers.projectId, projectId),
+        eq(projectMembers.userId, target.userId),
       ),
     }))
   );
 }
-export async function makerInvitations(db: DB, userId: string) {
-  return db
+
+/** Pending invitations to published projects, newest first. */
+export async function receivedInvitations(db: DB, userId: string) {
+  const inviter = alias(users, "inviter");
+  const inviterPublisher = alias(publishers, "inviter_publisher");
+  const rows = await db
     .select({
-      id: projectMakers.id,
-      projectId: projects.id,
-      name: projects.name,
-      role: projectMakers.role,
+      id: projectMembers.id,
+      role: projectMembers.role,
+      createdAt: projectMembers.createdAt,
+      project: invitationProject,
+      inviterId: inviter.id,
+      inviterName: inviter.name,
+      inviterHandle: inviterPublisher.handle,
+      inviterImage: inviter.image,
     })
-    .from(projectMakers)
-    .innerJoin(projects, eq(projects.id, projectMakers.projectId))
+    .from(projectMembers)
+    .innerJoin(projects, eq(projects.id, projectMembers.projectId))
+    .leftJoin(inviter, eq(inviter.id, projectMembers.invitedBy))
+    .leftJoin(inviterPublisher, eq(inviterPublisher.userId, inviter.id))
     .where(
       and(
-        eq(projectMakers.userId, userId),
-        eq(projectMakers.status, "pending"),
+        eq(projectMembers.userId, userId),
+        eq(projectMembers.status, "pending"),
         publicProjectConditions,
       ),
-    );
+    )
+    .orderBy(desc(projectMembers.createdAt));
+  return rows.map(
+    ({ inviterId, inviterName, inviterHandle, inviterImage, ...row }) =>
+      withLogo({
+        ...row,
+        invitedBy:
+          inviterId && inviterName
+            ? {
+                userId: inviterId,
+                name: inviterName,
+                handle: inviterHandle,
+                image: inviterImage,
+              }
+            : null,
+      }),
+  );
 }
-export async function searchMakers(
+
+/** Every invitation for the owner's projects, whatever the answer. */
+export async function sentInvitations(
+  db: DB,
+  publisher: typeof publishers.$inferSelect,
+) {
+  const rows = await db
+    .select({
+      id: projectMembers.id,
+      role: projectMembers.role,
+      status: projectMembers.status,
+      createdAt: projectMembers.createdAt,
+      project: invitationProject,
+      invitee: memberPerson,
+    })
+    .from(projectMembers)
+    .innerJoin(projects, eq(projects.id, projectMembers.projectId))
+    .innerJoin(users, eq(users.id, projectMembers.userId))
+    .innerJoin(publishers, eq(publishers.userId, users.id))
+    .where(
+      and(
+        eq(projects.publisherId, publisher.id),
+        isNull(projects.deletedAt),
+        ne(projectMembers.userId, publisher.userId),
+        isNull(users.shadowBannedAt),
+      ),
+    )
+    .orderBy(desc(projectMembers.createdAt));
+  return rows.map(withLogo);
+}
+
+export async function searchMembers(
   db: DB,
   projectId: number,
   publisherId: number,
   query: string,
 ) {
   const project = await ownerProject(db, projectId, publisherId);
+  return searchAccounts(db, project.publisherId, query);
+}
+
+/**
+ * Accounts the publisher can pick for a team. Works before the project exists:
+ * the submit flow selects people first and invites them on submission.
+ */
+export async function searchAccounts(
+  db: DB,
+  publisherId: number,
+  query: string,
+) {
   const pattern = `%${query.replace(/[\\%_]/g, "\\$&")}%`;
   return db
-    .select({
-      userId: users.id,
-      name: users.name,
-      handle: publishers.handle,
-      image: users.image,
-    })
+    .select(memberPerson)
     .from(publishers)
     .innerJoin(users, eq(users.id, publishers.userId))
     .where(
       and(
-        ne(publishers.id, project.publisherId),
+        ne(publishers.id, publisherId),
         isNull(users.shadowBannedAt),
         or(eq(users.banned, false), isNull(users.banned)),
         or(ilike(users.name, pattern), ilike(publishers.handle, pattern)),
@@ -398,7 +496,7 @@ export async function searchMakers(
     .limit(10);
 }
 
-export async function updateMakerRole(
+export async function updateMemberRole(
   db: DB,
   projectId: number,
   publisherId: number,
@@ -407,20 +505,20 @@ export async function updateMakerRole(
 ) {
   await ownerProject(db, projectId, publisherId);
   const [changed] = await db
-    .update(projectMakers)
+    .update(projectMembers)
     .set({ role })
     .where(
       and(
-        eq(projectMakers.id, membershipId),
-        eq(projectMakers.projectId, projectId),
+        eq(projectMembers.id, membershipId),
+        eq(projectMembers.projectId, projectId),
       ),
     )
-    .returning({ id: projectMakers.id });
+    .returning({ id: projectMembers.id });
   if (!changed) throw new NotFoundError();
   return changed;
 }
 
-export async function removeMaker(
+export async function removeMember(
   db: DB,
   projectId: number,
   publisherId: number,
@@ -428,51 +526,47 @@ export async function removeMaker(
 ) {
   await ownerProject(db, projectId, publisherId);
   const [removed] = await db
-    .delete(projectMakers)
+    .delete(projectMembers)
     .where(
       and(
-        eq(projectMakers.id, membershipId),
-        eq(projectMakers.projectId, projectId),
+        eq(projectMembers.id, membershipId),
+        eq(projectMembers.projectId, projectId),
       ),
     )
-    .returning({ id: projectMakers.id });
+    .returning({ id: projectMembers.id });
   if (!removed) throw new NotFoundError();
   return removed;
 }
-export async function replyToMakerInvitation(
+
+/** Declining keeps the row so the owner sees the answer. */
+export async function replyToInvitation(
   db: DB,
   id: number,
   userId: string,
   accept: boolean,
 ) {
-  const where = and(
-    eq(projectMakers.id, id),
-    eq(projectMakers.userId, userId),
-    eq(projectMakers.status, "pending"),
-    accept
-      ? exists(
+  const changed = await db
+    .update(projectMembers)
+    .set({ status: accept ? "accepted" : "declined" })
+    .where(
+      and(
+        eq(projectMembers.id, id),
+        eq(projectMembers.userId, userId),
+        eq(projectMembers.status, "pending"),
+        exists(
           db
             .select({ id: projects.id })
             .from(projects)
             .where(
               and(
-                eq(projects.id, projectMakers.projectId),
+                eq(projects.id, projectMembers.projectId),
                 publicProjectConditions,
               ),
             ),
-        )
-      : undefined,
-  );
-  const changed = accept
-    ? await db
-        .update(projectMakers)
-        .set({ status: "accepted" })
-        .where(where)
-        .returning({ id: projectMakers.id })
-    : await db
-        .delete(projectMakers)
-        .where(where)
-        .returning({ id: projectMakers.id });
+        ),
+      ),
+    )
+    .returning({ id: projectMembers.id });
   if (!changed.length) throw new NotFoundError();
   return { accepted: accept };
 }

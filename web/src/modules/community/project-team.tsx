@@ -3,9 +3,9 @@ import { Link } from "@tanstack/react-router";
 import { API } from "@/api/api";
 import { authClient } from "@/lib/auth-client";
 import { queryKeys } from "@/lib/query-keys";
-import type { MakerMembership, ProjectAuthor } from "@hubdigital/shared";
+import type { ProjectMember, ProjectAuthor } from "@hubdigital/shared";
 
-export function ProjectMakers({
+export function ProjectTeam({
   projectId,
   author,
 }: {
@@ -18,11 +18,11 @@ export function ProjectMakers({
     isError,
     refetch,
   } = useQuery({
-    queryKey: [...queryKeys.projectMakers(projectId), session?.user.id ?? null],
+    queryKey: [...queryKeys.projectMembers(projectId), session?.user.id ?? null],
     queryFn: async ({ signal }) =>
       (
-        await API.get<{ data: MakerMembership[] }>(
-          `/projects/${projectId}/makers`,
+        await API.get<{ data: ProjectMember[] }>(
+          `/projects/${projectId}/members`,
           { signal },
         )
       ).data.data,
@@ -32,47 +32,47 @@ export function ProjectMakers({
       ? [{ ...author, userId: author.id, role: "Responsável pelo projeto" }]
       : []),
     ...data.filter(
-      (maker) => maker.status === "accepted" && maker.userId !== author?.id,
+      (member) => member.status === "accepted" && member.userId !== author?.id,
     ),
   ];
   if (!people.length && !isError) return null;
   return (
     <section
-      aria-labelledby="project-makers-title"
+      aria-labelledby="project-team-title"
       className="space-y-3 border-t pt-5"
     >
-      <h2 id="project-makers-title" className="text-lg font-semibold">
+      <h2 id="project-team-title" className="text-lg font-semibold">
         Equipa do projeto
       </h2>
       <ul className="flex flex-wrap gap-x-6 gap-y-4">
-        {people.map((maker) => {
+        {people.map((person) => {
           const content = (
             <>
               <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted text-sm font-semibold">
-                {maker.image ? (
+                {person.image ? (
                   <img
-                    src={maker.image}
+                    src={person.image}
                     alt=""
                     className="size-full object-cover"
                   />
                 ) : (
-                  maker.name.slice(0, 1).toUpperCase()
+                  person.name.slice(0, 1).toUpperCase()
                 )}
               </span>
               <span className="min-w-0">
-                <span className="block text-sm font-medium">{maker.name}</span>
+                <span className="block text-sm font-medium">{person.name}</span>
                 <span className="block text-xs text-muted-foreground">
-                  {maker.role || "Membro da equipa"}
+                  {person.role || "Membro da equipa"}
                 </span>
               </span>
             </>
           );
           return (
-            <li key={maker.userId}>
-              {maker.handle ? (
+            <li key={person.userId}>
+              {person.handle ? (
                 <Link
                   to="/profiles/$handle"
-                  params={{ handle: maker.handle }}
+                  params={{ handle: person.handle }}
                   className="flex min-h-11 items-center gap-3 rounded-md focus-visible:outline-2 focus-visible:outline-ring hover:text-primary"
                 >
                   {content}
