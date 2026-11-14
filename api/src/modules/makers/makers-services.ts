@@ -4,7 +4,7 @@ import {
   secondaryCategoriesWith,
 } from "@/utils/project-categories";
 import { DB } from "@/db";
-import { projects, publishers, users, projectMakers } from "@/db/schemas";
+import { projects, publishers, users, projectMembers } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
 import { getPostgresError } from "@/utils/postgres-error";
@@ -64,7 +64,7 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
       publicProjectConditions,
       or(
         eq(projects.publisherId, publisher.id),
-        sql`exists(select 1 from project_makers pm where pm.project_id=${projects.id} and pm.user_id=${publisher.userId} and pm.status='accepted')`,
+        sql`exists(select 1 from project_members pm where pm.project_id=${projects.id} and pm.user_id=${publisher.userId} and pm.status='accepted')`,
       ),
     ),
     with: {
@@ -86,10 +86,10 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
       logoUrl: toPublicUrl(logoKey),
     };
   });
-  const memberships = await db.query.projectMakers.findMany({
+  const memberships = await db.query.projectMembers.findMany({
     where: and(
-      eq(projectMakers.userId, publisher.userId),
-      eq(projectMakers.status, "accepted"),
+      eq(projectMembers.userId, publisher.userId),
+      eq(projectMembers.status, "accepted"),
     ),
     columns: { projectId: true, role: true },
   });

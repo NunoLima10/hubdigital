@@ -259,7 +259,7 @@ async function main() {
         };
       else if (path.endsWith("/categories"))
         data = [{ id: 1, name: "Ferramentas", key: "tools" }];
-      else if (path.endsWith("/makers/search"))
+      else if (path.endsWith("/members/search"))
         data = [
           {
             userId: "qa-maker",
@@ -268,7 +268,7 @@ async function main() {
             image: null,
           },
         ];
-      else if (path.endsWith("/makers") && request.method() === "POST") {
+      else if (path.endsWith("/members") && request.method() === "POST") {
         const body = request.postDataJSON();
         members = [
           {
@@ -283,11 +283,11 @@ async function main() {
           },
         ];
         data = members[0];
-      } else if (/\/makers\/99$/.test(path)) {
+      } else if (/\/members\/99$/.test(path)) {
         if (request.method() === "DELETE") members = [];
         else members[0].role = request.postDataJSON().role;
         data = { id: 99 };
-      } else if (path.endsWith("/makers")) data = members;
+      } else if (path.endsWith("/members")) data = members;
       else if (path.endsWith("/check-links"))
         data = [
           {
@@ -405,7 +405,7 @@ async function main() {
     ).toBeVisible();
     const positions = await page.evaluate(() => ({
       makers: document
-        .querySelector("#project-makers-title")
+        .querySelector("#project-team-title")
         .getBoundingClientRect().top,
       comments: document
         .querySelector("#comments-title")

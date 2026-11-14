@@ -6,7 +6,7 @@ import {
 } from "@/modules/project-detail/components/project-detail-view/project-detail-skeleton";
 import { Page } from "@/layouts/page";
 import { Comments } from "@/modules/comments";
-import { ProjectMakers } from "@/modules/community/project-makers";
+import { ProjectTeam } from "@/modules/community/project-team";
 import { ProjectRequests } from "@/modules/community/project-requests";
 import { commentsQueryOptions } from "@/modules/comments/hooks/use-comments";
 import {
@@ -125,7 +125,7 @@ function ProjectPage() {
                 showDestinationActions={false}
               />
             </div>
-            <ProjectMakers projectId={data.id} author={data.author} />
+            <ProjectTeam projectId={data.id} author={data.author} />
             <Comments slug={slug} />
             <ProjectRequests project={data} />
             <RelatedProjects projectId={data.id} />

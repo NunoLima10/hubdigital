@@ -42,7 +42,7 @@ vi.mock("../../src/lib/auth", () => ({
     handler: vi.fn(),
   },
 }));
-describe("community announcements, makers and reviewed edits", () => {
+describe("community announcements, project teams and reviewed edits", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>>,
     db: Awaited<ReturnType<typeof setupDB>>["db"],
     client: Awaited<ReturnType<typeof setupDB>>["dbClient"],
@@ -199,13 +199,13 @@ describe("community announcements, makers and reviewed edits", () => {
     expect(toWeekId(new Date(row!.publishedAt!))).not.toBe(oldWeek);
     expect(await db.query.moderationActions.findMany()).toHaveLength(2);
   });
-  it("credits invited makers only after the invited account accepts", async () => {
+  it("credits invited members only after the invited account accepts", async () => {
     const other = await db.query.publishers.findFirst({
       where: eq(publishers.userId, otherId),
     });
     const invite = await server.inject({
       method: "POST",
-      url: `/v1/projects/${projectId}/makers`,
+      url: `/v1/projects/${projectId}/members`,
       payload: { handle: other!.handle },
     });
     expect(invite.statusCode).toBe(200);
@@ -215,7 +215,7 @@ describe("community announcements, makers and reviewed edits", () => {
       (
         await server.inject({
           method: "GET",
-          url: `/v1/projects/${projectId}/makers`,
+          url: `/v1/projects/${projectId}/members`,
         })
       ).json().data,
     ).toHaveLength(0);
@@ -224,7 +224,7 @@ describe("community announcements, makers and reviewed edits", () => {
       (
         await server.inject({
           method: "POST",
-          url: `/v1/maker-invitations/${id}`,
+          url: `/v1/invitations/${id}`,
           payload: { accept: true },
         })
       ).statusCode,
@@ -232,7 +232,7 @@ describe("community announcements, makers and reviewed edits", () => {
     sign(otherId);
     expect(
       (
-        await server.inject({ method: "GET", url: "/v1/maker-invitations" })
+        await server.inject({ method: "GET", url: "/v1/invitations" })
       ).json().data,
     ).toHaveLength(1);
     await db
@@ -241,14 +241,14 @@ describe("community announcements, makers and reviewed edits", () => {
       .where(eq(users.id, ownerId));
     expect(
       (
-        await server.inject({ method: "GET", url: "/v1/maker-invitations" })
+        await server.inject({ method: "GET", url: "/v1/invitations" })
       ).json().data,
     ).toHaveLength(0);
     expect(
       (
         await server.inject({
           method: "POST",
-          url: `/v1/maker-invitations/${id}`,
+          url: `/v1/invitations/${id}`,
           payload: { accept: true },
         })
       ).statusCode,
@@ -261,7 +261,7 @@ describe("community announcements, makers and reviewed edits", () => {
       (
         await server.inject({
           method: "POST",
-          url: `/v1/maker-invitations/${id}`,
+          url: `/v1/invitations/${id}`,
           payload: { accept: true },
         })
       ).statusCode,
@@ -269,7 +269,7 @@ describe("community announcements, makers and reviewed edits", () => {
     sign(null);
     const visible = await server.inject({
       method: "GET",
-      url: `/v1/projects/${projectId}/makers`,
+      url: `/v1/projects/${projectId}/members`,
     });
     expect(visible.json().data[0]).toMatchObject({
       userId: otherId,
@@ -282,13 +282,13 @@ describe("community announcements, makers and reviewed edits", () => {
     });
     expect(profile.json().data.projectCount).toBe(1);
   });
-  it("searches existing makers and restricts role changes and removal to the owner", async () => {
+  it("searches existing accounts and restricts role changes and removal to the owner", async () => {
     const other = await db.query.publishers.findFirst({
       where: eq(publishers.userId, otherId),
     });
     const search = await server.inject({
       method: "GET",
-      url: `/v1/projects/${projectId}/makers/search?q=${other!.handle}`,
+      url: `/v1/projects/${projectId}/members/search?q=${other!.handle}`,
     });
     expect(search.statusCode).toBe(200);
     expect(search.json().data).toHaveLength(1);
@@ -299,13 +299,13 @@ describe("community announcements, makers and reviewed edits", () => {
     expect(search.json().data[0]).not.toHaveProperty("email");
     const invite = await server.inject({
       method: "POST",
-      url: `/v1/projects/${projectId}/makers`,
+      url: `/v1/projects/${projectId}/members`,
       payload: { handle: other!.handle, role: "Designer" },
     });
     const id = invite.json().data.id;
     const repeated = await server.inject({
       method: "POST",
-      url: `/v1/projects/${projectId}/makers`,
+      url: `/v1/projects/${projectId}/members`,
       payload: { handle: other!.handle, role: "Designer" },
     });
     expect(repeated.json().data.id).toBe(id);
@@ -314,7 +314,7 @@ describe("community announcements, makers and reviewed edits", () => {
       (
         await server.inject({
           method: "GET",
-          url: `/v1/projects/${projectId}/makers/search?q=handle`,
+          url: `/v1/projects/${projectId}/members/search?q=handle`,
         })
       ).statusCode,
     ).toBe(404);
@@ -322,7 +322,7 @@ describe("community announcements, makers and reviewed edits", () => {
       (
         await server.inject({
           method: "PATCH",
-          url: `/v1/projects/${projectId}/makers/${id}`,
+          url: `/v1/projects/${projectId}/members/${id}`,
           payload: { role: "Cofundador" },
         })
       ).statusCode,
@@ -331,7 +331,7 @@ describe("community announcements, makers and reviewed edits", () => {
       (
         await server.inject({
           method: "DELETE",
-          url: `/v1/projects/${projectId}/makers/${id}`,
+          url: `/v1/projects/${projectId}/members/${id}`,
         })
       ).statusCode,
     ).toBe(404);
@@ -339,7 +339,7 @@ describe("community announcements, makers and reviewed edits", () => {
       (
         await server.inject({
           method: "POST",
-          url: `/v1/maker-invitations/${id}`,
+          url: `/v1/invitations/${id}`,
           payload: { accept: true },
         })
       ).statusCode,
@@ -349,7 +349,7 @@ describe("community announcements, makers and reviewed edits", () => {
       (
         await server.inject({
           method: "PATCH",
-          url: `/v1/projects/${projectId}/makers/${id}`,
+          url: `/v1/projects/${projectId}/members/${id}`,
           payload: { role: "Programador" },
         })
       ).statusCode,
@@ -373,7 +373,7 @@ describe("community announcements, makers and reviewed edits", () => {
       (
         await server.inject({
           method: "DELETE",
-          url: `/v1/projects/${projectId}/makers/${id}`,
+          url: `/v1/projects/${projectId}/members/${id}`,
         })
       ).statusCode,
     ).toBe(200);
@@ -382,6 +382,86 @@ describe("community announcements, makers and reviewed edits", () => {
       url: `/v1/makers/${other!.handle}`,
     });
     expect(removed.json().data.collaborations).toHaveLength(0);
+  });
+  it("keeps declined invitations visible to the owner and lets them re-invite", async () => {
+    const other = await db.query.publishers.findFirst({
+      where: eq(publishers.userId, otherId),
+    });
+    // People can be picked before any project exists (the submit flow).
+    const picked = await server.inject({
+      method: "GET",
+      url: `/v1/members/search?q=${other!.handle}`,
+    });
+    expect(picked.statusCode).toBe(200);
+    expect(picked.json().data).toEqual([
+      expect.objectContaining({ userId: otherId, handle: other!.handle }),
+    ]);
+    expect(picked.json().data[0]).not.toHaveProperty("email");
+    const invite = await server.inject({
+      method: "POST",
+      url: `/v1/projects/${projectId}/members`,
+      payload: { handle: other!.handle, role: "Designer" },
+    });
+    const id = invite.json().data.id;
+    const sent = await server.inject({ method: "GET", url: "/v1/invitations/sent" });
+    expect(sent.statusCode).toBe(200);
+    expect(sent.json().data).toHaveLength(1);
+    expect(sent.json().data[0]).toMatchObject({
+      id,
+      status: "pending",
+      role: "Designer",
+      project: { id: projectId },
+      invitee: { userId: otherId, handle: other!.handle },
+    });
+    sign(otherId);
+    const received = await server.inject({ method: "GET", url: "/v1/invitations" });
+    expect(received.json().data[0]).toMatchObject({
+      id,
+      project: { id: projectId },
+      invitedBy: { userId: ownerId },
+    });
+    expect(
+      (
+        await server.inject({
+          method: "POST",
+          url: `/v1/invitations/${id}`,
+          payload: { accept: false },
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect(
+      (await server.inject({ method: "GET", url: "/v1/invitations" })).json().data,
+    ).toHaveLength(0);
+    // Only the owner of a project sees the invitations sent for it.
+    expect(
+      (await server.inject({ method: "GET", url: "/v1/invitations/sent" })).json().data,
+    ).toHaveLength(0);
+    sign(null);
+    expect(
+      (
+        await server.inject({ method: "GET", url: `/v1/projects/${projectId}/members` })
+      ).json().data,
+    ).toHaveLength(0);
+    sign(ownerId);
+    expect(
+      (
+        await server.inject({ method: "GET", url: `/v1/projects/${projectId}/members` })
+      ).json().data[0],
+    ).toMatchObject({ id, status: "declined" });
+    const again = await server.inject({
+      method: "POST",
+      url: `/v1/projects/${projectId}/members`,
+      payload: { handle: other!.handle, role: "Programador" },
+    });
+    expect(again.json().data).toMatchObject({
+      id,
+      status: "pending",
+      role: "Programador",
+    });
+    sign(otherId);
+    expect(
+      (await server.inject({ method: "GET", url: "/v1/invitations" })).json().data,
+    ).toHaveLength(1);
   });
   it("blocks duplicate publication while retaining editable drafts and unchanged original links", async () => {
     await db

@@ -19,10 +19,15 @@ export const queryKeys = {
   commentThread: (slug: string) => ["comments", slug] as const,
   announcements: ["announcements"] as const,
   myAnnouncements: (projectId: number) => ["my-announcements", projectId] as const,
-  projectMakers: (projectId?: number) =>
+  projectMembers: (projectId?: number) =>
     projectId === undefined
-      ? (["project-makers"] as const)
-      : (["project-makers", projectId] as const),
+      ? (["project-members"] as const)
+      : (["project-members", projectId] as const),
+  invitations: {
+    all: ["invitations"] as const,
+    received: ["invitations", "received"] as const,
+    sent: ["invitations", "sent"] as const,
+  },
   makers: ["maker"] as const,
   destinationMetrics: (projectId: number) => ["destination-metrics", projectId] as const,
 };

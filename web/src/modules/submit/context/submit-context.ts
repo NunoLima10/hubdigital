@@ -1,7 +1,7 @@
 import { createContext } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import type { CreateProjectInput, Project } from "../types/project";
-import { draftRecoverySchema } from "../utils/draft";
+import { draftRecoverySchema, type TeamInvite } from "../utils/draft";
 
 export type SaveState = "unsaved" | "saving" | "saved" | "error";
 export type Recovery = ReturnType<typeof draftRecoverySchema.parse>;
@@ -25,6 +25,9 @@ type SubmitContextType = {
   discardRecovery: () => void;
   project?: Project;
   savedProjectId: number | null;
+  /** People picked for the team, invited when the project is submitted. */
+  teamInvites: TeamInvite[];
+  setTeamInvites: (invites: TeamInvite[]) => void;
 };
 export const SubmitContext = createContext<SubmitContextType | undefined>(
   undefined,

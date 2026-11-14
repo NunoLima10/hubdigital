@@ -1,4 +1,4 @@
-import { MakerInvitations } from "@/modules/community/maker-invitations";
+import { InvitationsNotice } from "@/modules/invitations/components/invitations-notice";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
@@ -55,7 +55,7 @@ export function ReleasesList() {
         aria-labelledby="first-launch-title"
         className="flex min-h-[320px] flex-col items-center justify-center px-3 py-10 text-center sm:min-h-[380px] sm:px-6"
       >
-        <MakerInvitations />
+        <InvitationsNotice />
         <div aria-hidden="true" className="mb-5 flex size-14 items-center justify-center rounded-full bg-primary-soft text-primary">
           <Rocket className="size-6" />
         </div>
@@ -75,7 +75,7 @@ export function ReleasesList() {
     );
   return (
     <>
-      <MakerInvitations />
+      <InvitationsNotice />
       <div className="space-y-3">
         {data.data.map((project) => (
           <ReleasesItem

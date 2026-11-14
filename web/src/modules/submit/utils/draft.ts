@@ -34,11 +34,22 @@ export const draftFormSchema = projectDraftSchema.extend({
   }),
 });
 
+/** A person picked for the team; invited only when the project is submitted. */
+export const teamInviteSchema = z.object({
+  userId: z.string(),
+  handle: z.string(),
+  name: z.string(),
+  image: z.string().nullable(),
+  role: z.string().trim().min(2).max(80),
+});
+export type TeamInvite = z.infer<typeof teamInviteSchema>;
+
 export const draftRecoverySchema = z.object({
   values: draftFormSchema,
   step: z.number().int().min(0).max(4),
   projectId: z.number().int().positive().nullable(),
   creationKey: z.string().uuid(),
+  teamInvites: z.array(teamInviteSchema).default([]),
 });
 
 export function draftPayloadFromForm(values: CreateProjectInput) {
