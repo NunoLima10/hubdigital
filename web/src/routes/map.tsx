@@ -4,6 +4,7 @@ import { mapQueryOptions } from "@/modules/project-map/map-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { seo } from "@/lib/seo";
 import { useEffect } from "react";
+import { noop } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/map")({
   head: () =>
@@ -14,16 +15,15 @@ export const Route = createFileRoute("/map")({
       path: "/map",
     }),
   loader: ({ context }) =>
-    context.queryClient.ensureQueryData(
-      mapQueryOptions(),
-    ),
+    context.queryClient.ensureQueryData(mapQueryOptions()).catch(noop),
   component: MapPage,
 });
 
 function MapPage() {
   useEffect(() => {
     document.documentElement.classList.add("hub-map-fullscreen");
-    return () => document.documentElement.classList.remove("hub-map-fullscreen");
+    return () =>
+      document.documentElement.classList.remove("hub-map-fullscreen");
   }, []);
 
   return (

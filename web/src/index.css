@@ -209,6 +209,17 @@
   }
 }
 
+@media (max-width: 1023px) {
+  .project-map .leaflet-top.leaflet-right {
+    top: 76px;
+  }
+  .project-map .leaflet-bar a {
+    width: 44px;
+    height: 44px;
+    line-height: 44px;
+  }
+}
+
 @media (max-width: 767px) {
   html,
   html.hub-map-fullscreen {
