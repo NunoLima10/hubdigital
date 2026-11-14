@@ -160,6 +160,18 @@ describe("Comments module (e2e)", () => {
     });
   }
 
+  it("hides a shadow-banned owner's discussion and rejects new comments", async () => {
+    signedInAs(otherUserId);
+    expect((await postComment("Comentário existente.")).statusCode).toBe(201);
+    await db.update(users).set({ shadowBannedAt: new Date() }).where(eq(users.id, currentUserId));
+    getSessionMock.mockResolvedValue(null);
+    const read = await server.inject({ method: "GET", url: "/v1/projects/meu-projeto/comments" });
+    expect(read.statusCode).toBe(404);
+    signedInAs(otherUserId);
+    expect((await postComment("Não deve ser aceite.")).statusCode).toBe(404);
+    expect(await db.query.comments.findMany()).toHaveLength(1);
+  });
+
   it("rejects an unauthenticated comment", async () => {
     getSessionMock.mockResolvedValue(null);
 

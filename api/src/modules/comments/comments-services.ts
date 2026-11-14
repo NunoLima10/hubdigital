@@ -1,6 +1,7 @@
 import { DB } from "@/db";
 import { comments, projects, users } from "@/db/schemas";
 import { errorLogger } from "@/utils/error-logger";
+import { publicProjectConditions } from "@/utils/project-visibility";
 import { and, asc, eq, isNull } from "drizzle-orm";
 
 type CommentRow = {
@@ -56,11 +57,7 @@ async function findPublishedProjectBySlug(db: DB, slug: string) {
   return db.query.projects.findFirst({
     where: and(
       eq(projects.slug, slug),
-      eq(projects.status, "published"),
-      isNull(projects.deletedAt),
-      // A hidden project takes its thread with it: no reading it, and no
-      // posting into it either.
-      isNull(projects.shadowBannedAt)
+      publicProjectConditions,
     ),
     columns: { id: true },
   });
