@@ -19,3 +19,4 @@ export * from "./project-secondary-categories";
 export * from "./project-link-clicks";
 
 export * from "./project-community";
+export * from "./badges";

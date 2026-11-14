@@ -1,6 +1,7 @@
 import { projectProfileFields } from "./project-profile";
 import { projectGeographyFields } from "./location-schema";
 import { z } from "zod";
+import { awardedBadgeSchema } from "./badge-schema";
 import { projectDraftLinkSchema } from "./project-links";
 import {
   MODERATION_BULK_MAX,
@@ -213,6 +214,7 @@ export const adminUserDetailSchema = adminUserSchema.extend({
       createdAt: z.string(),
     })
   ),
+  badges: z.array(awardedBadgeSchema),
   history: z.array(auditEntrySchema),
 });
 

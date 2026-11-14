@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { projectMinimalSchema } from "./project-schema";
+import { awardedBadgeSchema, badgeKeySchema } from "./badge-schema";
 
 /**
  * Lowercase letters, digits and single dashes — it has to survive being typed
@@ -43,6 +44,12 @@ export const makerProfileSchema = z.object({
   /** Upvotes gathered across every project this maker has published. */
   totalUpvotes: z.number(),
   projectCount: z.number(),
+  /** One-based position in which this maker joined the community. */
+  membershipNumber: z.number().int().positive(),
+  /** Every badge this maker holds, in catalog order. */
+  badges: z.array(awardedBadgeSchema),
+  /** The badge shown next to their name, or null when they hide it. */
+  featuredBadge: badgeKeySchema.nullable(),
   joinedAt: z.string(),
   projects: z.array(projectMinimalSchema),
   ownedProjects: z.array(projectMinimalSchema),

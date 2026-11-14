@@ -2,11 +2,13 @@ import { toPublicUrl } from "@/utils/public-url";
 import { getYoutubeVideoId } from "@hubdigital/shared";
 import { z } from "zod";
 import { and, eq, desc, isNull, inArray } from "drizzle-orm";
-import { categories, projectAnnouncements, projectRevisions, projects } from "@/db/schemas";
+import { categories, projectAnnouncements, projectRevisions, projects, users } from "@/db/schemas";
 import { reviewAnnouncement, reviewRevision } from "@/modules/community/community-services";
 import { AdminProjectsService } from "./projects-services";
 import { withAudit } from "./audit-services";
-import { NotFoundError } from "@/utils/custom-errors";
+import { BadRequestError, ConflictError, NotFoundError } from "@/utils/custom-errors";
+import { BadgesService } from "@/modules/badges/badges-services";
+import { badgeKeySchema, grantBadgeBodySchema, type BadgeKey } from "@hubdigital/shared";
 import { requireAdmin } from "@/hooks/has-role";
 import { FastifyInstance } from "fastify";
 import { adminController } from "./admin-controllers";
@@ -252,6 +254,69 @@ export async function adminRoutes(server: FastifyInstance) {
   server.delete("/users/:id/shadow-ban", {
     schema: unhideUserRouteSchema,
     handler: adminController.unhideUserHandler,
+  });
+
+  /* badges — only the manual ones; automatic badges follow their rule */
+
+  server.post("/users/:id/badges", {
+    schema: {
+      params: z.object({ id: z.string().min(1) }),
+      body: grantBadgeBodySchema,
+    },
+    handler: async (req, reply) => {
+      const { id } = req.params as { id: string };
+      const { key } = req.body as { key: BadgeKey };
+
+      const user = await req.db.query.users.findFirst({
+        where: eq(users.id, id),
+        columns: { id: true },
+      });
+      if (!user) throw new NotFoundError();
+
+      const result = await withAudit(
+        req.db,
+        { id: req.user!.id },
+        async (tx) => {
+          const outcome = await BadgesService.grant(tx, id, key, req.user!.id);
+          if (outcome === "not_manual")
+            throw new BadRequestError("Este distintivo é atribuído automaticamente.");
+          return outcome === "granted" ? { key } : null;
+        },
+        () => ({
+          action: "user.badge_grant",
+          targetType: "user",
+          targetId: id,
+          metadata: { badge: key },
+        }),
+      );
+      if (!result) throw new ConflictError("Este utilizador já tem este distintivo.");
+
+      return reply.status(201).send({ data: result });
+    },
+  });
+
+  server.delete("/users/:id/badges/:key", {
+    schema: {
+      params: z.object({ id: z.string().min(1), key: badgeKeySchema }),
+    },
+    handler: async (req) => {
+      const { id, key } = req.params as { id: string; key: BadgeKey };
+
+      const result = await withAudit(
+        req.db,
+        { id: req.user!.id },
+        async (tx) => ((await BadgesService.revoke(tx, id, key)) ? { key } : null),
+        () => ({
+          action: "user.badge_revoke",
+          targetType: "user",
+          targetId: id,
+          metadata: { badge: key },
+        }),
+      );
+      if (!result) throw new NotFoundError();
+
+      return { data: result };
+    },
   });
 
   /* reports */

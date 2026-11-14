@@ -1,5 +1,11 @@
 import { z } from "zod";
+import { badgeKeySchema } from "./badge-schema";
 import { projectAuthorSchema } from "./project-schema";
+
+/** A commenter, with the badge they chose to feature on their profile. */
+export const commentAuthorSchema = projectAuthorSchema.extend({
+  badge: badgeKeySchema.nullable(),
+});
 
 export const COMMENT_MAX_LENGTH = 2000;
 
@@ -20,7 +26,7 @@ const commentBaseSchema = z.object({
   projectId: z.number(),
   parentId: z.number().nullable(),
   body: z.string(),
-  author: projectAuthorSchema.nullable(),
+  author: commentAuthorSchema.nullable(),
   /** True when the signed-in user wrote it, so the UI can offer edit/delete. */
   isOwn: z.boolean(),
   isDeleted: z.boolean(),

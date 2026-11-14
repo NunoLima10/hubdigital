@@ -9,6 +9,7 @@ import {
   ProjectStatusBadge,
   TrustedBadge,
 } from "@/components/status-badge/status-badge";
+import { UserBadgesCard } from "@/modules/badges/user-badges-card";
 import { CommentsTable } from "@/modules/comments/components/comments-table/comments-table";
 import { relativeTime } from "@/utils/relative-time";
 import {
@@ -199,6 +200,12 @@ function RouteComponent() {
                   </Stack>
                 </Card>
               )}
+
+              <UserBadgesCard
+                userId={id}
+                badges={user.badges}
+                queryKey={queryKey}
+              />
 
               <Card withBorder padding="lg">
                 <Stack gap="sm">

@@ -20,6 +20,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthedDashboardRouteRouteImport } from './routes/_authed/dashboard/route'
 import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
 import { Route as MakersHandleRouteImport } from './routes/makers/$handle'
+import { Route as PlaygroundBadgesRouteImport } from './routes/playground/badges'
 import { Route as ProfilesHandleRouteImport } from './routes/profiles/$handle'
 import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
 import { Route as RankingsWeekRouteImport } from './routes/rankings/$week'
@@ -84,6 +85,11 @@ const MakersHandleRoute = MakersHandleRouteImport.update({
   path: '/makers/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlaygroundBadgesRoute = PlaygroundBadgesRouteImport.update({
+  id: '/playground/badges',
+  path: '/playground/badges',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfilesHandleRoute = ProfilesHandleRouteImport.update({
   id: '/profiles/$handle',
   path: '/profiles/$handle',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
+  '/playground/badges': typeof PlaygroundBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
+  '/playground/badges': typeof PlaygroundBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_authed/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
+  '/playground/badges': typeof PlaygroundBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/onboarding'
     | '/makers/$handle'
+    | '/playground/badges'
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/onboarding'
     | '/makers/$handle'
+    | '/playground/badges'
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
@@ -253,6 +264,7 @@ export interface FileRouteTypes {
     | '/_authed/dashboard'
     | '/_authed/onboarding'
     | '/makers/$handle'
+    | '/playground/badges'
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
@@ -274,6 +286,7 @@ export interface RootRouteChildren {
   SignUpRoute: typeof SignUpRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   MakersHandleRoute: typeof MakersHandleRoute
+  PlaygroundBadgesRoute: typeof PlaygroundBadgesRoute
   ProfilesHandleRoute: typeof ProfilesHandleRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
   RankingsWeekRoute: typeof RankingsWeekRoute
@@ -356,6 +369,13 @@ declare module '@tanstack/react-router' {
       path: '/makers/$handle'
       fullPath: '/makers/$handle'
       preLoaderRoute: typeof MakersHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/badges': {
+      id: '/playground/badges'
+      path: '/playground/badges'
+      fullPath: '/playground/badges'
+      preLoaderRoute: typeof PlaygroundBadgesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profiles/$handle': {
@@ -468,6 +488,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignUpRoute: SignUpRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   MakersHandleRoute: MakersHandleRoute,
+  PlaygroundBadgesRoute: PlaygroundBadgesRoute,
   ProfilesHandleRoute: ProfilesHandleRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
   RankingsWeekRoute: RankingsWeekRoute,

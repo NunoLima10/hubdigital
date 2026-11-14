@@ -40,7 +40,12 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
   });
   const [diasporaCountry, setDiasporaCountry] = useState<DiasporaCountry | "">("");
   const { createOnboarding, schema, isPending } = useCreateOnboarding({
-    onSuccess: () => onComplete(answers),
+    onSuccess: (response) =>
+      onComplete({
+        ...answers,
+        membershipNumber: response.data.membershipNumber,
+        badges: response.data.badges,
+      }),
   });
   const question = onBoardingQuestions[step];
   const showDiaspora = step === 2 && answers.locationResponse === "diaspora";

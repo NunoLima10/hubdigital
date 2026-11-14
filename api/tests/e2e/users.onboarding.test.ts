@@ -143,8 +143,11 @@ describe("Users module - onboarding (e2e)", () => {
 
     expect(response.statusCode).toBe(201);
     const body = response.json();
+    // The first member earns no automatic badge: the founder one is granted.
     expect(body.data).toEqual({
       id: expect.any(Number),
+      membershipNumber: expect.any(Number),
+      badges: [],
     });
 
     const publisher = await db.query.publishers.findFirst({

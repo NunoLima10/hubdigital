@@ -1,3 +1,4 @@
+import { BadgesService } from "@/modules/badges/badges-services";
 import {
   serializeProjectCategories,
   secondaryCategoriesWith,
@@ -57,6 +58,7 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
 
   if (!publisher || !publisher.user || publisher.user.shadowBannedAt)
     return null;
+
   const creditedProjects = await db.query.projects.findMany({
     where: and(
       publicProjectConditions,
@@ -108,6 +110,8 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
       0,
     ),
     projectCount: publishedProjects.length,
+    membershipNumber: publisher.membershipNumber,
+    ...(await BadgesService.publicBadgesFor(db, publisher.userId)),
     joinedAt: publisher.createdAt,
     projects: publishedProjects,
     ownedProjects: publishedProjects.filter(

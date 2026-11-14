@@ -1,4 +1,7 @@
+import { BadgeReveal } from "@/components/badge/badge-reveal";
 import { buttonVariants } from "@/components/ui/button";
+import { useMarkBadgesSeen } from "@/modules/badges/hooks/use-my-badges";
+import type { BadgeKey } from "@hubdigital/shared";
 import { authClient } from "@/lib/auth-client";
 import { prefersReducedMotion } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -10,6 +13,9 @@ import { useEffect, useState } from "react";
 export type OnboardingResult = {
   profileResponse: string;
   objectiveResponse: string;
+  membershipNumber?: number;
+  /** Badges earned by joining (the founding-member ones). */
+  badges?: BadgeKey[];
 };
 
 const messages: Record<string, string> = {
@@ -42,12 +48,20 @@ export function OnboardingSuccess({ result, ready }: { result: OnboardingResult;
   // A dead photo URL would otherwise show the browser's broken-image icon.
   const [imageFailed, setImageFailed] = useState(false);
 
+  const earnedBadge = result.badges?.[0];
+  const { mutate: markSeen } = useMarkBadgesSeen();
+
   useEffect(() => {
     celebrate();
     return () => {
       confetti.reset();
     };
   }, []);
+
+  // Revealed here, so the site-wide celebration doesn't show it again.
+  useEffect(() => {
+    if (result.badges?.length) markSeen(result.badges);
+  }, [result.badges, markSeen]);
 
   // The session is refreshed in the background; until it carries onboardedAt,
   // the dashboard guard would bounce the user back here.
@@ -105,6 +119,16 @@ export function OnboardingSuccess({ result, ready }: { result: OnboardingResult;
           Já fazes parte da comunidade que está a pôr Cabo Verde no mapa digital.{" "}
           {messages[result.profileResponse]}
         </p>
+
+        {earnedBadge && (
+          <div className="mx-auto mt-8 max-w-sm rounded-2xl border bg-muted/40 px-5 py-6 animate-in fade-in-0 zoom-in-95 duration-500 delay-300 [animation-fill-mode:backwards]">
+            <BadgeReveal
+              badgeKey={earnedBadge}
+              membershipNumber={result.membershipNumber}
+              delayMs={550}
+            />
+          </div>
+        )}
 
         {/* The suggested action follows the objective picked in onboarding;
             it sits on the right on desktop and on top on a phone. */}

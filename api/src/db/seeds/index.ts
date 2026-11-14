@@ -1,6 +1,7 @@
 import { config } from "@/config";
 import { logger } from "@/utils/logger";
 import { DB } from "../index";
+import badges from "./badges";
 import categories from "./categories";
 import admin from "./users/admin";
 import demoAdmin from "./users/demo-admin";
@@ -20,6 +21,7 @@ export async function RundSeeding(db: DB) {
   await admin(db);
 
   await categories(db);
+  await badges(db);
   if (config.isDev) {
     await airtableProjects(db);
   }

@@ -51,6 +51,7 @@ describe("Makers module (e2e)", () => {
   let currentUserId: string;
   let categoryId: number;
   let publisherId: number;
+  let publisherMembershipNumber: number;
 
   function signedInAs(userId: string) {
     getSessionMock.mockResolvedValue({ user: { id: userId, role: "user" } });
@@ -104,8 +105,12 @@ describe("Makers module (e2e)", () => {
         locationResponse: "CV2",
         foundUsByResponse: "social-media",
       })
-      .returning({ id: publishers.id });
+      .returning({
+        id: publishers.id,
+        membershipNumber: publishers.membershipNumber,
+      });
     publisherId = publisher.id;
+    publisherMembershipNumber = publisher.membershipNumber;
 
     server = await buildServer(db);
     await server.ready();
@@ -161,10 +166,40 @@ describe("Makers module (e2e)", () => {
       name: "Ana Furtado",
       bio: "A construir coisas em Cabo Verde",
       projectCount: 1,
+      membershipNumber: publisherMembershipNumber,
     });
     // Drafts belong to the maker, not to the public profile.
     expect(profile.projects).toHaveLength(1);
     expect(profile.projects[0].slug).toBe("meu-projeto");
+  });
+
+  it("returns a stable one-based community membership number", async () => {
+    const secondUserId = randomUUID();
+    await db.insert(users).values({
+      id: secondUserId,
+      name: "Bruno Lopes",
+      email: "bruno-" + secondUserId + "@example.com",
+      role: "user",
+    });
+    await db.insert(publishers).values({
+      userId: secondUserId,
+      handle: "bruno-lopes",
+      bio: "A construir a comunidade",
+      profileResponse: "founder",
+      objectiveResponse: "launch-product",
+      locationResponse: "CV1",
+      foundUsByResponse: "friends",
+    });
+
+    const response = await server.inject({
+      method: "GET",
+      url: "/v1/makers/bruno-lopes",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data.membershipNumber).toBe(
+      publisherMembershipNumber + 1,
+    );
   });
 
   it("sums upvotes across the maker's projects", async () => {

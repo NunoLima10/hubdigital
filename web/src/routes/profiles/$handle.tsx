@@ -12,6 +12,8 @@ import {
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { makerHead } from "@/modules/makers/seo";
 import { Github, Globe, Instagram, Linkedin, UserRound } from "lucide-react";
+import { ProfileBadge } from "@/components/badge/profile-badge";
+import { ProfileAchievements } from "@/modules/badges/components/profile-achievements";
 
 export const Route = createFileRoute("/profiles/$handle")({
   loader: ({ context, params }) =>
@@ -43,15 +45,24 @@ function ProfilePage() {
       {data && (
         <div className="space-y-8">
           <header className="grid gap-5 rounded-xl border bg-card p-5 sm:grid-cols-[auto_1fr] sm:p-6 lg:grid-cols-[auto_1fr_auto]">
-            <span className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-full border bg-muted text-muted-foreground">
-              {data.image ? (
-                <img
-                  src={data.image}
-                  alt=""
-                  className="size-full object-cover"
+            <span className="relative size-20 shrink-0">
+              <span className="flex size-full items-center justify-center overflow-hidden rounded-full border bg-muted text-muted-foreground">
+                {data.image ? (
+                  <img
+                    src={data.image}
+                    alt=""
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <UserRound className="size-8" />
+                )}
+              </span>
+              {data.featuredBadge && (
+                <ProfileBadge
+                  badgeKey={data.featuredBadge}
+                  membershipNumber={data.membershipNumber}
+                  className="absolute -right-2 -bottom-2"
                 />
-              ) : (
-                <UserRound className="size-8" />
               )}
             </span>
             <div className="min-w-0">
@@ -136,6 +147,12 @@ function ProfilePage() {
               </div>
             </div>
           </header>
+          {data.badges.length > 0 && (
+            <ProfileAchievements
+              badges={data.badges}
+              membershipNumber={data.membershipNumber}
+            />
+          )}
           {[
             {
               title: "Projetos publicados",

@@ -1,3 +1,4 @@
+import { BadgesService } from "@/modules/badges/badges-services";
 import { MakersService } from "@/modules/makers/makers-services";
 import { BadRequestError, UnauthorizedAccessError } from "@/utils/custom-errors";
 import { FastifyReply, FastifyRequest } from "fastify";
@@ -38,6 +39,14 @@ async function onboardingHandler(
     userId: req.user.id,
   });
 
+  // Early members earn their founding badge the moment they join; the client
+  // reveals it on the welcome screen.
+  const foundingBadge = await BadgesService.awardFoundingBadge(
+    req.db,
+    req.user.id,
+    publisher.membershipNumber,
+  );
+
   await auth.api.updateUser({
     headers: fromNodeHeaders(req.headers),
     body: {
@@ -48,6 +57,8 @@ async function onboardingHandler(
   return reply.status(201).send({
     data: {
       id: publisher.id,
+      membershipNumber: publisher.membershipNumber,
+      badges: foundingBadge ? [foundingBadge] : [],
     },
   });
 }

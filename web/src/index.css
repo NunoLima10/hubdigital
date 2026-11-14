@@ -257,6 +257,161 @@
   margin-block: 1em 0.5em;
 }
 
+/*
+ * Badge artwork (components/badge/badge-medal.tsx). Static by default; an
+ * ancestor with .badge-intro plays the staged entry, and .badge-hover sweeps
+ * the glint on hover or focus. Each decorated part reads its start time from
+ * --badge-delay.
+ */
+.badge-medal__glint {
+  transform: translateX(-170px);
+}
+
+.badge-medal__leaf,
+.badge-medal__pop {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.badge-medal__leaf {
+  transform-origin: bottom center;
+}
+
+.badge-medal__lava {
+  animation: badge-lava 2.6s ease-in-out infinite;
+}
+
+.badge-medal__lava-flow {
+  stroke-dasharray: 6 10;
+  animation: badge-lava-flow 3s linear infinite;
+}
+
+/* Many compact badges can share a page (a comment thread): keep them still. */
+.badge-medal[data-compact] .badge-medal__lava,
+.badge-medal[data-compact] .badge-medal__lava-flow {
+  animation: none;
+}
+
+.badge-medal__twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: badge-twinkle 2.4s ease-in-out infinite;
+}
+
+.badge-medal__commit-pulse {
+  stroke-dasharray: 14 400;
+  opacity: 0;
+  animation: badge-commit-pulse 3.2s linear 1s infinite;
+}
+
+.badge-intro .badge-medal {
+  animation: badge-land 950ms cubic-bezier(0.2, 1.3, 0.4, 1) both;
+  animation-delay: var(--badge-intro-delay, 0ms);
+}
+
+.badge-intro .badge-medal[data-badge="maintainer"] {
+  animation-name: badge-bolt;
+  animation-duration: 1.1s;
+}
+
+.badge-intro .badge-medal__leaf,
+.badge-intro .badge-medal__pop {
+  animation: badge-pop 450ms cubic-bezier(0.3, 1.8, 0.5, 1) both;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + var(--badge-delay, 0ms));
+}
+
+.badge-intro .badge-medal__leaf {
+  animation-timing-function: ease-out;
+}
+
+.badge-intro .badge-medal__draw {
+  stroke-dasharray: var(--badge-length);
+  animation: badge-draw 700ms ease-out both;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + var(--badge-delay, 0ms));
+}
+
+.badge-intro .badge-medal__glint {
+  animation: badge-glint 1.1s ease-in-out both;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 1150ms);
+}
+
+.badge-intro .badge-medal[data-badge="maintainer"] .badge-medal__glint {
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 2200ms);
+}
+
+.badge-hover .badge-medal {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.badge-hover:hover .badge-medal,
+.badge-hover:focus-visible .badge-medal {
+  transform: translateY(-2px) rotate(-3deg) scale(1.06);
+}
+
+.badge-hover:hover .badge-medal__glint,
+.badge-hover:focus-visible .badge-medal__glint {
+  animation: badge-glint 800ms ease-in-out;
+}
+
+@keyframes badge-land {
+  0% { opacity: 0; transform: translateY(24px) scale(0.35) rotateY(-160deg); }
+  60% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes badge-bolt {
+  0% { opacity: 0; transform: scale(0.4) rotate(-150deg); }
+  55% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes badge-pop {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+@keyframes badge-draw {
+  from { stroke-dashoffset: var(--badge-length); }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes badge-glint {
+  from { transform: translateX(-170px); }
+  to { transform: translateX(210px); }
+}
+
+@keyframes badge-lava {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+
+@keyframes badge-lava-flow {
+  to { stroke-dashoffset: -64; }
+}
+
+@keyframes badge-twinkle {
+  0%, 70%, 100% { transform: scale(0); opacity: 0; }
+  80% { transform: scale(1) rotate(45deg); opacity: 1; }
+}
+
+@keyframes badge-commit-pulse {
+  0% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: -414; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .badge-medal,
+  .badge-medal * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .badge-hover:hover .badge-medal,
+  .badge-hover:focus-visible .badge-medal {
+    transform: none;
+  }
+}
+
 /* Animate the content only; keep the header and navigation stationary. */
 ::view-transition-group(root) {
   animation: none;

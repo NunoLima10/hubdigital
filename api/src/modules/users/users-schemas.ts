@@ -7,7 +7,7 @@ import {
   profileQuestionValues,
 } from "@hubdigital/shared";
 import { z } from "zod";
-import { abroadCountryValues } from "@hubdigital/shared";
+import { abroadCountryValues, badgeKeySchema } from "@hubdigital/shared";
 
 export const onboardingRouteSchema = {
   tags: ["users"],
@@ -23,6 +23,9 @@ export const onboardingRouteSchema = {
     201: z.object({
       data: z.object({
         id: z.number(),
+        membershipNumber: z.number(),
+        /** Badges earned by joining, for the welcome screen to reveal. */
+        badges: z.array(badgeKeySchema),
       }),
     }),
     ...routeErrorResponses

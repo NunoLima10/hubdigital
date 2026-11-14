@@ -1,5 +1,6 @@
 import { relations } from "drizzle-orm";
 import { users } from "./auth";
+import { badges, userBadges } from "./badges";
 import { categories } from "./categories";
 import { comments } from "./comments";
 import { moderationActions } from "./moderation-actions";
@@ -31,6 +32,23 @@ export const userRelations = relations(users, ({ one, many }) => ({
   comments: many(comments),
   uploads: many(fileUploads),
   makerMemberships: many(projectMakers, { relationName: "makerMember" }),
+  badges: many(userBadges, { relationName: "badgeHolder" }),
+}));
+
+export const badgeRelations = relations(badges, ({ many }) => ({
+  awards: many(userBadges),
+}));
+
+export const userBadgeRelations = relations(userBadges, ({ one }) => ({
+  user: one(users, {
+    fields: [userBadges.userId],
+    references: [users.id],
+    relationName: "badgeHolder",
+  }),
+  badge: one(badges, {
+    fields: [userBadges.badgeKey],
+    references: [badges.key],
+  }),
 }));
 
 export const publisherRelations = relations(publishers, ({ one, many }) => ({
