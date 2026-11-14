@@ -6,6 +6,7 @@ import {
   announcementBodySchema,
   announcementSchema,
   makerMembershipSchema,
+  makerContributionRoleSchema,
   WEEK_ID_PATTERN,
 } from "@hubdigital/shared";
 import { currentWeek, weekFromId } from "@/utils/week";
@@ -42,11 +43,14 @@ export async function communityRoutes(server: FastifyInstance) {
         limit: number;
         offset: number;
       };
-      if (query.week && !weekFromId(query.week)) throw new BadRequestError("Semana inválida.");
+      if (query.week && !weekFromId(query.week))
+        throw new BadRequestError("Semana inválida.");
       return {
         data: await service.listAnnouncements(req.db, {
           ...query,
-          week: query.projectId ? query.week : (query.week ?? currentWeek().weekId),
+          week: query.projectId
+            ? query.week
+            : (query.week ?? currentWeek().weekId),
           userId: req.user?.id,
         }),
       };
@@ -83,24 +87,95 @@ export async function communityRoutes(server: FastifyInstance) {
       response: { 200: z.object({ data: z.array(makerMembershipSchema) }) },
     },
     handler: async (req) => ({
-      data: await service.listMakers(req.db, (req.params as { id: number }).id, req.user?.id),
+      data: await service.listMakers(
+        req.db,
+        (req.params as { id: number }).id,
+        req.user?.id,
+      ),
     }),
   });
   server.post("/projects/:id/makers", {
     preHandler: requirePublisher,
-    schema: { params: projectParams, body: z.object({ handle: z.string().trim().min(1).max(80) }) },
+    schema: {
+      params: projectParams,
+      body: z.object({
+        handle: z.string().trim().min(1).max(80),
+        role: makerContributionRoleSchema.optional(),
+      }),
+    },
     handler: async (req) => ({
       data: await service.inviteMaker(
         req.db,
         req.publisher,
         (req.params as { id: number }).id,
         (req.body as { handle: string }).handle,
+        (req.body as { role?: string }).role,
       ),
     }),
   });
+  server.get("/projects/:id/makers/search", {
+    preHandler: requirePublisher,
+    schema: {
+      params: projectParams,
+      querystring: z.object({ q: z.string().trim().min(2).max(80) }),
+    },
+    handler: async (req) => ({
+      data: await service.searchMakers(
+        req.db,
+        (req.params as { id: number }).id,
+        req.publisher.id,
+        (req.query as { q: string }).q,
+      ),
+    }),
+  });
+  const membershipParams = projectParams.extend({
+    membershipId: z.coerce.number().int().positive(),
+  });
+  server.patch("/projects/:id/makers/:membershipId", {
+    preHandler: requirePublisher,
+    schema: {
+      params: membershipParams,
+      body: z.object({ role: makerContributionRoleSchema }),
+    },
+    handler: async (req) => {
+      const { id, membershipId } = req.params as {
+        id: number;
+        membershipId: number;
+      };
+      return {
+        data: await service.updateMakerRole(
+          req.db,
+          id,
+          req.publisher.id,
+          membershipId,
+          (req.body as { role: string }).role,
+        ),
+      };
+    },
+  });
+  server.delete("/projects/:id/makers/:membershipId", {
+    preHandler: requirePublisher,
+    schema: { params: membershipParams },
+    handler: async (req) => {
+      const { id, membershipId } = req.params as {
+        id: number;
+        membershipId: number;
+      };
+      return {
+        data: await service.removeMaker(
+          req.db,
+          id,
+          req.publisher.id,
+          membershipId,
+        ),
+      };
+    },
+  });
   server.get("/maker-invitations", {
     preHandler: authenticate,
-    handler: async (req) => ({ data: await service.makerInvitations(req.db, req.user!.id) }),
+    handler: async (req) => ({
+      data: await service.makerInvitations(req.db, req.user!.id),
+    }),
   });
   server.post("/maker-invitations/:id", {
     preHandler: authenticate,

@@ -1,17 +1,15 @@
-import { helpWantedLabels, type Project } from "@hubdigital/shared";
+import { type Project } from "@hubdigital/shared";
 export function ProjectProfile({
   project,
 }: {
-  project: Pick<Project, "languages" | "helpWanted" | "helpDescription" | "teamDescription">;
+  project: Pick<
+    Project,
+    "languages" | "helpWanted" | "helpDescription" | "teamDescription"
+  >;
 }) {
   const rows = [
     { label: "Línguas", value: project.languages.join(", ") },
     { label: "Equipa", value: project.teamDescription },
-    {
-      label: "Procura ajuda com",
-      value: project.helpWanted.map((value) => helpWantedLabels[value]).join(", "),
-    },
-    { label: "Como podes ajudar", value: project.helpDescription },
   ];
   return (
     <>

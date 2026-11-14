@@ -1,17 +1,26 @@
 import "../setup-env";
-import { describe, it, expect, vi, beforeAll, beforeEach, afterEach, afterAll } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  afterAll,
+} from "vitest";
 import { randomUUID } from "node:crypto";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import { setupDB, teardownDB } from "@/db";
 import {
   projects,
-  projectLinks,
   publishers,
   projectRevisions,
   projectAnnouncements,
   moderationActions,
   users,
+  projectLinks,
 } from "@/db/schemas";
 import { invalidateSettingsCache } from "@/modules/settings/settings-services";
 import { buildServer } from "@/server";
@@ -28,7 +37,10 @@ import {
 } from "./helpers/admin-harness";
 const { getSessionMock } = vi.hoisted(() => ({ getSessionMock: vi.fn() }));
 vi.mock("../../src/lib/auth", () => ({
-  auth: { api: { getSession: getSessionMock, updateUser: vi.fn() }, handler: vi.fn() },
+  auth: {
+    api: { getSession: getSessionMock, updateUser: vi.fn() },
+    handler: vi.fn(),
+  },
 }));
 describe("community announcements, makers and reviewed edits", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>>,
@@ -68,7 +80,9 @@ describe("community announcements, makers and reviewed edits", () => {
   };
   beforeAll(async () => {
     container = await new PostgreSqlContainer("postgres:17").start();
-    const setup = await setupDB(container.getConnectionUri(), { migrating: true });
+    const setup = await setupDB(container.getConnectionUri(), {
+      migrating: true,
+    });
     db = setup.db;
     client = setup.dbClient;
     await migrate(db, { migrationsFolder });
@@ -109,17 +123,29 @@ describe("community announcements, makers and reviewed edits", () => {
       .set({ status: "draft", publishedAt: "2025-06-05T10:00:00.000Z" })
       .where(eq(projects.id, projectId));
     expect(
-      (await server.inject({ method: "POST", url: `/v1/projects/${projectId}/publish` }))
-        .statusCode,
+      (
+        await server.inject({
+          method: "POST",
+          url: `/v1/projects/${projectId}/publish`,
+        })
+      ).statusCode,
     ).toBe(200);
-    const directory = await server.inject({ method: "GET", url: "/v1/projects" });
+    const directory = await server.inject({
+      method: "GET",
+      url: "/v1/projects",
+    });
     expect(directory.json().data).toHaveLength(1);
-    const week = await server.inject({ method: "GET", url: "/v1/projects?period=this_week" });
+    const week = await server.inject({
+      method: "GET",
+      url: "/v1/projects?period=this_week",
+    });
     expect(week.json().data).toHaveLength(0);
     expect(await db.query.projectAnnouncements.findMany()).toHaveLength(0);
-    expect(new Date((await db.query.projects.findFirst())!.publishedAt!).toISOString()).toBe(
-      "2025-06-05T10:00:00.000Z",
-    );
+    expect(
+      new Date(
+        (await db.query.projects.findFirst())!.publishedAt!,
+      ).toISOString(),
+    ).toBe("2025-06-05T10:00:00.000Z");
   });
   it("creates an idempotent, independently voted announcement and limits one project per week", async () => {
     const key = randomUUID();
@@ -138,16 +164,26 @@ describe("community announcements, makers and reviewed edits", () => {
         })
       ).statusCode,
     ).toBe(200);
-    const feed = await server.inject({ method: "GET", url: "/v1/announcements" });
+    const feed = await server.inject({
+      method: "GET",
+      url: "/v1/announcements",
+    });
     expect(feed.json().data[0]).toMatchObject({ votes: 1, hasVoted: true });
     expect(feed.json().data[0]).not.toHaveProperty("creationKey");
-    const page = await server.inject({ method: "GET", url: `/v1/projects/${slug}` });
+    const page = await server.inject({
+      method: "GET",
+      url: `/v1/projects/${slug}`,
+    });
     expect(page.json().data.upvoteCount).toBe(0);
   });
   it("assigns the current Cabo Verde week when delayed moderation approves", async () => {
     await gate();
     const queued = await create();
-    expect(queued.json().data).toMatchObject({ status: "pending", week: null, publishedAt: null });
+    expect(queued.json().data).toMatchObject({
+      status: "pending",
+      week: null,
+      publishedAt: null,
+    });
     const oldWeek = currentWeek().weekId;
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(Date.now() + 8 * 86400000));
@@ -164,7 +200,9 @@ describe("community announcements, makers and reviewed edits", () => {
     expect(await db.query.moderationActions.findMany()).toHaveLength(2);
   });
   it("credits invited makers only after the invited account accepts", async () => {
-    const other = await db.query.publishers.findFirst({ where: eq(publishers.userId, otherId) });
+    const other = await db.query.publishers.findFirst({
+      where: eq(publishers.userId, otherId),
+    });
     const invite = await server.inject({
       method: "POST",
       url: `/v1/projects/${projectId}/makers`,
@@ -174,7 +212,12 @@ describe("community announcements, makers and reviewed edits", () => {
     const id = invite.json().data.id;
     sign(null);
     expect(
-      (await server.inject({ method: "GET", url: `/v1/projects/${projectId}/makers` })).json().data,
+      (
+        await server.inject({
+          method: "GET",
+          url: `/v1/projects/${projectId}/makers`,
+        })
+      ).json().data,
     ).toHaveLength(0);
     sign(adminId, "admin");
     expect(
@@ -188,14 +231,18 @@ describe("community announcements, makers and reviewed edits", () => {
     ).toBe(404);
     sign(otherId);
     expect(
-      (await server.inject({ method: "GET", url: "/v1/maker-invitations" })).json().data,
+      (
+        await server.inject({ method: "GET", url: "/v1/maker-invitations" })
+      ).json().data,
     ).toHaveLength(1);
     await db
       .update(users)
       .set({ shadowBannedAt: new Date() })
       .where(eq(users.id, ownerId));
     expect(
-      (await server.inject({ method: "GET", url: "/v1/maker-invitations" })).json().data,
+      (
+        await server.inject({ method: "GET", url: "/v1/maker-invitations" })
+      ).json().data,
     ).toHaveLength(0);
     expect(
       (
@@ -206,7 +253,10 @@ describe("community announcements, makers and reviewed edits", () => {
         })
       ).statusCode,
     ).toBe(404);
-    await db.update(users).set({ shadowBannedAt: null }).where(eq(users.id, ownerId));
+    await db
+      .update(users)
+      .set({ shadowBannedAt: null })
+      .where(eq(users.id, ownerId));
     expect(
       (
         await server.inject({
@@ -217,11 +267,121 @@ describe("community announcements, makers and reviewed edits", () => {
       ).statusCode,
     ).toBe(200);
     sign(null);
-    const visible = await server.inject({ method: "GET", url: `/v1/projects/${projectId}/makers` });
-    expect(visible.json().data[0]).toMatchObject({ userId: otherId, status: "accepted" });
+    const visible = await server.inject({
+      method: "GET",
+      url: `/v1/projects/${projectId}/makers`,
+    });
+    expect(visible.json().data[0]).toMatchObject({
+      userId: otherId,
+      status: "accepted",
+    });
     expect(visible.json().data[0]).not.toHaveProperty("email");
-    const profile = await server.inject({ method: "GET", url: `/v1/makers/${other!.handle}` });
+    const profile = await server.inject({
+      method: "GET",
+      url: `/v1/makers/${other!.handle}`,
+    });
     expect(profile.json().data.projectCount).toBe(1);
+  });
+  it("searches existing makers and restricts role changes and removal to the owner", async () => {
+    const other = await db.query.publishers.findFirst({
+      where: eq(publishers.userId, otherId),
+    });
+    const search = await server.inject({
+      method: "GET",
+      url: `/v1/projects/${projectId}/makers/search?q=${other!.handle}`,
+    });
+    expect(search.statusCode).toBe(200);
+    expect(search.json().data).toHaveLength(1);
+    expect(search.json().data[0]).toMatchObject({
+      userId: otherId,
+      handle: other!.handle,
+    });
+    expect(search.json().data[0]).not.toHaveProperty("email");
+    const invite = await server.inject({
+      method: "POST",
+      url: `/v1/projects/${projectId}/makers`,
+      payload: { handle: other!.handle, role: "Designer" },
+    });
+    const id = invite.json().data.id;
+    const repeated = await server.inject({
+      method: "POST",
+      url: `/v1/projects/${projectId}/makers`,
+      payload: { handle: other!.handle, role: "Designer" },
+    });
+    expect(repeated.json().data.id).toBe(id);
+    sign(otherId);
+    expect(
+      (
+        await server.inject({
+          method: "GET",
+          url: `/v1/projects/${projectId}/makers/search?q=handle`,
+        })
+      ).statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await server.inject({
+          method: "PATCH",
+          url: `/v1/projects/${projectId}/makers/${id}`,
+          payload: { role: "Cofundador" },
+        })
+      ).statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await server.inject({
+          method: "DELETE",
+          url: `/v1/projects/${projectId}/makers/${id}`,
+        })
+      ).statusCode,
+    ).toBe(404);
+    expect(
+      (
+        await server.inject({
+          method: "POST",
+          url: `/v1/maker-invitations/${id}`,
+          payload: { accept: true },
+        })
+      ).statusCode,
+    ).toBe(200);
+    sign(ownerId);
+    expect(
+      (
+        await server.inject({
+          method: "PATCH",
+          url: `/v1/projects/${projectId}/makers/${id}`,
+          payload: { role: "Programador" },
+        })
+      ).statusCode,
+    ).toBe(200);
+    const ownerProfile = await server.inject({
+      method: "GET",
+      url: `/v1/makers/${(await db.query.publishers.findFirst({ where: eq(publishers.id, publisherId) }))!.handle}`,
+    });
+    expect(ownerProfile.json().data.ownedProjects).toHaveLength(1);
+    expect(ownerProfile.json().data.collaborations).toHaveLength(0);
+    const collaboratorProfile = await server.inject({
+      method: "GET",
+      url: `/v1/makers/${other!.handle}`,
+    });
+    expect(collaboratorProfile.json().data.ownedProjects).toHaveLength(0);
+    expect(collaboratorProfile.json().data.collaborations[0]).toMatchObject({
+      id: projectId,
+      contributionRole: "Programador",
+    });
+    expect(
+      (
+        await server.inject({
+          method: "DELETE",
+          url: `/v1/projects/${projectId}/makers/${id}`,
+        })
+      ).statusCode,
+    ).toBe(200);
+    const removed = await server.inject({
+      method: "GET",
+      url: `/v1/makers/${other!.handle}`,
+    });
+    expect(removed.json().data.collaborations).toHaveLength(0);
   });
   it("blocks duplicate publication while retaining editable drafts and unchanged original links", async () => {
     await db
@@ -381,15 +541,24 @@ describe("community announcements, makers and reviewed edits", () => {
     const patch = await server.inject({
       method: "PATCH",
       url: `/v1/projects/${projectId}`,
-      payload: { name: "Nova versão aprovada", description: "<p>Descrição nova</p>" },
+      payload: {
+        name: "Nova versão aprovada",
+        description: "<p>Descrição nova</p>",
+      },
     });
     expect(patch.statusCode).toBe(200);
     expect(patch.json().data.pendingReview).toBe(true);
-    const owned = await server.inject({ method: "GET", url: `/v1/projects/${slug}` });
+    const owned = await server.inject({
+      method: "GET",
+      url: `/v1/projects/${slug}`,
+    });
     const revision = owned.json().data.editReview;
     expect(revision.body.name).toBe("Nova versão aprovada");
     sign(null);
-    const publicPage = await server.inject({ method: "GET", url: `/v1/projects/${slug}` });
+    const publicPage = await server.inject({
+      method: "GET",
+      url: `/v1/projects/${slug}`,
+    });
     expect(publicPage.json().data.name).toBe("Meu Projeto");
     expect(publicPage.json().data).not.toHaveProperty("editReview");
     sign(adminId, "admin");
@@ -400,7 +569,10 @@ describe("community announcements, makers and reviewed edits", () => {
     });
     expect(approval.statusCode).toBe(200);
     sign(null);
-    const updated = await server.inject({ method: "GET", url: `/v1/projects/${slug}` });
+    const updated = await server.inject({
+      method: "GET",
+      url: `/v1/projects/${slug}`,
+    });
     expect(updated.json().data.name).toBe("Nova versão aprovada");
     expect(updated.json().data.status).toBe("published");
   });
@@ -478,19 +650,27 @@ describe("community announcements, makers and reviewed edits", () => {
         await server.inject({
           method: "POST",
           url: `/v1/admin/community-review/revisions/${revision!.id}`,
-          payload: { approve: false, reason: "Explica melhor a mudança de propósito." },
+          payload: {
+            approve: false,
+            reason: "Explica melhor a mudança de propósito.",
+          },
         })
       ).statusCode,
     ).toBe(200);
     sign(ownerId);
-    const own = await server.inject({ method: "GET", url: `/v1/projects/${slug}` });
+    const own = await server.inject({
+      method: "GET",
+      url: `/v1/projects/${slug}`,
+    });
     expect(own.json().data.editReview).toMatchObject({
       status: "rejected",
       body: { name: "Proposta rejeitada" },
     });
     sign(null);
     expect(
-      (await server.inject({ method: "GET", url: `/v1/projects/${slug}` })).json().data,
+      (
+        await server.inject({ method: "GET", url: `/v1/projects/${slug}` })
+      ).json().data,
     ).not.toHaveProperty("editReview");
   });
   it("keeps harmless empty optional-field corrections immediate", async () => {
@@ -498,7 +678,11 @@ describe("community announcements, makers and reviewed edits", () => {
     const patch = await server.inject({
       method: "PATCH",
       url: `/v1/projects/${projectId}`,
-      payload: { description: "<p><br></p>", teamDescription: "", helpDescription: "" },
+      payload: {
+        description: "<p><br></p>",
+        teamDescription: "",
+        helpDescription: "",
+      },
     });
     expect(patch.statusCode).toBe(200);
     expect(patch.json().data.pendingReview).toBeUndefined();
@@ -523,13 +707,19 @@ describe("community announcements, makers and reviewed edits", () => {
         })
       ).statusCode,
     ).toBe(409);
-    await db.update(projects).set({ status: "draft" }).where(eq(projects.id, projectId));
+    await db
+      .update(projects)
+      .set({ status: "draft" })
+      .where(eq(projects.id, projectId));
     expect(
       (
         await server.inject({
           method: "POST",
           url: `/v1/admin/community-review/announcements/${queued.json().data.id}`,
-          payload: { approve: false, reason: "O projeto não está disponível para lançamento." },
+          payload: {
+            approve: false,
+            reason: "O projeto não está disponível para lançamento.",
+          },
         })
       ).statusCode,
     ).toBe(200);
@@ -542,14 +732,20 @@ describe("community announcements, makers and reviewed edits", () => {
       payload: { name: "Proposta retirada" },
     });
     const revision = await db.query.projectRevisions.findFirst();
-    await db.update(projects).set({ status: "draft" }).where(eq(projects.id, projectId));
+    await db
+      .update(projects)
+      .set({ status: "draft" })
+      .where(eq(projects.id, projectId));
     sign(adminId, "admin");
     expect(
       (
         await server.inject({
           method: "POST",
           url: `/v1/admin/community-review/revisions/${revision!.id}`,
-          payload: { approve: false, reason: "A página foi retirada enquanto aguardava revisão." },
+          payload: {
+            approve: false,
+            reason: "A página foi retirada enquanto aguardava revisão.",
+          },
         })
       ).statusCode,
     ).toBe(200);
@@ -563,7 +759,8 @@ describe("community announcements, makers and reviewed edits", () => {
       .where(eq(projects.id, projectId));
     sign(otherId);
     expect(
-      (await server.inject({ method: "GET", url: "/v1/announcements" })).json().data,
+      (await server.inject({ method: "GET", url: "/v1/announcements" })).json()
+        .data,
     ).toHaveLength(0);
     expect(
       (

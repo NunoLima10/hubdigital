@@ -11,10 +11,7 @@ export const handleSchema = z
   .toLowerCase()
   .min(3, "O nome de utilizador precisa de pelo menos 3 caracteres.")
   .max(30, "O nome de utilizador é demasiado longo.")
-  .regex(
-    /^[a-z0-9]+(?:-[a-z0-9]+)*$/,
-    "Usa apenas letras, números e traços."
-  );
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Usa apenas letras, números e traços.");
 
 const optionalUrl = z
   .string()
@@ -48,6 +45,10 @@ export const makerProfileSchema = z.object({
   projectCount: z.number(),
   joinedAt: z.string(),
   projects: z.array(projectMinimalSchema),
+  ownedProjects: z.array(projectMinimalSchema),
+  collaborations: z.array(
+    projectMinimalSchema.extend({ contributionRole: z.string().nullable() }),
+  ),
 });
 
 export type MakerProfile = z.infer<typeof makerProfileSchema>;

@@ -6,12 +6,17 @@ import {
 } from "@/modules/project-detail/components/project-detail-view/project-detail-skeleton";
 import { Page } from "@/layouts/page";
 import { Comments } from "@/modules/comments";
+import { ProjectMakers } from "@/modules/community/project-makers";
+import { ProjectRequests } from "@/modules/community/project-requests";
 import { commentsQueryOptions } from "@/modules/comments/hooks/use-comments";
 import {
   ProjectDetailSidebar,
   ProjectDetailView,
 } from "@/modules/project-detail/components/project-detail-view/project-detail-view";
-import { projectQueryOptions, useProject } from "@/modules/project-detail/hooks/use-project";
+import {
+  projectQueryOptions,
+  useProject,
+} from "@/modules/project-detail/hooks/use-project";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { projectHead } from "@/modules/project-detail/seo";
 import { ArrowLeft } from "lucide-react";
@@ -24,11 +29,16 @@ export const Route = createFileRoute("/projects/$slug")({
   loader: async ({ context, params }) => {
     let project;
     try {
-      project = await context.queryClient.query(projectQueryOptions(params.slug));
+      project = await context.queryClient.query(
+        projectQueryOptions(params.slug),
+      );
     } catch (error) {
-      if (isAxiosError(error) && error.response?.status === 404) throw notFound();
+      if (isAxiosError(error) && error.response?.status === 404)
+        throw notFound();
     }
-    await context.queryClient.query(commentsQueryOptions(params.slug)).catch(noop);
+    await context.queryClient
+      .query(commentsQueryOptions(params.slug))
+      .catch(noop);
     return project;
   },
   head: ({ loaderData, params }) => projectHead(loaderData, params.slug),
@@ -39,7 +49,11 @@ export const Route = createFileRoute("/projects/$slug")({
 function ProjectPendingPage() {
   const { slug } = Route.useParams();
   return (
-    <Page viewTransition header={<Header />} rightSection={<ProjectDetailSidebarSkeleton />}>
+    <Page
+      viewTransition
+      header={<Header />}
+      rightSection={<ProjectDetailSidebarSkeleton />}
+    >
       <div className="space-y-7">
         <Link
           to="/"
@@ -86,12 +100,18 @@ function ProjectPage() {
         {isError && (
           <div className="flex flex-col items-start gap-3 rounded-lg border p-5">
             <div>
-              <h1 className="font-semibold">Não foi possível carregar o projeto</h1>
+              <h1 className="font-semibold">
+                Não foi possível carregar o projeto
+              </h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 Verifica a ligação e tenta novamente.
               </p>
             </div>
-            <Button type="button" variant="outline" onClick={() => void refetch()}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void refetch()}
+            >
               Tentar novamente
             </Button>
           </div>
@@ -100,12 +120,15 @@ function ProjectPage() {
           <>
             <ProjectDetailView project={data} />
             <div className="border-t pt-6 lg:hidden">
-              <ProjectDetailSidebar project={data} showDestinationActions={false} />
+              <ProjectDetailSidebar
+                project={data}
+                showDestinationActions={false}
+              />
             </div>
+            <ProjectMakers projectId={data.id} author={data.author} />
             <Comments slug={slug} />
-            <RelatedProjects
-              projectId={data.id}
-            />
+            <ProjectRequests project={data} />
+            <RelatedProjects projectId={data.id} />
           </>
         )}
       </div>

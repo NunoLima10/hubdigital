@@ -8,9 +8,30 @@ import {
   publishers,
   users,
 } from "@/db/schemas";
-import { and, desc, eq, exists, gte, isNull, lt, sql } from "drizzle-orm";
-import { BadRequestError, ConflictError, NotFoundError } from "@/utils/custom-errors";
-import { currentWeek, toWeekId, weekFromId, type LaunchRange } from "@/utils/week";
+import {
+  and,
+  desc,
+  eq,
+  exists,
+  gte,
+  ilike,
+  isNull,
+  lt,
+  ne,
+  or,
+  sql,
+} from "drizzle-orm";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "@/utils/custom-errors";
+import {
+  currentWeek,
+  toWeekId,
+  weekFromId,
+  type LaunchRange,
+} from "@/utils/week";
 import { publicProjectConditions } from "@/utils/project-visibility";
 import { toPublicUrl } from "@/utils/public-url";
 import { SettingsService } from "@/modules/settings/settings-services";
@@ -31,10 +52,16 @@ function publishedDuring(week: Pick<LaunchRange, "start" | "end">) {
 function withWeek<T extends { publishedAt: string | null }>(announcement: T) {
   return {
     ...announcement,
-    week: announcement.publishedAt ? toWeekId(new Date(announcement.publishedAt)) : null,
+    week: announcement.publishedAt
+      ? toWeekId(new Date(announcement.publishedAt))
+      : null,
   };
 }
-export async function ownerProject(db: DB, projectId: number, publisherId: number) {
+export async function ownerProject(
+  db: DB,
+  projectId: number,
+  publisherId: number,
+) {
   const project = await db.query.projects.findFirst({
     where: and(
       eq(projects.id, projectId),
@@ -49,21 +76,33 @@ export async function createAnnouncement(
   db: DB,
   publisher: typeof publishers.$inferSelect,
   projectId: number,
-  input: { kind: Announcement["kind"]; introduction: string; creationKey: string },
+  input: {
+    kind: Announcement["kind"];
+    introduction: string;
+    creationKey: string;
+  },
 ) {
   const project = await ownerProject(db, projectId, publisher.id);
   const owner = await db.query.users.findFirst({
     where: eq(users.id, publisher.userId),
     columns: { shadowBannedAt: true },
   });
-  if (project.status !== "published" || project.shadowBannedAt || owner?.shadowBannedAt)
-    throw new BadRequestError("Publica o projeto antes de o apresentar à comunidade.");
+  if (
+    project.status !== "published" ||
+    project.shadowBannedAt ||
+    owner?.shadowBannedAt
+  )
+    throw new BadRequestError(
+      "Publica o projeto antes de o apresentar à comunidade.",
+    );
   const settings = await SettingsService.getSettings(db);
   if (!settings["submissions.open"])
     throw new BadRequestError("As publicações estão temporariamente fechadas.");
   return db.transaction(async (trx) => {
     const tx = trx as unknown as DB;
-    await tx.execute(sql`select id from projects where id=${projectId} for update`);
+    await tx.execute(
+      sql`select id from projects where id=${projectId} for update`,
+    );
     const current = await tx.query.projects.findFirst({
       where: and(
         eq(projects.id, projectId),
@@ -81,7 +120,9 @@ export async function createAnnouncement(
     if (existing) return withWeek(existing);
     if (
       input.kind === "first_release" &&
-      !["available", "public_beta", "invite_only"].includes(current.availability ?? "")
+      !["available", "public_beta", "invite_only"].includes(
+        current.availability ?? "",
+      )
     )
       throw new BadRequestError(
         "A primeira versão precisa de estar disponível para experimentar. Para uma lista de espera, escolhe Apresentação.",
@@ -92,7 +133,8 @@ export async function createAnnouncement(
         eq(projectAnnouncements.status, "pending"),
       ),
     });
-    if (pending) throw new ConflictError("Este projeto já tem um anúncio em revisão.");
+    if (pending)
+      throw new ConflictError("Este projeto já tem um anúncio em revisão.");
     const review =
       settings["moderation.review_required"] &&
       !(settings["moderation.auto_approve_trusted"] && publisher.trustedAt);
@@ -117,9 +159,15 @@ export async function createAnnouncement(
       })
       .onConflictDoNothing()
       .returning();
-    if (!created) throw new ConflictError("Este projeto já tem um anúncio de primeira versão.");
+    if (!created)
+      throw new ConflictError(
+        "Este projeto já tem um anúncio de primeira versão.",
+      );
     if (!review)
-      await tx.update(projects).set({ launchedAt: now }).where(eq(projects.id, projectId));
+      await tx
+        .update(projects)
+        .set({ launchedAt: now })
+        .where(eq(projects.id, projectId));
     return withWeek(created);
   });
 }
@@ -150,7 +198,11 @@ export async function listAnnouncements(
       announcement: projectAnnouncements,
       votes: voteCount,
       hasVoted,
-      project: { name: projects.name, slug: projects.slug, logoKey: projects.logoKey },
+      project: {
+        name: projects.name,
+        slug: projects.slug,
+        logoKey: projects.logoKey,
+      },
     })
     .from(projectAnnouncements)
     .innerJoin(projects, eq(projects.id, projectAnnouncements.projectId))
@@ -160,10 +212,17 @@ export async function listAnnouncements(
         weekRange ? publishedDuring(weekRange) : undefined,
         ownerId
           ? and(eq(projects.publisherId, ownerId), isNull(projects.deletedAt))
-          : and(publicProjectConditions, eq(projectAnnouncements.status, "published")),
+          : and(
+              publicProjectConditions,
+              eq(projectAnnouncements.status, "published"),
+            ),
       ),
     )
-    .orderBy(desc(voteCount), desc(projectAnnouncements.publishedAt), desc(projectAnnouncements.id))
+    .orderBy(
+      desc(voteCount),
+      desc(projectAnnouncements.publishedAt),
+      desc(projectAnnouncements.id),
+    )
     .limit(limit)
     .offset(offset);
   return rows.map(({ announcement, project, votes, hasVoted }) => {
@@ -179,10 +238,16 @@ export async function listAnnouncements(
   });
 }
 
-export async function toggleAnnouncementVote(db: DB, id: number, userId: string) {
+export async function toggleAnnouncementVote(
+  db: DB,
+  id: number,
+  userId: string,
+) {
   return db.transaction(async (trx) => {
     const tx = trx as unknown as DB;
-    await tx.execute(sql`select id from project_announcements where id=${id} for update`);
+    await tx.execute(
+      sql`select id from project_announcements where id=${id} for update`,
+    );
     const [announcement] = await tx
       .select({ id: projectAnnouncements.id })
       .from(projectAnnouncements)
@@ -197,9 +262,15 @@ export async function toggleAnnouncementVote(db: DB, id: number, userId: string)
     if (!announcement) throw new NotFoundError();
     const deleted = await tx
       .delete(announcementVotes)
-      .where(and(eq(announcementVotes.announcementId, id), eq(announcementVotes.userId, userId)))
+      .where(
+        and(
+          eq(announcementVotes.announcementId, id),
+          eq(announcementVotes.userId, userId),
+        ),
+      )
       .returning();
-    if (!deleted.length) await tx.insert(announcementVotes).values({ announcementId: id, userId });
+    if (!deleted.length)
+      await tx.insert(announcementVotes).values({ announcementId: id, userId });
     return { hasVoted: !deleted.length };
   });
 }
@@ -229,6 +300,7 @@ export async function listMakers(db: DB, projectId: number, viewerId?: string) {
       name: users.name,
       handle: publishers.handle,
       image: users.image,
+      role: projectMakers.role,
     })
     .from(projectMakers)
     .innerJoin(users, eq(users.id, projectMakers.userId))
@@ -237,7 +309,9 @@ export async function listMakers(db: DB, projectId: number, viewerId?: string) {
       and(
         eq(projectMakers.projectId, projectId),
         isNull(users.shadowBannedAt),
-        project.publisher.userId === viewerId ? undefined : eq(projectMakers.status, "accepted"),
+        project.publisher.userId === viewerId
+          ? undefined
+          : eq(projectMakers.status, "accepted"),
       ),
     );
   return rows;
@@ -247,13 +321,15 @@ export async function inviteMaker(
   publisher: typeof publishers.$inferSelect,
   projectId: number,
   handle: string,
+  role?: string,
 ) {
   await ownerProject(db, projectId, publisher.id);
   const target = await db.query.publishers.findFirst({
     where: eq(publishers.handle, handle),
     with: { user: { columns: { banned: true, shadowBannedAt: true } } },
   });
-  if (!target || target.user.banned || target.user.shadowBannedAt) throw new NotFoundError();
+  if (!target || target.user.banned || target.user.shadowBannedAt)
+    throw new NotFoundError();
   const [membership] = await db
     .insert(projectMakers)
     .values({
@@ -261,19 +337,28 @@ export async function inviteMaker(
       userId: target.userId,
       invitedBy: publisher.userId,
       status: target.userId === publisher.userId ? "accepted" : "pending",
+      role: role ?? null,
     })
     .onConflictDoNothing()
     .returning();
   return (
     membership ??
     (await db.query.projectMakers.findFirst({
-      where: and(eq(projectMakers.projectId, projectId), eq(projectMakers.userId, target.userId)),
+      where: and(
+        eq(projectMakers.projectId, projectId),
+        eq(projectMakers.userId, target.userId),
+      ),
     }))
   );
 }
 export async function makerInvitations(db: DB, userId: string) {
   return db
-    .select({ id: projectMakers.id, projectId: projects.id, name: projects.name })
+    .select({
+      id: projectMakers.id,
+      projectId: projects.id,
+      name: projects.name,
+      role: projectMakers.role,
+    })
     .from(projectMakers)
     .innerJoin(projects, eq(projects.id, projectMakers.projectId))
     .where(
@@ -284,7 +369,82 @@ export async function makerInvitations(db: DB, userId: string) {
       ),
     );
 }
-export async function replyToMakerInvitation(db: DB, id: number, userId: string, accept: boolean) {
+export async function searchMakers(
+  db: DB,
+  projectId: number,
+  publisherId: number,
+  query: string,
+) {
+  const project = await ownerProject(db, projectId, publisherId);
+  const pattern = `%${query.replace(/[\\%_]/g, "\\$&")}%`;
+  return db
+    .select({
+      userId: users.id,
+      name: users.name,
+      handle: publishers.handle,
+      image: users.image,
+    })
+    .from(publishers)
+    .innerJoin(users, eq(users.id, publishers.userId))
+    .where(
+      and(
+        ne(publishers.id, project.publisherId),
+        isNull(users.shadowBannedAt),
+        or(eq(users.banned, false), isNull(users.banned)),
+        or(ilike(users.name, pattern), ilike(publishers.handle, pattern)),
+      ),
+    )
+    .orderBy(publishers.handle)
+    .limit(10);
+}
+
+export async function updateMakerRole(
+  db: DB,
+  projectId: number,
+  publisherId: number,
+  membershipId: number,
+  role: string,
+) {
+  await ownerProject(db, projectId, publisherId);
+  const [changed] = await db
+    .update(projectMakers)
+    .set({ role })
+    .where(
+      and(
+        eq(projectMakers.id, membershipId),
+        eq(projectMakers.projectId, projectId),
+      ),
+    )
+    .returning({ id: projectMakers.id });
+  if (!changed) throw new NotFoundError();
+  return changed;
+}
+
+export async function removeMaker(
+  db: DB,
+  projectId: number,
+  publisherId: number,
+  membershipId: number,
+) {
+  await ownerProject(db, projectId, publisherId);
+  const [removed] = await db
+    .delete(projectMakers)
+    .where(
+      and(
+        eq(projectMakers.id, membershipId),
+        eq(projectMakers.projectId, projectId),
+      ),
+    )
+    .returning({ id: projectMakers.id });
+  if (!removed) throw new NotFoundError();
+  return removed;
+}
+export async function replyToMakerInvitation(
+  db: DB,
+  id: number,
+  userId: string,
+  accept: boolean,
+) {
   const where = and(
     eq(projectMakers.id, id),
     eq(projectMakers.userId, userId),
@@ -294,7 +454,12 @@ export async function replyToMakerInvitation(db: DB, id: number, userId: string,
           db
             .select({ id: projects.id })
             .from(projects)
-            .where(and(eq(projects.id, projectMakers.projectId), publicProjectConditions)),
+            .where(
+              and(
+                eq(projects.id, projectMakers.projectId),
+                publicProjectConditions,
+              ),
+            ),
         )
       : undefined,
   );
@@ -304,7 +469,10 @@ export async function replyToMakerInvitation(db: DB, id: number, userId: string,
         .set({ status: "accepted" })
         .where(where)
         .returning({ id: projectMakers.id })
-    : await db.delete(projectMakers).where(where).returning({ id: projectMakers.id });
+    : await db
+        .delete(projectMakers)
+        .where(where)
+        .returning({ id: projectMakers.id });
   if (!changed.length) throw new NotFoundError();
   return { accepted: accept };
 }
@@ -317,21 +485,33 @@ export async function reviewAnnouncement(
 ) {
   return db.transaction(async (trx) => {
     const tx = trx as unknown as DB;
-    await tx.execute(sql`select id from project_announcements where id=${id} for update`);
+    await tx.execute(
+      sql`select id from project_announcements where id=${id} for update`,
+    );
     const row = await tx.query.projectAnnouncements.findFirst({
-      where: and(eq(projectAnnouncements.id, id), eq(projectAnnouncements.status, "pending")),
+      where: and(
+        eq(projectAnnouncements.id, id),
+        eq(projectAnnouncements.status, "pending"),
+      ),
     });
     if (!row) return null;
     const project = await tx.query.projects.findFirst({
-      where: and(eq(projects.id, row.projectId), approve ? publicProjectConditions : undefined),
+      where: and(
+        eq(projects.id, row.projectId),
+        approve ? publicProjectConditions : undefined,
+      ),
     });
     if (!project) throw new ConflictError("O projeto já não está público.");
     if (
       approve &&
       row.kind === "first_release" &&
-      !["available", "public_beta", "invite_only"].includes(project.availability ?? "")
+      !["available", "public_beta", "invite_only"].includes(
+        project.availability ?? "",
+      )
     )
-      throw new ConflictError("O projeto já não está disponível para uma primeira versão.");
+      throw new ConflictError(
+        "O projeto já não está disponível para uma primeira versão.",
+      );
     const now = new Date().toISOString();
     if (
       approve &&
@@ -353,7 +533,10 @@ export async function reviewAnnouncement(
       })
       .where(eq(projectAnnouncements.id, id));
     if (approve)
-      await tx.update(projects).set({ launchedAt: now }).where(eq(projects.id, row.projectId));
+      await tx
+        .update(projects)
+        .set({ launchedAt: now })
+        .where(eq(projects.id, row.projectId));
     return { projectId: row.projectId };
   });
 }
@@ -372,21 +555,33 @@ export async function reviewRevision(
       columns: { projectId: true },
     });
     if (!pointer) return null;
-    await tx.execute(sql`select id from projects where id=${pointer.projectId} for update`);
-    await tx.execute(sql`select id from project_revisions where id=${id} for update`);
+    await tx.execute(
+      sql`select id from projects where id=${pointer.projectId} for update`,
+    );
+    await tx.execute(
+      sql`select id from project_revisions where id=${id} for update`,
+    );
     const revision = await tx.query.projectRevisions.findFirst({
-      where: and(eq(projectRevisions.id, id), eq(projectRevisions.status, "pending")),
+      where: and(
+        eq(projectRevisions.id, id),
+        eq(projectRevisions.status, "pending"),
+      ),
     });
     if (!revision) return null;
     const project = await tx.query.projects.findFirst({
       where: eq(projects.id, revision.projectId),
       with: { publisher: { columns: { userId: true } } },
     });
-    if (!project || (approve && (project.deletedAt || project.status !== "published")))
+    if (
+      !project ||
+      (approve && (project.deletedAt || project.status !== "published"))
+    )
       throw new ConflictError("O projeto já não está público.");
     if (approve) {
       if (project.rowVersion !== revision.baseVersion)
-        throw new ConflictError("O projeto mudou. Pede ao autor para reenviar as alterações.");
+        throw new ConflictError(
+          "O projeto mudou. Pede ao autor para reenviar as alterações.",
+        );
       await ProjectsService.updateProject(
         tx,
         project.id,

@@ -1,4 +1,4 @@
-import { ProjectMakers, Announcements } from "@/modules/community/project-community";
+import { Announcements } from "@/modules/community/project-community";
 import { ProjectProfile } from "@/components/project-profile";
 import { ProjectDestinationActions } from "@/components/project-destination-actions";
 import { ProjectGallery } from "@/components/project-gallery/project-gallery";
@@ -31,9 +31,19 @@ import {
 } from "@/modules/submit/options";
 import type { Project } from "@/modules/submit/types/project";
 import { ProjectGeography } from "@/components/project-geography";
-import { FavoriteHeart, type FavoriteHeartHandle } from "@/components/favorite-heart/favorite-heart";
+import {
+  FavoriteHeart,
+  type FavoriteHeartHandle,
+} from "@/components/favorite-heart/favorite-heart";
 import { cn } from "@/lib/utils";
-import { ArrowDown, ArrowUp, Check, CircleCheck, Minus, Share2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  CircleCheck,
+  Minus,
+  Share2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ProjectAuthorRow } from "../project-author/project-author";
@@ -71,7 +81,12 @@ function activityLabel(project: Project) {
 
 function WeeklyRank({ rank }: { rank: NonNullable<Project["weeklyRank"]> }) {
   const movement = rank.movement;
-  const MovementIcon = movement === null || movement === 0 ? Minus : movement > 0 ? ArrowUp : ArrowDown;
+  const MovementIcon =
+    movement === null || movement === 0
+      ? Minus
+      : movement > 0
+        ? ArrowUp
+        : ArrowDown;
   const movementLabel =
     movement === null
       ? "Novo no ranking"
@@ -83,7 +98,10 @@ function WeeklyRank({ rank }: { rank: NonNullable<Project["weeklyRank"]> }) {
 
   return (
     <section aria-labelledby="weekly-rank-title" className="border-y py-4">
-      <p id="weekly-rank-title" className="text-sm font-medium text-muted-foreground">
+      <p
+        id="weekly-rank-title"
+        className="text-sm font-medium text-muted-foreground"
+      >
         Ranking desta semana
       </p>
       <div className="mt-1 flex items-end justify-between gap-4">
@@ -150,7 +168,9 @@ export function ProjectDetailView({ project }: { project: Project }) {
           <CircleCheck className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
           <div>
             <p className="font-semibold">Projeto publicado com sucesso!</p>
-            <p className="text-sm opacity-80">Esta é a tua página pública. Já podes partilhá-la.</p>
+            <p className="text-sm opacity-80">
+              Esta é a tua página pública. Já podes partilhá-la.
+            </p>
           </div>
         </div>
       )}
@@ -189,7 +209,6 @@ export function ProjectDetailView({ project }: { project: Project }) {
           onVisit={(link) => trackDestinationClick(link.id)}
         />
       </div>
-      <ProjectMakers projectId={project.id} />
       <ProjectGallery
         imageUrls={project.galleryImageUrls}
         youtubeVideoId={project.youtubeVideoId}
@@ -229,7 +248,8 @@ export function ProjectDetailSidebar({
   const { data: session } = authClient.useSession();
   const { data: favorites } = useFavorites(Boolean(session));
   const { toggleFavorite, pendingProjectId } = useToggleFavorite();
-  const favorited = favorites?.data.some((item) => item.id === project.id) ?? false;
+  const favorited =
+    favorites?.data.some((item) => item.id === project.id) ?? false;
   const heart = useRef<FavoriteHeartHandle>(null);
   return (
     <div className="space-y-6">
@@ -258,18 +278,70 @@ export function ProjectDetailSidebar({
             </time>
           </MetadataRow>
         )}
-        <MetadataRow label="Categorias"><div className="space-y-1">{project.category && <p>{project.category.name} <span className="text-xs text-muted-foreground">(principal)</span></p>}{project.secondaryCategories.map((category) => <p key={category.id}>{category.name}</p>)}</div></MetadataRow>
+        <MetadataRow label="Categorias">
+          <div className="space-y-1">
+            {project.category && (
+              <p>
+                {project.category.name}{" "}
+                <span className="text-xs text-muted-foreground">
+                  (principal)
+                </span>
+              </p>
+            )}
+            {project.secondaryCategories.map((category) => (
+              <p key={category.id}>{category.name}</p>
+            ))}
+          </div>
+        </MetadataRow>
         <ProjectGeography project={project} />
         <ProjectProfile project={project} />
-        {project.availability && <MetadataRow label="Disponibilidade">{availabilityLabels[project.availability]}</MetadataRow>}
-        {project.projectStage && <MetadataRow label="Fase">{projectStageLabels[project.projectStage]}</MetadataRow>}
-        {project.pricing && <MetadataRow label="Monetização">{pricingLabels[project.pricing]}</MetadataRow>}
-        {project.audiences.length > 0 && <MetadataRow label="Para quem">{project.audiences.map((audience) => audienceLabels[audience]).join(", ")}</MetadataRow>}
-        {project.businessModel && <MetadataRow label="Modelo de negócio">{businessModelLabels[project.businessModel]}</MetadataRow>}
-        {project.sourceModel && <MetadataRow label="Código-fonte">{sourceModelLabels[project.sourceModel]}</MetadataRow>}
-        {project.aiInvolvement && <MetadataRow label="Uso de IA">{aiInvolvementLabels[project.aiInvolvement]}</MetadataRow>}
-        {project.licenseId && <MetadataRow label="Licença">{project.licenseId}</MetadataRow>}
-        {project.platform.length > 0 && <MetadataRow label="Plataformas">{project.platform.map((platform) => platformLabels[platform]).join(", ")}</MetadataRow>}
+        {project.availability && (
+          <MetadataRow label="Disponibilidade">
+            {availabilityLabels[project.availability]}
+          </MetadataRow>
+        )}
+        {project.projectStage && (
+          <MetadataRow label="Fase">
+            {projectStageLabels[project.projectStage]}
+          </MetadataRow>
+        )}
+        {project.pricing && (
+          <MetadataRow label="Monetização">
+            {pricingLabels[project.pricing]}
+          </MetadataRow>
+        )}
+        {project.audiences.length > 0 && (
+          <MetadataRow label="Para quem">
+            {project.audiences
+              .map((audience) => audienceLabels[audience])
+              .join(", ")}
+          </MetadataRow>
+        )}
+        {project.businessModel && (
+          <MetadataRow label="Modelo de negócio">
+            {businessModelLabels[project.businessModel]}
+          </MetadataRow>
+        )}
+        {project.sourceModel && (
+          <MetadataRow label="Código-fonte">
+            {sourceModelLabels[project.sourceModel]}
+          </MetadataRow>
+        )}
+        {project.aiInvolvement && (
+          <MetadataRow label="Uso de IA">
+            {aiInvolvementLabels[project.aiInvolvement]}
+          </MetadataRow>
+        )}
+        {project.licenseId && (
+          <MetadataRow label="Licença">{project.licenseId}</MetadataRow>
+        )}
+        {project.platform.length > 0 && (
+          <MetadataRow label="Plataformas">
+            {project.platform
+              .map((platform) => platformLabels[platform])
+              .join(", ")}
+          </MetadataRow>
+        )}
         <MetadataRow label="Atividade">
           <span className="block">{activityLabel(project)}</span>
           <time
@@ -334,7 +406,8 @@ function ShareLinkButton({ title }: { title: string }) {
     }
   }
 
-  const iconClass = "absolute inset-0 size-4 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.3,1.4,0.5,1)] motion-reduce:transition-none";
+  const iconClass =
+    "absolute inset-0 size-4 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.3,1.4,0.5,1)] motion-reduce:transition-none";
   return (
     <button
       type="button"
@@ -342,8 +415,16 @@ function ShareLinkButton({ title }: { title: string }) {
       className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md border text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
     >
       <span aria-hidden="true" className="relative size-4">
-        <Share2 className={cn(iconClass, copied && "scale-50 -rotate-45 opacity-0")} />
-        <Check className={cn(iconClass, "text-primary", !copied && "scale-50 rotate-45 opacity-0")} />
+        <Share2
+          className={cn(iconClass, copied && "scale-50 -rotate-45 opacity-0")}
+        />
+        <Check
+          className={cn(
+            iconClass,
+            "text-primary",
+            !copied && "scale-50 rotate-45 opacity-0",
+          )}
+        />
       </span>
       <span aria-live="polite">{copied ? "Link copiado" : "Partilhar"}</span>
     </button>

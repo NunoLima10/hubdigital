@@ -1,10 +1,19 @@
 import { z } from "zod";
-export const announcementKindValues = ["presentation", "first_release", "major_update"] as const;
+export const announcementKindValues = [
+  "presentation",
+  "first_release",
+  "major_update",
+] as const;
 export type AnnouncementKind = (typeof announcementKindValues)[number];
-export const announcementStatusValues = ["pending", "published", "rejected"] as const;
+export const announcementStatusValues = [
+  "pending",
+  "published",
+  "rejected",
+] as const;
 export type AnnouncementStatus = (typeof announcementStatusValues)[number];
 export const makerMembershipStatusValues = ["pending", "accepted"] as const;
-export type MakerMembershipStatus = (typeof makerMembershipStatusValues)[number];
+export type MakerMembershipStatus =
+  (typeof makerMembershipStatusValues)[number];
 export const announcementKindLabels = {
   presentation: "Apresentação",
   first_release: "Primeira versão",
@@ -26,7 +35,11 @@ export const announcementSchema = z.object({
   rejectionReason: z.string().nullable().optional(),
   votes: z.number(),
   hasVoted: z.boolean(),
-  project: z.object({ name: z.string(), slug: z.string(), logoUrl: z.string().nullable() }),
+  project: z.object({
+    name: z.string(),
+    slug: z.string(),
+    logoUrl: z.string().nullable(),
+  }),
 });
 export type Announcement = z.infer<typeof announcementSchema>;
 export const makerMembershipSchema = z.object({
@@ -37,5 +50,7 @@ export const makerMembershipSchema = z.object({
   name: z.string(),
   handle: z.string().nullable(),
   image: z.string().nullable(),
+  role: z.string().nullable(),
 });
+export const makerContributionRoleSchema = z.string().trim().min(2).max(80);
 export type MakerMembership = z.infer<typeof makerMembershipSchema>;

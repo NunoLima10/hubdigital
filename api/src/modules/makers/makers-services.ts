@@ -1,12 +1,18 @@
-import { serializeProjectCategories, secondaryCategoriesWith } from "@/utils/project-categories";
+import {
+  serializeProjectCategories,
+  secondaryCategoriesWith,
+} from "@/utils/project-categories";
 import { DB } from "@/db";
-import { projects, publishers, users } from "@/db/schemas";
+import { projects, publishers, users, projectMakers } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
 import { getPostgresError } from "@/utils/postgres-error";
 import { serializeProjectLinks } from "@/utils/project-links";
 import { withLocation } from "@/utils/location";
-import { projectEngagementExtras, publicProjectConditions } from "@/utils/project-visibility";
+import {
+  projectEngagementExtras,
+  publicProjectConditions,
+} from "@/utils/project-visibility";
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
 import { MakerProfileUpdate } from "@hubdigital/shared";
@@ -49,7 +55,8 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
     },
   });
 
-  if (!publisher || !publisher.user || publisher.user.shadowBannedAt) return null;
+  if (!publisher || !publisher.user || publisher.user.shadowBannedAt)
+    return null;
   const creditedProjects = await db.query.projects.findMany({
     where: and(
       publicProjectConditions,
@@ -77,6 +84,14 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
       logoUrl: toPublicUrl(logoKey),
     };
   });
+  const memberships = await db.query.projectMakers.findMany({
+    where: and(
+      eq(projectMakers.userId, publisher.userId),
+      eq(projectMakers.status, "accepted"),
+    ),
+    columns: { projectId: true, role: true },
+  });
+  const roles = new Map(memberships.map((item) => [item.projectId, item.role]));
 
   return {
     id: publisher.id,
@@ -88,10 +103,22 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
     githubUrl: publisher.githubUrl,
     linkedinUrl: publisher.linkedinUrl,
     instagramUrl: publisher.instagramUrl,
-    totalUpvotes: publishedProjects.reduce((total, project) => total + project.upvoteCount, 0),
+    totalUpvotes: publishedProjects.reduce(
+      (total, project) => total + project.upvoteCount,
+      0,
+    ),
     projectCount: publishedProjects.length,
     joinedAt: publisher.createdAt,
     projects: publishedProjects,
+    ownedProjects: publishedProjects.filter(
+      (project) => project.publisherId === publisher.id,
+    ),
+    collaborations: publishedProjects
+      .filter((project) => project.publisherId !== publisher.id)
+      .map((project) => ({
+        ...project,
+        contributionRole: roles.get(project.id) ?? null,
+      })),
   };
 }
 
@@ -105,7 +132,11 @@ async function getProfileByUserId(db: DB, userId: string) {
 }
 
 /** Returns "taken" so the controller can answer 409 instead of a blank 500. */
-async function updateProfile(db: DB, userId: string, input: MakerProfileUpdate) {
+async function updateProfile(
+  db: DB,
+  userId: string,
+  input: MakerProfileUpdate,
+) {
   const values = {
     ...input,
     // An empty string from a cleared form field means "remove this link".
@@ -156,10 +187,15 @@ async function getPreferences(db: DB, userId: string) {
   });
 }
 
-async function updatePreferences(db: DB, userId: string, input: MakerPreferences) {
+async function updatePreferences(
+  db: DB,
+  userId: string,
+  input: MakerPreferences,
+) {
   const preferences = {
     ...input,
-    diasporaCountry: input.locationResponse === "diaspora" ? input.diasporaCountry : null,
+    diasporaCountry:
+      input.locationResponse === "diaspora" ? input.diasporaCountry : null,
   };
   const [updated] = await db
     .update(publishers)
@@ -177,11 +213,23 @@ async function updatePreferences(db: DB, userId: string, input: MakerPreferences
 }
 
 export const MakersService = {
-  getProfileByHandle: errorLogger(getProfileByHandle, "makersService.getProfileByHandle"),
-  getProfileByUserId: errorLogger(getProfileByUserId, "makersService.getProfileByUserId"),
+  getProfileByHandle: errorLogger(
+    getProfileByHandle,
+    "makersService.getProfileByHandle",
+  ),
+  getProfileByUserId: errorLogger(
+    getProfileByUserId,
+    "makersService.getProfileByUserId",
+  ),
   updateProfile: errorLogger(updateProfile, "makersService.updateProfile"),
   findUserName: errorLogger(findUserName, "makersService.findUserName"),
   getPreferences: errorLogger(getPreferences, "makersService.getPreferences"),
-  updatePreferences: errorLogger(updatePreferences, "makersService.updatePreferences"),
-  generateUniqueHandle: errorLogger(generateUniqueHandle, "makersService.generateUniqueHandle"),
+  updatePreferences: errorLogger(
+    updatePreferences,
+    "makersService.updatePreferences",
+  ),
+  generateUniqueHandle: errorLogger(
+    generateUniqueHandle,
+    "makersService.generateUniqueHandle",
+  ),
 };

@@ -3,11 +3,12 @@ import { Header } from "@/components/header/header";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { Page } from "@/layouts/page";
 import { ProjectCard } from "@/modules/project-list/components/project-card/project-card";
+import { makerQueryOptions, useMaker } from "@/modules/makers/hooks/use-maker";
 import {
-  makerQueryOptions,
-  useMaker,
-} from "@/modules/makers/hooks/use-maker";
-import { pricingLabels, availabilityLabels, projectStageLabels } from "@/modules/submit/options";
+  pricingLabels,
+  availabilityLabels,
+  projectStageLabels,
+} from "@/modules/submit/options";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { makerHead } from "@/modules/makers/seo";
 import { Github, Globe, Instagram, Linkedin, UserRound } from "lucide-react";
@@ -132,35 +133,61 @@ function MakerPage() {
               </div>
             </div>
           </header>
-          <section className="border-t pt-6">
-            <h2 className="mb-3 text-lg font-semibold">Projetos</h2>
-            {data.projects.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Ainda não publicou nenhum projeto.
-              </p>
-            ) : (
-              data.projects.map((project) => (
-                <ProjectCard
-                  key={project.id}
-                  id={project.id}
-                  slug={project.slug}
-                  title={project.name}
-                  description={project.shortDescription}
-                  iconUrl={project.logoUrl ?? undefined}
-                  topis={
-                    [
-                      project.category?.name,
-                      (project.pricing ? pricingLabels[project.pricing] : undefined),
-                      (project.availability === "not_available" && project.projectStage ? projectStageLabels[project.projectStage] : project.availability ? availabilityLabels[project.availability] : undefined),
-                    ].filter(Boolean) as string[]
-                  }
-                  upCount={project.upvoteCount}
-                  hasUpvoted={project.hasUpvoted}
-                  commentCount={project.commentCount}
-                />
-              ))
-            )}
-          </section>
+          {[
+            {
+              title: "Projetos próprios",
+              projects: data.ownedProjects ?? [],
+              empty: "Ainda não publicou nenhum projeto.",
+            },
+            {
+              title: "Colaborações",
+              projects: data.collaborations ?? [],
+              empty: "Ainda não tem colaborações públicas.",
+            },
+          ].map((section) => (
+            <section key={section.title} className="border-t pt-6">
+              <h2 className="mb-3 text-lg font-semibold">{section.title}</h2>
+              {section.projects.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{section.empty}</p>
+              ) : (
+                section.projects.map((project) => (
+                  <div key={project.id}>
+                    {"contributionRole" in project &&
+                      Boolean(project.contributionRole) && (
+                        <p className="px-3 pt-2 text-xs text-muted-foreground">
+                          Contribuição: {String(project.contributionRole)}
+                        </p>
+                      )}
+                    <ProjectCard
+                      key={project.id}
+                      id={project.id}
+                      slug={project.slug}
+                      title={project.name}
+                      description={project.shortDescription}
+                      iconUrl={project.logoUrl ?? undefined}
+                      topis={
+                        [
+                          project.category?.name,
+                          project.pricing
+                            ? pricingLabels[project.pricing]
+                            : undefined,
+                          project.availability === "not_available" &&
+                          project.projectStage
+                            ? projectStageLabels[project.projectStage]
+                            : project.availability
+                              ? availabilityLabels[project.availability]
+                              : undefined,
+                        ].filter(Boolean) as string[]
+                      }
+                      upCount={project.upvoteCount}
+                      hasUpvoted={project.hasUpvoted}
+                      commentCount={project.commentCount}
+                    />
+                  </div>
+                ))
+              )}
+            </section>
+          ))}
         </div>
       )}
     </Page>

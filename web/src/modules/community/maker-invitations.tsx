@@ -11,9 +11,14 @@ export function MakerInvitations() {
     enabled: Boolean(session),
     queryFn: async () =>
       (
-        await API.get<{ data: { id: number; projectId: number; name: string }[] }>(
-          "/maker-invitations",
-        )
+        await API.get<{
+          data: {
+            id: number;
+            projectId: number;
+            name: string;
+            role: string | null;
+          }[];
+        }>("/maker-invitations")
       ).data.data,
   });
   const reply = useMutation({
@@ -28,13 +33,22 @@ export function MakerInvitations() {
   if (!data.length) return null;
   return (
     <section className="mb-6 space-y-3">
-      <h2 className="text-sm font-semibold">Convites para participar como criador</h2>
+      <h2 className="text-sm font-semibold">
+        Convites para participar como criador
+      </h2>
       {data.map((invitation) => (
         <div
           key={invitation.id}
           className="flex flex-wrap items-center gap-3 rounded-md border p-3 text-sm"
         >
-          <span className="flex-1">{invitation.name}</span>
+          <span className="flex-1">
+            {invitation.name}
+            {invitation.role && (
+              <span className="block text-xs text-muted-foreground">
+                Contribuição: {invitation.role}
+              </span>
+            )}
+          </span>
           <Button
             disabled={reply.isPending}
             onClick={() => reply.mutate({ id: invitation.id, accept: true })}
@@ -51,7 +65,9 @@ export function MakerInvitations() {
         </div>
       ))}
       {reply.isError && (
-        <p className="text-sm text-destructive">Não foi possível responder. Tenta novamente.</p>
+        <p className="text-sm text-destructive">
+          Não foi possível responder. Tenta novamente.
+        </p>
       )}
     </section>
   );

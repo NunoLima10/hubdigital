@@ -1,13 +1,13 @@
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { API } from "@/api/api";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import {
-  announcementKindLabels,
-  type Announcement,
-  type MakerMembership,
-} from "@hubdigital/shared";
+import { announcementKindLabels, type Announcement } from "@hubdigital/shared";
 import { queryKeys } from "@/lib/query-keys";
 export function Announcements({
   projectId,
@@ -31,7 +31,13 @@ export function Announcements({
     isFetchingNextPage,
     refetch,
   } = useInfiniteQuery({
-    queryKey: [...queryKeys.announcements, "feed", projectId, limit, session?.user.id ?? null],
+    queryKey: [
+      ...queryKeys.announcements,
+      "feed",
+      projectId,
+      limit,
+      session?.user.id ?? null,
+    ],
     initialPageParam: 0,
     queryFn: async ({ pageParam, signal }) =>
       (
@@ -41,16 +47,22 @@ export function Announcements({
         })
       ).data.data,
     getNextPageParam: (last, all) =>
-      last.length === limit ? all.reduce((total, page) => total + page.length, 0) : undefined,
+      last.length === limit
+        ? all.reduce((total, page) => total + page.length, 0)
+        : undefined,
   });
   const data = [
     ...new Map(
-      (pages?.pages.flat() ?? []).map((announcement) => [announcement.id, announcement]),
+      (pages?.pages.flat() ?? []).map((announcement) => [
+        announcement.id,
+        announcement,
+      ]),
     ).values(),
   ];
   const vote = useMutation({
     mutationFn: async (id: number) => API.post(`/announcements/${id}/vote`),
-    onSuccess: () => cache.invalidateQueries({ queryKey: queryKeys.announcements }),
+    onSuccess: () =>
+      cache.invalidateQueries({ queryKey: queryKeys.announcements }),
   });
   // Optional homepage announcements should not reserve space, flash an empty
   // state, or compete with project discovery unless there is content to show.
@@ -63,13 +75,18 @@ export function Announcements({
       </h2>
       {!projectId && (
         <p className="text-xs text-muted-foreground">
-          Anúncios com votos próprios. A semana começa à segunda-feira em Cabo Verde.
+          Anúncios com votos próprios. A semana começa à segunda-feira em Cabo
+          Verde.
         </p>
       )}
       {isError && (
-        <p className="text-sm text-destructive">Não foi possível carregar os anúncios.</p>
+        <p className="text-sm text-destructive">
+          Não foi possível carregar os anúncios.
+        </p>
       )}
-      {isLoading && <p className="text-sm text-muted-foreground">A carregar anúncios…</p>}
+      {isLoading && (
+        <p className="text-sm text-muted-foreground">A carregar anúncios…</p>
+      )}
       {isError && (
         <Button variant="outline" onClick={() => void refetch()}>
           Tentar novamente
@@ -77,7 +94,8 @@ export function Announcements({
       )}
       {!isLoading && !isError && !data.length && (
         <p className="text-sm text-muted-foreground">
-          Ainda não há anúncios {projectId ? "para este projeto" : "nesta semana"}.
+          Ainda não há anúncios{" "}
+          {projectId ? "para este projeto" : "nesta semana"}.
         </p>
       )}
       <ul className="space-y-3">
@@ -95,13 +113,18 @@ export function Announcements({
                 {announcementKindLabels[announcement.kind]}
               </span>
             </div>
-            <p className="whitespace-pre-wrap text-sm">{announcement.introduction}</p>
+            <p className="whitespace-pre-wrap text-sm">
+              {announcement.introduction}
+            </p>
             <div className="flex items-center justify-between gap-3">
               <span className="text-xs text-muted-foreground">
                 {announcement.publishedAt &&
-                  new Date(announcement.publishedAt).toLocaleDateString("pt-CV", {
-                    timeZone: "Atlantic/Cape_Verde",
-                  })}{" "}
+                  new Date(announcement.publishedAt).toLocaleDateString(
+                    "pt-CV",
+                    {
+                      timeZone: "Atlantic/Cape_Verde",
+                    },
+                  )}{" "}
                 · Cabo Verde
               </span>
               <Button
@@ -138,38 +161,6 @@ export function Announcements({
           Não foi possível registar o apoio. Tenta novamente.
         </p>
       )}
-    </section>
-  );
-}
-export function ProjectMakers({ projectId }: { projectId: number }) {
-  const { data: session } = authClient.useSession();
-  const { data = [] } = useQuery({
-    queryKey: [...queryKeys.projectMakers(projectId), session?.user.id ?? null],
-    queryFn: async () =>
-      (await API.get<{ data: MakerMembership[] }>(`/projects/${projectId}/makers`)).data.data,
-  });
-  const accepted = data.filter((maker) => maker.status === "accepted");
-  if (!accepted.length) return null;
-  return (
-    <section className="space-y-2">
-      <h2 className="text-sm font-semibold">Criadores</h2>
-      <ul className="flex flex-wrap gap-3">
-        {accepted.map((maker) => (
-          <li key={maker.id} className="text-sm">
-            {maker.handle ? (
-              <Link
-                to="/makers/$handle"
-                params={{ handle: maker.handle }}
-                className="text-primary hover:underline"
-              >
-                {maker.name}
-              </Link>
-            ) : (
-              maker.name
-            )}
-          </li>
-        ))}
-      </ul>
     </section>
   );
 }
