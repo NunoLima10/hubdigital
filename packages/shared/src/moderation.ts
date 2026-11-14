@@ -34,6 +34,8 @@ export const moderationActionValues = [
   "report.resolve",
   "category.create",
   "category.update",
+  "user.badge_grant",
+  "user.badge_revoke",
 ] as const;
 
 export type ModerationAction = (typeof moderationActionValues)[number];

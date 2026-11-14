@@ -4,6 +4,7 @@ import { Dialog } from "@/components/ui/dialog";
 import { authClient } from "@/lib/auth-client";
 import { AccountForm } from "@/modules/account/components/account-form/account-form";
 import { PasswordForm } from "@/modules/account/components/password-form/password-form";
+import { BadgePicker } from "@/modules/badges/components/badge-picker";
 import { DashboardPage } from "@/modules/dashboard/components/dashboard-page/dashboard-page";
 import { Profile } from "@/modules/dashboard/components/profile/profile";
 import { ProfileForm } from "@/modules/makers/components/profile-form/profile-form";
@@ -34,6 +35,15 @@ function RouteComponent() {
         <Profile />
       </section>
       <ProfileForm />
+      <section id="badges" aria-labelledby="badges-title" className="scroll-mt-24 space-y-5 border-t pt-6">
+        <div>
+          <h2 id="badges-title" className="font-semibold">Distintivos</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Escolhe o distintivo que aparece junto ao teu nome no perfil e nos comentários.
+          </p>
+        </div>
+        <BadgePicker />
+      </section>
       <section aria-label="Conta" className="border-t pt-6">
         <AccountForm />
       </section>

@@ -31,6 +31,8 @@ export const foundUsByResponseEnum = pgEnum(
 
 export const publishers = pgTable("publishers", {
   id: serial("id").primaryKey(),
+  // Immutable public join order used by the founding-member profile badges.
+  membershipNumber: serial("membership_number").notNull(),
   userId: text("user_id")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
@@ -55,6 +57,7 @@ export const publishers = pgTable("publishers", {
 }, (table) => [
   uniqueIndex('publisher_user_idx').on(table.userId),
   uniqueIndex('publisher_handle_idx').on(table.handle),
+  uniqueIndex('publisher_membership_number_idx').on(table.membershipNumber),
   check("publisher_handle_lowercase", sql`${table.handle} = lower(${table.handle})`),
 ]);
 

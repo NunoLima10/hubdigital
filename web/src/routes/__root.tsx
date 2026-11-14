@@ -2,6 +2,7 @@ import { AppProvider } from "@/app/provider";
 import "@/index.css";
 import { analyticsScripts } from "@/lib/analytics";
 import { seo } from "@/lib/seo";
+import { BadgeCelebration } from "@/modules/badges/components/badge-celebration";
 import { discoverySearchSchema } from "@/modules/project-list/search-params";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -52,6 +53,7 @@ function RootComponent() {
   return (
     <AppProvider>
       <Outlet />
+      <BadgeCelebration />
     </AppProvider>
   );
 }

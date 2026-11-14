@@ -1,5 +1,6 @@
 import { API } from "@/api/api";
-import { CreateOptions, PostResponse } from "@/types";
+import { CreateOptions } from "@/types";
+import type { BadgeKey } from "@hubdigital/shared";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { z } from "zod";
@@ -22,14 +23,23 @@ const schema = z.object({
 
 export type OnboardingResponse = z.infer<typeof schema>;
 
+export type OnboardingCreated = {
+  data: {
+    id: number;
+    membershipNumber: number;
+    /** Badges earned by joining, revealed on the welcome screen. */
+    badges: BadgeKey[];
+  };
+};
+
 async function postOnboarding(responses: OnboardingResponse) {
-  const response = await API.post<PostResponse>("/users/onboarding", responses);
+  const response = await API.post<OnboardingCreated>("/users/onboarding", responses);
   return response.data;
 }
 
-export function useCreateOnboarding(options?: CreateOptions<PostResponse>) {
+export function useCreateOnboarding(options?: CreateOptions<OnboardingCreated>) {
   const { mutate, isPending } = useMutation<
-    PostResponse,
+    OnboardingCreated,
     AxiosError,
     OnboardingResponse
   >({

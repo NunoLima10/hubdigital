@@ -1,3 +1,4 @@
+import { ProfileBadge } from "@/components/badge/profile-badge";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { ReportButton } from "@/modules/reports/components/report-button/report-button";
@@ -59,17 +60,24 @@ export function CommentItem({
       className="-m-2 flex gap-3 rounded-lg p-2"
     >
       <div className="flex shrink-0 flex-col items-center">
-        <span
-          className={`flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-xs font-semibold ${isReply ? "size-7" : "size-9"}`}
-        >
-          {comment.author?.image ? (
-            <img
-              src={comment.author.image}
-              alt=""
-              className="size-full object-cover"
+        {/* The featured badge sits on the avatar's corner, as on the profile. */}
+        <span className={`relative shrink-0 ${isReply ? "size-7" : "size-9"}`}>
+          <span className="flex size-full items-center justify-center overflow-hidden rounded-full bg-muted text-xs font-semibold">
+            {comment.author?.image ? (
+              <img
+                src={comment.author.image}
+                alt=""
+                className="size-full object-cover"
+              />
+            ) : (
+              (comment.author?.name?.[0]?.toUpperCase() ?? "?")
+            )}
+          </span>
+          {comment.author?.badge && !comment.isDeleted && (
+            <ProfileBadge
+              badgeKey={comment.author.badge}
+              className={`absolute ${isReply ? "-right-1.5 -bottom-1.5 size-4" : "-right-1.5 -bottom-1.5 size-5"}`}
             />
-          ) : (
-            (comment.author?.name?.[0]?.toUpperCase() ?? "?")
           )}
         </span>
         {/* Carries on into the reply connectors drawn by the thread list. */}

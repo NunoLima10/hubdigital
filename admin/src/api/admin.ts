@@ -10,6 +10,7 @@ import type {
   AdminUser,
   AdminUserDetail,
   AuditEntryView,
+  BadgeKey,
   CategorySummary,
   ModerationTarget,
   ProjectStatus,
@@ -193,6 +194,14 @@ export async function hideUser(id: string, reason: string) {
 
 export async function unhideUser(id: string) {
   await API.delete(`${endpoints.adminUsers}/${id}/shadow-ban`);
+}
+
+export async function grantBadge(id: string, key: BadgeKey) {
+  await API.post(`${endpoints.adminUsers}/${id}/badges`, { key });
+}
+
+export async function revokeBadge(id: string, key: BadgeKey) {
+  await API.delete(`${endpoints.adminUsers}/${id}/badges/${key}`);
 }
 
 /* ------------------------------------------------------------------ reports */

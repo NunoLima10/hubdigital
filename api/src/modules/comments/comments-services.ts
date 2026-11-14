@@ -1,6 +1,8 @@
 import { DB } from "@/db";
 import { comments, projects, users } from "@/db/schemas";
+import { BadgesService } from "@/modules/badges/badges-services";
 import { errorLogger } from "@/utils/error-logger";
+import type { BadgeKey } from "@hubdigital/shared";
 import { publicProjectConditions } from "@/utils/project-visibility";
 import { and, asc, eq, isNull } from "drizzle-orm";
 
@@ -29,7 +31,11 @@ const DELETED_BODY = "Comentário removido.";
  * orphaned and the conversation would stop making sense — but gives up its text
  * and its author.
  */
-function serializeComment(comment: CommentRow, userId?: string) {
+function serializeComment(
+  comment: CommentRow,
+  userId?: string,
+  badges: Map<string, BadgeKey> = new Map()
+) {
   const isDeleted = Boolean(comment.deletedAt);
 
   return {
@@ -45,6 +51,7 @@ function serializeComment(comment: CommentRow, userId?: string) {
             name: comment.user.name,
             image: comment.user.image,
             handle: comment.user.publisher?.handle ?? null,
+            badge: badges.get(comment.user.id) ?? null,
           },
     isOwn: !isDeleted && Boolean(userId) && comment.userId === userId,
     isDeleted,
@@ -94,6 +101,10 @@ async function listComments(db: DB, projectId: number, userId?: string) {
   });
 
   const visible = rows.filter((row) => isVisibleToReader(row, userId));
+  const badges = await BadgesService.featuredFor(
+    db,
+    visible.map((row) => row.userId)
+  );
 
   const replies = new Map<number, ReturnType<typeof serializeComment>[]>();
 
@@ -101,7 +112,7 @@ async function listComments(db: DB, projectId: number, userId?: string) {
     if (row.parentId === null) continue;
 
     const bucket = replies.get(row.parentId) ?? [];
-    bucket.push(serializeComment(row, userId));
+    bucket.push(serializeComment(row, userId, badges));
     replies.set(row.parentId, bucket);
   }
 
@@ -110,7 +121,7 @@ async function listComments(db: DB, projectId: number, userId?: string) {
     // A deleted comment with no replies has nothing left worth showing.
     .filter((row) => !row.deletedAt || replies.has(row.id))
     .map((row) => ({
-      ...serializeComment(row, userId),
+      ...serializeComment(row, userId, badges),
       replies: replies.get(row.id) ?? [],
     }));
 }
@@ -155,8 +166,10 @@ async function createComment(db: DB, input: CreateCommentInput) {
     with: { publisher: true },
   });
 
+  const badges = await BadgesService.featuredFor(db, [input.userId]);
+
   return {
-    ...serializeComment({ ...created, user }, input.userId),
+    ...serializeComment({ ...created, user }, input.userId, badges),
     replies: [],
   };
 }
@@ -186,7 +199,12 @@ async function updateComment(
     with: { publisher: true },
   });
 
-  return { ...serializeComment({ ...updated, user }, userId), replies: [] };
+  const badges = await BadgesService.featuredFor(db, [userId]);
+
+  return {
+    ...serializeComment({ ...updated, user }, userId, badges),
+    replies: [],
+  };
 }
 
 /** Admins may remove any comment; everyone else only their own. */

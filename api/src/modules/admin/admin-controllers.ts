@@ -1,3 +1,4 @@
+import { BadgesService } from "@/modules/badges/badges-services";
 import { BadRequestError, NotFoundError } from "@/utils/custom-errors";
 import { FastifyRequest } from "fastify";
 import {
@@ -467,8 +468,9 @@ async function getUserHandler(req: StringIdRequest, reply: StringIdReply) {
   if (!user) throw new NotFoundError();
 
   const history = await AuditService.listForTarget(req.db, "user", req.params.id);
+  const { badges } = await BadgesService.publicBadgesFor(req.db, req.params.id);
 
-  return reply.status(200).send({ data: { ...user, history } });
+  return reply.status(200).send({ data: { ...user, badges, history } });
 }
 
 async function hideUserHandler(

@@ -18,6 +18,8 @@ const actionLabels: Record<string, string> = {
   "publisher.untrust": "Retirou a marca de confiança",
   "setting.update": "Alterou definições",
   "report.resolve": "Resolveu relatórios",
+  "user.badge_grant": "Atribuiu um distintivo",
+  "user.badge_revoke": "Removeu um distintivo",
 };
 
 export function actionLabel(action: string) {
