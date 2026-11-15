@@ -199,8 +199,9 @@ export function BadgeShowcase() {
         <div>
           <h3 className="font-semibold">Escala real</h3>
           <p className="mt-1 max-w-sm text-sm leading-6 text-muted-foreground">
-            Junto ao avatar e ao nome a medalha perde estrelas, louros e o grafo de commits: só
-            fica a forma e o material.
+            Junto ao avatar e ao nome, a medalha perde estrelas, louros, o grafo de commits e os
+            algarismos 10/50/100. Ficam apenas a forma e o material; ao passar o cursor ou focar
+            com o teclado, aparecem o nome, o material e, quando aplicável, o número de membro.
           </p>
         </div>
         <div className="grid grid-cols-2 gap-x-5 gap-y-7 rounded-xl border bg-card px-5 py-7 sm:grid-cols-5">
@@ -214,7 +215,7 @@ export function BadgeShowcase() {
               </span>
               <span className="flex items-center gap-1.5 text-sm font-semibold">
                 Ana
-                <ProfileBadge badgeKey={badge.key} className="size-5" tooltip={false} />
+                <ProfileBadge badgeKey={badge.key} membershipNumber={7} className="size-5" />
               </span>
             </div>
           ))}

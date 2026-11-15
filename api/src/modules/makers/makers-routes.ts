@@ -4,6 +4,7 @@ import { FastifyInstance } from "fastify";
 import { makersController } from "./makers-controllers";
 import {
   getMakerRouteSchema,
+  getFoundingMakersRouteSchema,
   getMakerPreferencesRouteSchema,
   getMyHandleRouteSchema,
   updateMakerRouteSchema,
@@ -34,6 +35,12 @@ export async function makersRoutes(server: FastifyInstance) {
     schema: updateMakerPreferencesRouteSchema,
     preHandler: requirePublisher,
     handler: makersController.updatePreferencesHandler,
+  });
+
+  // Registered before "/:handle" so "founding" is not read as a handle.
+  server.get("/founding", {
+    schema: getFoundingMakersRouteSchema,
+    handler: makersController.getFoundingMakersHandler,
   });
 
   server.get("/:handle", {

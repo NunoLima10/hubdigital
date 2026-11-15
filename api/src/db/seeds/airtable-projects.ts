@@ -1,9 +1,9 @@
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { matchesImageSignature } from '@/utils/image-signature';
-import { maxUploadBytes } from '@hubdigital/shared';
+import { foundingBadgeFor, maxUploadBytes } from '@hubdigital/shared';
 import type { DB } from '@/db';
-import { categories, fileUploads, projectImages, projectLinks, projects, publishers, users } from '@/db/schemas';
+import { categories, fileUploads, projectImages, projectLinks, projects, publishers, userBadges, users } from '@/db/schemas';
 import { eq } from 'drizzle-orm';
 import { slugify } from '@/utils/slugify';
 import data from './data/airtable-startups.json';
@@ -34,6 +34,21 @@ export default async function seedAirtableProjects(db: DB) {
       }).onConflictDoNothing({ target: publishers.userId });
       const [publisher] = await tx.select().from(publishers).where(eq(publishers.userId, userId));
       makerIds.push(publisher.id);
+
+      // Give the fictional profiles visible badge variety: the first maker
+      // carries the diamond founder badge and the rest follow the founding
+      // tiers. These are featured so list and profile fixtures match.
+      const badgeKey = index === 0 ? 'founder' : foundingBadgeFor(index + 1);
+      if (badgeKey) {
+        await tx.insert(userBadges).values({
+          userId,
+          badgeKey,
+          featured: true,
+        }).onConflictDoUpdate({
+          target: [userBadges.userId, userBadges.badgeKey],
+          set: { featured: true },
+        });
+      }
     }
     const categoryRows = await tx.select().from(categories);
     for (const [index, record] of data.records.entries()) {

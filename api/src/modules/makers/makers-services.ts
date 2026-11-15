@@ -17,7 +17,7 @@ import {
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
 import { MakerProfileUpdate } from "@hubdigital/shared";
-import { and, desc, eq, isNull, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, isNull, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import type { MakerPreferences } from "./makers-schemas";
 
@@ -127,6 +127,50 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
   };
 }
 
+/**
+ * The public founding roll follows the immutable membership number. Hidden
+ * accounts do not leave behind a public name or avatar, but the original
+ * numbers remain untouched so every membership number stays meaningful.
+ */
+async function getFoundingMakers(
+  db: DB,
+  pagination: { limit: number; offset: number },
+) {
+  const visible = isNull(users.shadowBannedAt);
+  const [rows, [summary]] = await Promise.all([
+    db
+      .select({
+        userId: publishers.userId,
+        handle: publishers.handle,
+        name: users.name,
+        image: users.image,
+        membershipNumber: publishers.membershipNumber,
+      })
+      .from(publishers)
+      .innerJoin(users, eq(publishers.userId, users.id))
+      .where(visible)
+      .orderBy(asc(publishers.membershipNumber))
+      .limit(pagination.limit)
+      .offset(pagination.offset),
+    db
+      .select({ total: count() })
+      .from(publishers)
+      .innerJoin(users, eq(publishers.userId, users.id))
+      .where(visible),
+  ]);
+
+  const featured = await BadgesService.featuredFor(
+    db,
+    rows.map((row) => row.userId),
+  );
+  const data = rows.map(({ userId, ...maker }) => ({
+    ...maker,
+    featuredBadge: featured.get(userId) ?? null,
+  }));
+
+  return { data, total: summary?.total ?? 0 };
+}
+
 async function getProfileByUserId(db: DB, userId: string) {
   const publisher = await db.query.publishers.findFirst({
     where: eq(publishers.userId, userId),
@@ -219,6 +263,10 @@ async function updatePreferences(
 }
 
 export const MakersService = {
+  getFoundingMakers: errorLogger(
+    getFoundingMakers,
+    "makersService.getFoundingMakers",
+  ),
   getProfileByHandle: errorLogger(
     getProfileByHandle,
     "makersService.getProfileByHandle",

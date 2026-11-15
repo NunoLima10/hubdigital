@@ -330,7 +330,7 @@ export function BadgeMedal({
   className,
 }: {
   badgeKey: BadgeKey;
-  /** Avatar-size rendering: no stars, laurels or commit graph. */
+  /** Avatar-size rendering: no stars, laurels, tier number or commit graph. */
   compact?: boolean;
   className?: string;
 }) {
@@ -386,23 +386,23 @@ export function BadgeMedal({
 
         <Mark id={id} compact={compact} />
 
-        {number ? (
+        {number && !compact ? (
           <text
             x="100"
-            y={compact ? 168 : 162}
+            y="162"
             textAnchor="middle"
             fill={palette.number}
             filter={`url(#${id}-emboss)`}
             fontFamily="Geist, Inter, system-ui, sans-serif"
             fontWeight="800"
-            fontSize={compact ? (number.length > 2 ? 40 : 46) : number.length > 2 ? 34 : 38}
+            fontSize={number.length > 2 ? 34 : 38}
             letterSpacing="-1"
           >
             {number}
           </text>
-        ) : (
-          isMaintainer && <CodeSymbol id={id} compact={compact} />
-        )}
+        ) : isMaintainer ? (
+          <CodeSymbol id={id} compact={compact} />
+        ) : null}
 
         <g clipPath={`url(#${id}-clip)`}>
           <path className="badge-medal__glint" d="M20 0h28L8 200h-28z" fill="#FFFFFF" opacity=".45" />
