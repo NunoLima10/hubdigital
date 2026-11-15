@@ -22,6 +22,9 @@ export function SiteFooter() {
               <Link to="/map" className={linkClass}>
                 Mapa
               </Link>
+              <Link to="/brand" className={linkClass}>
+                Marca
+              </Link>
             </nav>
             <nav aria-label="Informação legal" className="flex flex-wrap gap-x-5 gap-y-3">
               <Link to="/termos" className={linkClass}>

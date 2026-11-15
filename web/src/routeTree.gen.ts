@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as BrandRouteImport } from './routes/brand'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
@@ -41,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BrandRoute = BrandRouteImport.update({
+  id: '/brand',
+  path: '/brand',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
@@ -159,6 +165,7 @@ const AuthedDashboardSubmitRoute = AuthedDashboardSubmitRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/brand': typeof BrandRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/map': typeof MapRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/brand': typeof BrandRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/map': typeof MapRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -211,6 +219,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
+  '/brand': typeof BrandRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/map': typeof MapRoute
   '/privacidade': typeof PrivacidadeRoute
@@ -238,6 +247,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/brand'
     | '/forgot-password'
     | '/map'
     | '/privacidade'
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/brand'
     | '/forgot-password'
     | '/map'
     | '/privacidade'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
+    | '/brand'
     | '/forgot-password'
     | '/map'
     | '/privacidade'
@@ -316,6 +328,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
+  BrandRoute: typeof BrandRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   MapRoute: typeof MapRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
@@ -345,6 +358,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brand': {
+      id: '/brand'
+      path: '/brand'
+      fullPath: '/brand'
+      preLoaderRoute: typeof BrandRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/forgot-password': {
@@ -543,6 +563,7 @@ const AuthedRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
+  BrandRoute: BrandRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   MapRoute: MapRoute,
   PrivacidadeRoute: PrivacidadeRoute,
