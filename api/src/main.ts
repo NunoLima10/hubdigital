@@ -3,9 +3,11 @@ import { buildServer } from "./server";
 import { logger } from "@/utils/logger";
 import { DBClient, setupDB, teardownDB } from "@/db";
 import { config } from "./config";
+import { analytics } from "@/lib/analytics";
 
 async function gracefulShutdown(server: FastifyInstance, dbClient: DBClient) {
   await server.close();
+  await analytics.shutdown();
   await teardownDB(dbClient);
   process.exit(0);
 }

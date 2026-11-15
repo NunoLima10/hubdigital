@@ -1,3 +1,5 @@
+import { CookieConsentBanner } from "@/components/analytics/cookie-consent-banner";
+import { PostHogAnalytics } from "@/components/analytics/posthog-analytics";
 import { Toaster } from "sonner";
 import type { PropsWithChildren } from "react";
 
@@ -7,6 +9,8 @@ export function AppProvider({ children }: PropsWithChildren) {
   return (
     <>
       <Toaster richColors position="top-center" />
+      <PostHogAnalytics />
+      <CookieConsentBanner />
       {children}
     </>
   );

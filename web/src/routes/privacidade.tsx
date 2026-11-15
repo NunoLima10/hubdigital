@@ -132,8 +132,21 @@ const sections: LegalSection[] = [
           <li>cookies essenciais para autenticação e segurança da sessão;</li>
           <li>armazenamento local para o tema e recuperação de rascunhos;</li>
           <li>armazenamento de sessão para estado do mapa e evitar eventos repetidos;</li>
-          <li>analytics Umami quando configurado no ambiente de produção.</li>
+          <li>analytics Umami quando configurado no ambiente de produção;</li>
+          <li>
+            cookies analíticos do PostHog (prefixo <code>ph_</code>), apenas se aceitares no aviso
+            de cookies.
+          </li>
         </LegalList>
+        <p>
+          O PostHog regista como a plataforma é usada (páginas visitadas, passos de formulários,
+          interações com projetos) para melhorarmos o Hub Digital. Identifica contas apenas pelo
+          seu identificador interno, sem nome nem email, e o projeto descarta o endereço IP. Se
+          recusares ou ainda não tiveres escolhido, a análise funciona sem cookies nem
+          armazenamento local: as visitas são contadas através de um identificador anónimo
+          calculado nos servidores do PostHog, que não permite reconhecer-te entre dias. Podes
+          mudar a tua escolha a qualquer momento em «Preferências de cookies», no rodapé.
+        </p>
         <p>
           Cookies estritamente necessários não podem ser desligados sem impedir funcionalidades
           essenciais. Qualquer ferramenta analítica não essencial será configurada de acordo com
@@ -153,6 +166,7 @@ const sections: LegalSection[] = [
           <li>fornecedores de alojamento da API e da base de dados;</li>
           <li>Google, quando é utilizado o início de sessão ou recursos externos da Google;</li>
           <li>Umami ou o respetivo alojamento, se a análise de utilização estiver ativa;</li>
+          <li>PostHog, para análise de utilização do produto, alojado na União Europeia;</li>
           <li>fornecedores de mapas solicitados pelo navegador;</li>
           <li>prestadores de email, suporte e segurança que venham a ser contratados;</li>
           <li>consultores e autoridades quando a comunicação for legalmente necessária.</li>

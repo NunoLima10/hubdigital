@@ -56,9 +56,10 @@
     "pino": "^9.14.0",
     "pino-pretty": "^13.2.0",
     "postgres": "^3.4.9",
+    "posthog-node": "^5.74.0",
     "sanitize-html": "^2.18.2",
     "satori": "^0.63.2",
-    "zod": "^4.6.7",
-    "sharp": "^0.35.5"
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
   }
 }

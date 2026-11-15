@@ -79,6 +79,19 @@ export const envSchema = z.object({
   // the web server's IP. Never exposed to browsers.
   API_INTERNAL_KEY: blankAsUnset(z.string().min(32)),
 
+  // PostHog product analytics (src/lib/analytics.ts). Unset: nothing is sent.
+  // The project token (phc_...) is the same one the web app uses.
+  POSTHOG_API_KEY: blankAsUnset(z.string()),
+  POSTHOG_HOST: z.string().url().default("https://eu.i.posthog.com"),
+  // Reading from PostHog (src/lib/posthog-query.ts) for the public site stats.
+  // A personal API key with only the query:read scope; never sent to browsers.
+  // The app host is PostHog's private API, not the ingestion host above.
+  POSTHOG_PERSONAL_API_KEY: blankAsUnset(z.string()),
+  POSTHOG_PROJECT_ID: blankAsUnset(z.string()),
+  POSTHOG_APP_HOST: z.string().url().default("https://eu.posthog.com"),
+  // Only events tagged with this environment count in the public stats.
+  POSTHOG_STATS_ENVIRONMENT: z.string().default("production"),
+
   CLOUDFLARE_PUBLIC_URL: z.string().url().optional(),
   CLOUDFLARE_BUCKET: z.string().optional(),
   CLOUDFLARE_ENDPOINT: z.string().url().optional(),
