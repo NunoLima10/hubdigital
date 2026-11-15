@@ -17,6 +17,7 @@ import {
   StackedLockup,
 } from "./brand-assets";
 import { BadgeShowcase, MicroInteractions } from "./brand-demos";
+import { EmbedBannerShowcase, ProjectPlaqueShowcase } from "./brand-project-badges";
 
 const REPO_URL = "https://github.com/NunoLima10/hubdigital";
 
@@ -28,6 +29,8 @@ const sections = [
   { id: "tipografia", title: "Tipografia e voz" },
   { id: "ilhas", title: "As ilhas" },
   { id: "distintivos", title: "Distintivos" },
+  { id: "placas", title: "Placas de projeto" },
+  { id: "banners", title: "Banners para projetos" },
   { id: "movimento", title: "Micro-interações" },
   { id: "assim-nao", title: "Assim não" },
   { id: "recursos", title: "Recursos" },
@@ -457,6 +460,30 @@ function BadgesSection() {
   );
 }
 
+function PlaquesSection() {
+  return (
+    <Section
+      id="placas"
+      title="Placas para os projetos"
+      lead="As conquistas de um projeto são placas quadradas e só aparecem na página do projeto. Cada uma leva o selo H do Hub e uma fita nas cores da bandeira de Cabo Verde, com a semana ou o mês em que foi ganha."
+    >
+      <ProjectPlaqueShowcase />
+    </Section>
+  );
+}
+
+function BannersSection() {
+  return (
+    <Section
+      id="banners"
+      title="Banners para levar para fora"
+      lead="Os projetos podem mostrar no próprio site que estão no Hub Digital. Os banners são imagens SVG simples, em claro ou escuro, com a bandeira na ponta quando celebram uma conquista."
+    >
+      <EmbedBannerShowcase />
+    </Section>
+  );
+}
+
 function MotionSection() {
   const tokens = [
     ["Pressionar", "200ms", "ease-out", "Desligar um voto ou favorito"],
@@ -665,6 +692,8 @@ export function BrandPage() {
           <TypeSection />
           <IslandsSection />
           <BadgesSection />
+          <PlaquesSection />
+          <BannersSection />
           <MotionSection />
           <DontsSection />
           <ResourcesSection />
