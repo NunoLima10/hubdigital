@@ -15,6 +15,7 @@ import { Route as BrandRouteImport } from './routes/brand'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as MapRouteImport } from './routes/map'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
@@ -62,6 +63,11 @@ const MapRoute = MapRouteImport.update({
 const PrivacidadeRoute = PrivacidadeRouteImport.update({
   id: '/privacidade',
   path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RankingRoute = RankingRouteImport.update({
+  id: '/ranking',
+  path: '/ranking',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/forgot-password': typeof ForgotPasswordRoute
   '/map': typeof MapRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
@@ -195,6 +202,7 @@ export interface FileRoutesByTo {
   '/forgot-password': typeof ForgotPasswordRoute
   '/map': typeof MapRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/forgot-password': typeof ForgotPasswordRoute
   '/map': typeof MapRoute
   '/privacidade': typeof PrivacidadeRoute
+  '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/map'
     | '/privacidade'
+    | '/ranking'
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/map'
     | '/privacidade'
+    | '/ranking'
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
@@ -304,6 +315,7 @@ export interface FileRouteTypes {
     | '/forgot-password'
     | '/map'
     | '/privacidade'
+    | '/ranking'
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
@@ -332,6 +344,7 @@ export interface RootRouteChildren {
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   MapRoute: typeof MapRoute
   PrivacidadeRoute: typeof PrivacidadeRoute
+  RankingRoute: typeof RankingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
@@ -386,6 +399,13 @@ declare module '@tanstack/react-router' {
       path: '/privacidade'
       fullPath: '/privacidade'
       preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ranking': {
+      id: '/ranking'
+      path: '/ranking'
+      fullPath: '/ranking'
+      preLoaderRoute: typeof RankingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -567,6 +587,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForgotPasswordRoute: ForgotPasswordRoute,
   MapRoute: MapRoute,
   PrivacidadeRoute: PrivacidadeRoute,
+  RankingRoute: RankingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,

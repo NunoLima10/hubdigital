@@ -14,10 +14,16 @@ export type LegalSection = {
 type LegalDocumentProps = {
   title: string;
   summary?: string;
+  updatedAt?: string;
   sections: LegalSection[];
 };
 
-export function LegalDocument({ title, summary, sections }: LegalDocumentProps) {
+export function LegalDocument({
+  title,
+  summary,
+  updatedAt = LEGAL_VERSION,
+  sections,
+}: LegalDocumentProps) {
   return (
     <Page header={<Header />} footer={<SiteFooter />}>
       <article className="mx-auto max-w-5xl pb-12">
@@ -33,7 +39,7 @@ export function LegalDocument({ title, summary, sections }: LegalDocumentProps) 
           <dl className="mt-6 text-sm">
             <div className="flex gap-2">
               <dt className="text-muted-foreground">Última atualização</dt>
-              <dd className="font-medium">{LEGAL_VERSION}</dd>
+              <dd className="font-medium">{updatedAt}</dd>
             </div>
           </dl>
         </header>
