@@ -12,6 +12,12 @@ type WorkerEnv = {
 
 const API_PREFIX = "/v1";
 
+// PostHog reverse proxy (EU cloud). The browser SDK posts to /ingest on this
+// origin (VITE_APP_POSTHOG_HOST=/ingest), which ad blockers leave alone.
+const POSTHOG_PREFIX = "/ingest";
+const POSTHOG_API_HOST = "https://eu.i.posthog.com";
+const POSTHOG_ASSET_HOST = "https://eu-assets.i.posthog.com";
+
 /**
  * Serves the API under this site's own origin. While the site and the API sit
  * on unrelated domains (workers.dev and railway.app), browsers treat the API's
@@ -41,9 +47,33 @@ function proxyToApi(request: Request, env: WorkerEnv, target: string) {
   });
 }
 
+/**
+ * Forwards /ingest/* to PostHog. The site's own cookies (the session) are
+ * stripped: PostHog needs none of them. The visitor's IP is passed on so
+ * country-level geolocation still works; the project discards the IP itself.
+ */
+function proxyToPosthog(request: Request) {
+  const url = new URL(request.url);
+  const path = url.pathname.slice(POSTHOG_PREFIX.length) || "/";
+  const host = path.startsWith("/static/") ? POSTHOG_ASSET_HOST : POSTHOG_API_HOST;
+  const headers = new Headers(request.headers);
+  headers.delete("cookie");
+  const visitorIp = request.headers.get("cf-connecting-ip");
+  if (visitorIp) headers.set("x-forwarded-for", visitorIp);
+  const hasBody = request.method !== "GET" && request.method !== "HEAD";
+  return fetch(new URL(path + url.search, host), {
+    method: request.method,
+    headers,
+    body: hasBody ? request.body : null,
+  });
+}
+
 export default {
   fetch(request: Request, env: WorkerEnv) {
     const { pathname } = new URL(request.url);
+    if (pathname === POSTHOG_PREFIX || pathname.startsWith(`${POSTHOG_PREFIX}/`)) {
+      return proxyToPosthog(request);
+    }
     const target = env.API_PROXY_TARGET;
     if (target && (pathname === API_PREFIX || pathname.startsWith(`${API_PREFIX}/`))) {
       return proxyToApi(request, env, target);

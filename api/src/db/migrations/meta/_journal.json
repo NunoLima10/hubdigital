@@ -22,6 +22,13 @@
       "when": 1794750676788,
       "tag": "0002_secret_multiple_man",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794760915487,
+      "tag": "0003_site_stats_snapshots",
+      "breakpoints": true
     }
   ]
 }

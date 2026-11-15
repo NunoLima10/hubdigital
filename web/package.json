@@ -41,6 +41,7 @@
     "flag-icons": "^7.6.0",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.468.0",
+    "posthog-js": "^1.450.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-hook-form": "^7.89.0",

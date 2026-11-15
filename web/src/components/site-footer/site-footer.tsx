@@ -1,4 +1,6 @@
 import { BrandLogo } from "@/components/brand-logo/brand-logo";
+import { writeAnalyticsConsent } from "@/lib/analytics-consent";
+import { analyticsEnabled } from "@/lib/posthog";
 import { Link } from "@tanstack/react-router";
 
 const linkClass = "font-medium hover:text-primary hover:underline";
@@ -33,6 +35,19 @@ export function SiteFooter() {
               <Link to="/privacidade" className={linkClass}>
                 Privacidade
               </Link>
+              <Link to="/ranking" className={linkClass}>
+                Como funciona o ranking
+              </Link>
+              {analyticsEnabled && (
+                // Forgetting the answer brings the cookie banner back.
+                <button
+                  type="button"
+                  className={`${linkClass} text-left`}
+                  onClick={() => writeAnalyticsConsent(null)}
+                >
+                  Preferências de cookies
+                </button>
+              )}
             </nav>
           </div>
         </div>

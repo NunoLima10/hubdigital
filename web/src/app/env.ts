@@ -18,6 +18,13 @@ const createEnv = () => {
     // URL only changes when Umami is self-hosted.
     UMAMI_WEBSITE_ID: z.string().optional().default(""),
     UMAMI_SCRIPT_URL: z.string().optional().default("https://cloud.umami.is/script.js"),
+    // PostHog product analytics (src/lib/posthog.ts). No key keeps it off.
+    // The key is the project's public token (phc_...). HOST is "/ingest" when
+    // the Worker proxies PostHog (src/server.ts), so ad blockers let it
+    // through; UI_HOST is where PostHog's own app lives (EU cloud).
+    POSTHOG_KEY: z.string().optional().default(""),
+    POSTHOG_HOST: z.string().optional().default("https://eu.i.posthog.com"),
+    POSTHOG_UI_HOST: z.string().optional().default("https://eu.posthog.com"),
   });
 
   const envVars = Object.entries(import.meta.env).reduce<

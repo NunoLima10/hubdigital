@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, LoaderCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileBadge } from "@/components/badge/profile-badge";
 import { PersonAvatar } from "@/modules/invitations/components/person-avatar";
 import { useFoundingMakers } from "@/modules/makers/hooks/use-founding-makers";
+import { SiteStatsCard } from "./site-stats-card";
 
 function FoundingRoll() {
   const makers = useFoundingMakers();
@@ -15,16 +16,19 @@ function FoundingRoll() {
       </h2>
 
       {makers.isLoading ? (
-        <div
-          className="flex items-center gap-2 py-4 text-sm text-muted-foreground"
+        <ol
+          className="space-y-1"
           role="status"
+          aria-label="A carregar os inovadores"
         >
-          <LoaderCircle
-            className="size-4 animate-spin motion-reduce:animate-none"
-            aria-hidden="true"
-          />
-          A descobrir os pioneiros…
-        </div>
+          {Array.from({ length: 5 }, (_, i) => (
+            <li key={i} className="flex items-center gap-2.5 px-1 py-1.5">
+              <Skeleton className="size-8 shrink-0 rounded-full" />
+              <Skeleton className="h-4 flex-1" style={{ maxWidth: `${60 + ((i * 17) % 30)}%` }} />
+              <Skeleton className="ml-auto h-4 w-14 shrink-0" />
+            </li>
+          ))}
+        </ol>
       ) : makers.isError ? (
         <div className="py-3 text-sm text-muted-foreground">
           <p>Não foi possível mostrar os membros agora.</p>
@@ -66,7 +70,7 @@ function FoundingRoll() {
                 aria-label={`Ver perfil de ${person.name}`}
                 className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground outline-none transition-colors hover:bg-primary-soft hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
               >
-                Perfil
+                Ver perfil
               </Link>
             </li>
           ))}
@@ -83,20 +87,8 @@ function FoundingRoll() {
 export function HomeSidebar() {
   return (
     <div className="space-y-7">
+      <SiteStatsCard />
       <FoundingRoll />
-      <section className="hidden rounded-lg border bg-muted/40 p-5 lg:block">
-        <h2 className="font-semibold">Feito em Cabo Verde</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Descobre produtos, ferramentas e ideias criadas pela comunidade
-          cabo-verdiana.
-        </p>
-        <Link
-          to="/dashboard/submit"
-          className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-        >
-          Partilhar um projeto <ArrowRight className="size-4" />
-        </Link>
-      </section>
     </div>
   );
 }
