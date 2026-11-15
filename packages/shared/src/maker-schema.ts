@@ -29,6 +29,7 @@ export const makerProfileUpdateSchema = z.object({
   githubUrl: optionalUrl,
   linkedinUrl: optionalUrl,
   instagramUrl: optionalUrl,
+  discordUrl: optionalUrl,
 });
 
 export const makerProfileSchema = z.object({
@@ -41,6 +42,7 @@ export const makerProfileSchema = z.object({
   githubUrl: z.string().nullable(),
   linkedinUrl: z.string().nullable(),
   instagramUrl: z.string().nullable(),
+  discordUrl: z.string().nullable(),
   /** Upvotes gathered across every project this maker has published. */
   totalUpvotes: z.number(),
   projectCount: z.number(),

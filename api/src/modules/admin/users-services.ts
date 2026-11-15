@@ -208,6 +208,7 @@ async function getUser(db: DB, id: string) {
           githubUrl: row.publisher.githubUrl,
           linkedinUrl: row.publisher.linkedinUrl,
           instagramUrl: row.publisher.instagramUrl,
+          discordUrl: row.publisher.discordUrl,
           trustedAt: row.publisher.trustedAt,
         }
       : null,
