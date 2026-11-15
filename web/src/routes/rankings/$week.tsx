@@ -3,6 +3,7 @@ import { Page } from "@/layouts/page";
 import { ProjectList } from "@/modules/project-list";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { parseRankingWeek, rankingHead } from "@/modules/project-list/ranking";
+import { SiteFooter } from "@/components/site-footer/site-footer";
 
 export const Route = createFileRoute("/rankings/$week")({
   head: ({ params }) => rankingHead(params.week),
@@ -12,7 +13,7 @@ function RankingPage() {
   const { week } = Route.useParams();
   const parsed = parseRankingWeek(week);
   return (
-    <Page header={<Header />}>
+    <Page header={<Header />} footer={<SiteFooter />}>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-semibold">

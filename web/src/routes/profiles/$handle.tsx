@@ -14,6 +14,7 @@ import { makerHead } from "@/modules/makers/seo";
 import { Github, Globe, Instagram, Linkedin, UserRound } from "lucide-react";
 import { ProfileBadge } from "@/components/badge/profile-badge";
 import { ProfileAchievements } from "@/modules/badges/components/profile-achievements";
+import { SiteFooter } from "@/components/site-footer/site-footer";
 
 export const Route = createFileRoute("/profiles/$handle")({
   loader: ({ context, params }) =>
@@ -27,7 +28,7 @@ function ProfilePage() {
   const { data, isLoading, isError } = useMaker(handle);
   const showLoading = useDelayedLoading(isLoading);
   return (
-    <Page header={<Header />}>
+    <Page header={<Header />} footer={<SiteFooter />}>
       {showLoading && (
         <div className="space-y-4" aria-label="A carregar perfil">
           <div className="size-20 animate-pulse rounded-full bg-muted" />

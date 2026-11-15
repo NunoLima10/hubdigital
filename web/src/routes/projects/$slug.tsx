@@ -24,6 +24,7 @@ import { RelatedProjects } from "@/modules/project-detail/components/related-pro
 import { Button } from "@/components/ui/button";
 import { isAxiosError } from "axios";
 import { notFound } from "@tanstack/react-router";
+import { SiteFooter } from "@/components/site-footer/site-footer";
 
 export const Route = createFileRoute("/projects/$slug")({
   loader: async ({ context, params }) => {
@@ -52,6 +53,7 @@ function ProjectPendingPage() {
     <Page
       viewTransition
       header={<Header />}
+      footer={<SiteFooter />}
       rightSection={<ProjectDetailSidebarSkeleton />}
     >
       <div className="space-y-7">
@@ -76,6 +78,7 @@ function ProjectPage() {
     <Page
       viewTransition
       header={<Header />}
+      footer={<SiteFooter />}
       rightSection={
         data ? (
           <div className="hidden lg:block">
