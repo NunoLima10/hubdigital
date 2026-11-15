@@ -105,6 +105,7 @@ async function getProfileByHandle(db: DB, handle: string, viewerId?: string) {
     githubUrl: publisher.githubUrl,
     linkedinUrl: publisher.linkedinUrl,
     instagramUrl: publisher.instagramUrl,
+    discordUrl: publisher.discordUrl,
     totalUpvotes: publishedProjects.reduce(
       (total, project) => total + project.upvoteCount,
       0,
@@ -148,6 +149,7 @@ async function updateProfile(
     githubUrl: input.githubUrl || null,
     linkedinUrl: input.linkedinUrl || null,
     instagramUrl: input.instagramUrl || null,
+    discordUrl: input.discordUrl || null,
   };
 
   try {

@@ -11,7 +11,14 @@ import {
 } from "@/modules/submit/options";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { makerHead } from "@/modules/makers/seo";
-import { Github, Globe, Instagram, Linkedin, UserRound } from "lucide-react";
+import {
+  Github,
+  Globe,
+  Instagram,
+  Linkedin,
+  MessageCircle,
+  UserRound,
+} from "lucide-react";
 import { ProfileBadge } from "@/components/badge/profile-badge";
 import { ProfileAchievements } from "@/modules/badges/components/profile-achievements";
 import { SiteFooter } from "@/components/site-footer/site-footer";
@@ -125,6 +132,17 @@ function ProfilePage() {
                   >
                     <Instagram className="size-4" />
                     Instagram
+                  </a>
+                )}
+                {data.discordUrl && (
+                  <a
+                    href={data.discordUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
+                  >
+                    <MessageCircle className="size-4" />
+                    Discord
                   </a>
                 )}
               </nav>

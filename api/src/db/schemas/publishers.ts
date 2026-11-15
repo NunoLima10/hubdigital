@@ -45,6 +45,7 @@ export const publishers = pgTable("publishers", {
   githubUrl: text("github_url"),
   linkedinUrl: text("linkedin_url"),
   instagramUrl: text("instagram_url"),
+  discordUrl: text("discord_url"),
   profileResponse: profileResponseEnum("profile_response").notNull(),
   objectiveResponse: objectiveResponseEnum("objective_response").notNull(),
   locationResponse: locationResponseEnum("location_response").notNull(),

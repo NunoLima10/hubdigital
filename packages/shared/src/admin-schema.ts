@@ -201,6 +201,7 @@ export const adminUserDetailSchema = adminUserSchema.extend({
       githubUrl: z.string().nullable(),
       linkedinUrl: z.string().nullable(),
       instagramUrl: z.string().nullable(),
+      discordUrl: z.string().nullable(),
       trustedAt: z.string().nullable(),
     })
     .nullable(),

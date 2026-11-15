@@ -15,6 +15,13 @@
       "when": 1794750602667,
       "tag": "0001_mixed_lily_hollister",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794750676788,
+      "tag": "0002_secret_multiple_man",
+      "breakpoints": true
     }
   ]
 }
