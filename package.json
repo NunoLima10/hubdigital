@@ -1,12 +1,18 @@
 {
   "name": "hubdigital",
   "version": "1.0.0",
-  "description": "",
+  "description": "Plataforma colaborativa para descobrir e partilhar projetos tecnológicos de Cabo Verde.",
+  "private": true,
+  "engines": { "node": "24.x" },
   "main": "index.js",
   "scripts": {
-    "dev": "pnpm docker:up && pnpm api:db:migrate && pnpm shared:build && pnpm --parallel --filter @hubdigital/api --filter @hubdigital/web dev",
+    "dev": "pnpm docker:up && pnpm shared:build && pnpm api:db:migrate && pnpm --parallel --filter @hubdigital/api --filter @hubdigital/web dev",
     "dev:apps": "pnpm shared:build && pnpm --parallel --filter @hubdigital/api --filter @hubdigital/web dev",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "pnpm shared:build && pnpm --filter @hubdigital/api test && pnpm --filter @hubdigital/web test",
+    "test:unit": "pnpm shared:build && pnpm --filter @hubdigital/api exec vitest run tests/unit && pnpm --filter @hubdigital/web test",
+    "lint": "pnpm --filter @hubdigital/web lint && pnpm --filter @hubdigital/admin lint",
+    "build": "pnpm api:build && pnpm web:build && pnpm admin:build",
+    "check": "pnpm lint && pnpm test && pnpm build",
     "shared:build": "pnpm run --filter @hubdigital/shared build",
     "web:dev": "pnpm shared:build && pnpm run --filter @hubdigital/web dev",
     "web:build": "pnpm run --filter @hubdigital/web build",
@@ -22,9 +28,9 @@
     "api:db:seed": "pnpm --filter @hubdigital/api db:seed",
     "api:build": "pnpm run --filter @hubdigital/api build",
     "api:start": "pnpm run --filter @hubdigital/api start",
-    "docker:up": "docker compose up -d",
+    "docker:up": "docker compose up -d --wait --wait-timeout 120",
     "docker:down": "docker compose down",
-    "api:setup": "pnpm docker:down -v && pnpm docker:up  && pnpm api:db:gen && pnpm api:db:migrate && pnpm api:db:seed"
+    "api:setup": "pnpm docker:up && pnpm shared:build && pnpm api:db:migrate && pnpm api:db:seed"
   },
   "keywords": [],
   "author": "",
