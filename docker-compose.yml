@@ -2,6 +2,12 @@ services:
   hub-digital-db:
     container_name: hub-digital-db
     image: postgres:17
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hubdigitaldb"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+      start_period: 5s
     ports:
       - "127.0.0.1:${HUBDIGITAL_DB_PORT:-5432}:5432"
     volumes:
