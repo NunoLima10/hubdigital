@@ -46,3 +46,28 @@ export const updateAvatarRouteSchema = {
     ...routeErrorResponses,
   },
 };
+
+const eligibilityConfirmationResponseSchema = z.object({
+  data: z.object({
+    confirmedAt: z.string().nullable(),
+  }),
+});
+
+export const getEligibilityConfirmationRouteSchema = {
+  tags: ["users"],
+  response: {
+    200: eligibilityConfirmationResponseSchema,
+    ...routeErrorResponses,
+  },
+};
+
+export const confirmEligibilityRouteSchema = {
+  tags: ["users"],
+  body: z.object({
+    confirmed: z.literal(true),
+  }),
+  response: {
+    200: eligibilityConfirmationResponseSchema,
+    ...routeErrorResponses,
+  },
+};

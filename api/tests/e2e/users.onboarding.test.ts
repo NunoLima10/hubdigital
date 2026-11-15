@@ -194,4 +194,57 @@ describe("Users module - onboarding (e2e)", () => {
     expect(body.error).toBeDefined();
     expect(updateUserMock).not.toHaveBeenCalled();
   });
+
+  it("returns and records the account eligibility confirmation", async () => {
+    getSessionMock.mockResolvedValue({
+      user: { id: currentUserId, role: "user" },
+    });
+
+    const initialResponse = await server.inject({
+      method: "GET",
+      url: "/v1/users/me/eligibility-confirmation",
+    });
+
+    expect(initialResponse.statusCode).toBe(200);
+    expect(initialResponse.json()).toEqual({ data: { confirmedAt: null } });
+
+    const confirmResponse = await server.inject({
+      method: "PUT",
+      url: "/v1/users/me/eligibility-confirmation",
+      payload: { confirmed: true },
+    });
+
+    expect(confirmResponse.statusCode).toBe(200);
+    expect(confirmResponse.json().data.confirmedAt).toEqual(expect.any(String));
+
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, currentUserId),
+    });
+    expect(user?.eligibilityConfirmedAt).toBeInstanceOf(Date);
+  });
+
+  it("rejects an invalid eligibility declaration", async () => {
+    getSessionMock.mockResolvedValue({
+      user: { id: currentUserId, role: "user" },
+    });
+
+    const response = await server.inject({
+      method: "PUT",
+      url: "/v1/users/me/eligibility-confirmation",
+      payload: { confirmed: false },
+    });
+
+    expect(response.statusCode).toBe(400);
+  });
+
+  it("does not expose eligibility status without authentication", async () => {
+    getSessionMock.mockResolvedValue(null);
+
+    const response = await server.inject({
+      method: "GET",
+      url: "/v1/users/me/eligibility-confirmation",
+    });
+
+    expect(response.statusCode).toBe(401);
+  });
 });
