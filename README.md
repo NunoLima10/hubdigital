@@ -102,3 +102,15 @@ A documentação da API está disponível em:
 - [ ] Implementar autenticação na API
 - [ ] Desenvolver endpoints principais
 - [ ] Configurar pipeline CI/CD
+
+## Licença
+
+O código-fonte do Hub Digital é disponibilizado sob a GNU Affero General
+Public License v3.0 only (`AGPL-3.0-only`). Quem disponibilizar publicamente
+uma versão modificada através de uma rede deve também oferecer aos seus
+utilizadores o código-fonte correspondente dessa versão, nos termos da AGPL.
+
+A licença do código não concede direitos sobre o nome, os logótipos ou a
+identidade visual do Hub Digital. Consulte [LICENSING.md](LICENSING.md),
+[TRADEMARKS.md](TRADEMARKS.md) e [LICENSE.txt](LICENSE.txt). O conjunto de
+dados de países mantém a sua licença ODbL separada.
