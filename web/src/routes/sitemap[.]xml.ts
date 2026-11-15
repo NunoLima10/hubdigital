@@ -15,6 +15,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/" },
           { path: "/map" },
           { path: "/brand" },
+          { path: "/ranking", lastModified: new Date("2026-11-15T00:00:00-01:00") },
           ...projects.map((project) => ({
             path: projectPath(project.slug),
             lastModified: parseApiDate(project.launchedAt ?? project.createdAt),
