@@ -47,7 +47,6 @@ export function useUpload() {
 
       await axios.put(uploadUrl, file, {
         headers: { "Content-Type": file.type },
-        withCredentials: true,
         onUploadProgress,
       });
 

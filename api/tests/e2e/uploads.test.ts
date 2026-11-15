@@ -1,134 +1,300 @@
-﻿import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import type { FastifyInstance } from "fastify";
 import sharp from "sharp";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import "../setup-env";
 import { setupDB, teardownDB } from "../../src/db";
 import { fileUploads, users } from "@/db/schemas";
 import { buildServer } from "@/server";
 
-const { getSessionMock, s3SendMock } = vi.hoisted(() => ({ getSessionMock: vi.fn(), s3SendMock: vi.fn() }));
-vi.mock("@aws-sdk/client-s3", async (original) => ({
-  ...await original<typeof import("@aws-sdk/client-s3")>(),
-  S3Client: class { send = s3SendMock; destroy() {} },
+const { getSessionMock, getSignedUrlMock, s3SendMock } = vi.hoisted(() => ({
+  getSessionMock: vi.fn(),
+  getSignedUrlMock: vi.fn(),
+  s3SendMock: vi.fn(),
 }));
-vi.mock("../../src/lib/auth", () => ({ auth: { api: { getSession: getSessionMock, updateUser: vi.fn() }, handler: vi.fn() } }));
+
+vi.mock("@aws-sdk/client-s3", async (original) => ({
+  ...(await original<typeof import("@aws-sdk/client-s3")>()),
+  S3Client: class {
+    send = s3SendMock;
+    destroy() {}
+  },
+}));
+
+vi.mock("@aws-sdk/s3-request-presigner", () => ({
+  getSignedUrl: getSignedUrlMock,
+}));
+
+vi.mock("../../src/lib/auth", () => ({
+  auth: {
+    api: { getSession: getSessionMock, updateUser: vi.fn() },
+    handler: vi.fn(),
+  },
+}));
 
 const migrationsFolder = join(__dirname, "../../src/db/migrations");
-describe("verified immutable uploads (e2e)", () => {
+
+describe("direct verified uploads (e2e)", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>>;
   let db: Awaited<ReturnType<typeof setupDB>>["db"];
   let dbClient: Awaited<ReturnType<typeof setupDB>>["dbClient"];
   let server: FastifyInstance;
   let userId: string;
   let png: Buffer;
+
   beforeAll(async () => {
-    png = await sharp({ create: { width: 2, height: 2, channels: 3, background: "red" } }).png().toBuffer();
+    png = await sharp({
+      create: {
+        width: 2,
+        height: 2,
+        channels: 3,
+        background: "red",
+      },
+    })
+      .png()
+      .toBuffer();
     container = await new PostgreSqlContainer("postgres:17").start();
-    const setup = await setupDB(container.getConnectionUri(), { migrating: true });
+    const setup = await setupDB(container.getConnectionUri(), {
+      migrating: true,
+    });
     await migrate(setup.db, { migrationsFolder });
     await teardownDB(setup.dbClient);
   });
+
   beforeEach(async () => {
     getSessionMock.mockReset();
-    s3SendMock.mockReset().mockResolvedValue({});
+    getSignedUrlMock.mockReset().mockResolvedValue("https://r2.test/signed-put");
+    s3SendMock.mockReset().mockImplementation(async (command) => {
+      if (command.constructor.name === "HeadObjectCommand") {
+        return { ContentLength: png.length, ContentType: "image/png" };
+      }
+      if (command.constructor.name === "GetObjectCommand") {
+        return {
+          Body: {
+            transformToByteArray: async () => new Uint8Array(png),
+          },
+        };
+      }
+      return {};
+    });
+
     ({ db, dbClient } = await setupDB(container.getConnectionUri()));
     await db.delete(fileUploads);
     await db.delete(users);
     userId = randomUUID();
-    await db.insert(users).values({ id: userId, name: "User", email: `${userId}@example.test`, role: "user" });
-    getSessionMock.mockResolvedValue({ user: { id: userId, role: "user" } });
+    await db.insert(users).values({
+      id: userId,
+      name: "User",
+      email: `${userId}@example.test`,
+      role: "user",
+    });
+    getSessionMock.mockResolvedValue({
+      user: { id: userId, role: "user" },
+    });
     server = await buildServer(db);
     await server.ready();
   });
+
   afterEach(async () => {
     await server?.close();
     if (dbClient) await teardownDB(dbClient);
   });
-  afterAll(async () => { await container?.stop(); });
+
+  afterAll(async () => {
+    await container?.stop();
+  });
+
   function create(overrides = {}) {
-    return server.inject({ method: "POST", url: "/v1/uploads", payload: {
-      name: "logo.png", byteSize: png.length, contentType: "image/png", type: "project_logo", ...overrides,
-    } });
+    return server.inject({
+      method: "POST",
+      url: "/v1/uploads",
+      payload: {
+        name: "logo.png",
+        byteSize: png.length,
+        contentType: "image/png",
+        type: "project_logo",
+        ...overrides,
+      },
+    });
   }
-  function put(id: number, payload = png, contentType = "image/png") {
-    return server.inject({ method: "PUT", url: `/v1/uploads/${id}/content`, headers: { "content-type": contentType }, payload });
+
+  function complete(uploadId: number) {
+    return server.inject({
+      method: "POST",
+      url: `/v1/uploads/${uploadId}/complete`,
+    });
   }
-  it("requires authentication before allocating or reading uploads", async () => {
+
+  it("requires authentication before allocating or completing uploads", async () => {
     getSessionMock.mockResolvedValue(null);
+
     expect((await create()).statusCode).toBe(401);
-    expect((await put(1)).statusCode).toBe(401);
+    expect((await complete(1)).statusCode).toBe(401);
     expect(await db.query.fileUploads.findMany()).toHaveLength(0);
+    expect(getSignedUrlMock).not.toHaveBeenCalled();
     expect(s3SendMock).not.toHaveBeenCalled();
   });
-  it("allocates an API upload URL and strips filename directories", async () => {
+
+  it("returns a direct presigned staging URL and records the final key", async () => {
     const response = await create({ name: "../../etc/logo.png" });
+
     expect(response.statusCode).toBe(201);
     const data = response.json().data;
-    expect(data.uploadUrl).toBe(`http://localhost:3001/v1/uploads/${data.uploadId}/content`);
+    expect(data.uploadUrl).toBe("https://r2.test/signed-put");
     expect(data.fileKey).toMatch(/^project_logo\/[\w-]+-logo\.png$/);
+    expect(getSignedUrlMock).toHaveBeenCalledOnce();
+    const signedCommand = getSignedUrlMock.mock.calls[0][1];
+    expect(signedCommand.input).toMatchObject({
+      Key: `unverified/${data.uploadId}`,
+      ContentType: "image/png",
+    });
+    expect(signedCommand.input.Key).not.toBe(data.fileKey);
     expect((await db.query.fileUploads.findFirst())?.completedAt).toBeNull();
     expect(s3SendMock).not.toHaveBeenCalled();
   });
-  it("decodes and stores an image once; completion is idempotent", async () => {
+
+  it("verifies, sanitizes, and promotes the staged image", async () => {
     const { uploadId, fileKey } = (await create()).json().data;
-    expect((await server.inject({ method: "POST", url: `/v1/uploads/${uploadId}/complete` })).statusCode).toBe(400);
-    expect((await put(uploadId)).statusCode).toBe(200);
-    expect(s3SendMock).toHaveBeenCalledOnce();
-    const input = s3SendMock.mock.calls[0][0].input;
-    expect(input.Key).toBe(fileKey);
-    expect(input.ContentType).toBe("image/png");
-    expect((await sharp(input.Body).metadata()).format).toBe("png");
+
+    const response = await complete(uploadId);
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data.fileKey).toBe(fileKey);
+    const commands = s3SendMock.mock.calls.map(([command]) => command);
+    expect(commands.map((command) => command.constructor.name)).toEqual([
+      "HeadObjectCommand",
+      "GetObjectCommand",
+      "PutObjectCommand",
+      "DeleteObjectCommand",
+    ]);
+    expect(commands[0].input.Key).toBe(`unverified/${uploadId}`);
+    expect(commands[1].input.Key).toBe(`unverified/${uploadId}`);
+    expect(commands[2].input.Key).toBe(fileKey);
+    expect(commands[2].input.ContentType).toBe("image/png");
+    expect((await sharp(commands[2].input.Body).metadata()).format).toBe("png");
+    expect(commands[3].input.Key).toBe(`unverified/${uploadId}`);
     expect((await db.query.fileUploads.findFirst())?.completedAt).not.toBeNull();
-    for (let i = 0; i < 2; i++) {
-      expect((await server.inject({ method: "POST", url: `/v1/uploads/${uploadId}/complete` })).statusCode).toBe(200);
-    }
-    expect((await put(uploadId)).statusCode).toBe(409);
-    expect(s3SendMock).toHaveBeenCalledOnce();
-  });
-  it("rejects concurrent replacement attempts", async () => {
-    const { uploadId } = (await create()).json().data;
-    const responses = await Promise.all([put(uploadId), put(uploadId)]);
-    expect(responses.map(r => r.statusCode).sort()).toEqual([200, 409]);
-    expect(s3SendMock).toHaveBeenCalledOnce();
-  });
-  it("rejects another account's content and completion requests", async () => {
-    const { uploadId } = (await create()).json().data;
-    getSessionMock.mockResolvedValue({ user: { id: randomUUID(), role: "user" } });
-    expect((await put(uploadId)).statusCode).toBe(404);
-    expect((await server.inject({ method: "POST", url: `/v1/uploads/${uploadId}/complete` })).statusCode).toBe(404);
+
+    s3SendMock.mockClear();
+    expect((await complete(uploadId)).statusCode).toBe(200);
     expect(s3SendMock).not.toHaveBeenCalled();
   });
-  it("rejects mismatched sizes, MIME types, and forged image signatures before storage", async () => {
+
+  it("reports an upload that has not reached R2 yet", async () => {
     const { uploadId } = (await create()).json().data;
-    expect((await put(uploadId, png.subarray(0, 8))).statusCode).toBe(400);
-    expect((await put(uploadId, png, "image/jpeg")).statusCode).toBe(400);
+    s3SendMock.mockRejectedValueOnce({
+      name: "NotFound",
+      $metadata: { httpStatusCode: 404 },
+    });
+
+    expect((await complete(uploadId)).statusCode).toBe(400);
+    expect((await db.query.fileUploads.findFirst())?.completedAt).toBeNull();
+  });
+
+  it("rejects another account's completion request", async () => {
+    const { uploadId } = (await create()).json().data;
+    getSessionMock.mockResolvedValue({
+      user: { id: randomUUID(), role: "user" },
+    });
+
+    expect((await complete(uploadId)).statusCode).toBe(404);
+    expect(s3SendMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects mismatched metadata and forged image bytes", async () => {
+    const first = (await create()).json().data;
+    s3SendMock.mockResolvedValueOnce({
+      ContentLength: png.length - 1,
+      ContentType: "image/png",
+    });
+    expect((await complete(first.uploadId)).statusCode).toBe(400);
+
+    const second = (await create()).json().data;
     const forged = Buffer.alloc(png.length);
     png.copy(forged, 0, 0, 8);
-    expect((await put(uploadId, forged)).statusCode).toBe(400);
-    expect(s3SendMock).not.toHaveBeenCalled();
-    expect((await db.query.fileUploads.findFirst())?.completedAt).toBeNull();
+    s3SendMock.mockImplementation(async (command) => {
+      if (command.constructor.name === "HeadObjectCommand") {
+        return { ContentLength: png.length, ContentType: "image/png" };
+      }
+      if (command.constructor.name === "GetObjectCommand") {
+        return {
+          Body: {
+            transformToByteArray: async () => new Uint8Array(forged),
+          },
+        };
+      }
+      return {};
+    });
+    expect((await complete(second.uploadId)).statusCode).toBe(400);
+
+    const finalWrites = s3SendMock.mock.calls
+      .map(([command]) => command)
+      .filter(
+        (command) =>
+          command.constructor.name === "PutObjectCommand" &&
+          !command.input.Key.startsWith("unverified/")
+      );
+    expect(finalWrites).toHaveLength(0);
   });
-  it("rejects oversized bodies before storage even when the allocation claims a small size", async () => {
-    const { uploadId } = (await create()).json().data;
-    expect((await put(uploadId, Buffer.alloc(5 * 1024 * 1024 + 1))).statusCode).toBe(413);
-    expect(s3SendMock).not.toHaveBeenCalled();
-  });
+
   it("rejects disallowed formats and oversized allocations", async () => {
-    for (const overrides of [{ byteSize: 5 * 1024 * 1024 + 1 }, { contentType: "image/svg+xml" }, { contentType: "text/html" }]) {
+    for (const overrides of [
+      { byteSize: 5 * 1024 * 1024 + 1 },
+      { contentType: "image/svg+xml" },
+      { contentType: "text/html" },
+    ]) {
       expect((await create(overrides)).statusCode).toBe(400);
     }
     expect(await db.query.fileUploads.findMany()).toHaveLength(0);
+    expect(getSignedUrlMock).not.toHaveBeenCalled();
   });
-  it("cleans up failed storage writes and leaves the upload retryable", async () => {
-    const { uploadId } = (await create()).json().data;
-    s3SendMock.mockRejectedValueOnce(new Error("Storage unavailable"));
-    expect((await put(uploadId)).statusCode).toBe(503);
-    expect(s3SendMock.mock.calls[1][0].constructor.name).toBe("DeleteObjectCommand");
+
+  it("cleans up a failed final write and leaves completion retryable", async () => {
+    const { uploadId, fileKey } = (await create()).json().data;
+    let failFinalWrite = true;
+    s3SendMock.mockImplementation(async (command) => {
+      if (command.constructor.name === "HeadObjectCommand") {
+        return { ContentLength: png.length, ContentType: "image/png" };
+      }
+      if (command.constructor.name === "GetObjectCommand") {
+        return {
+          Body: {
+            transformToByteArray: async () => new Uint8Array(png),
+          },
+        };
+      }
+      if (
+        command.constructor.name === "PutObjectCommand" &&
+        command.input.Key === fileKey &&
+        failFinalWrite
+      ) {
+        failFinalWrite = false;
+        throw new Error("Storage unavailable");
+      }
+      return {};
+    });
+
+    expect((await complete(uploadId)).statusCode).toBe(503);
     expect((await db.query.fileUploads.findFirst())?.completedAt).toBeNull();
-    expect((await put(uploadId)).statusCode).toBe(200);
+    expect(
+      s3SendMock.mock.calls.some(
+        ([command]) =>
+          command.constructor.name === "DeleteObjectCommand" &&
+          command.input.Key === fileKey
+      )
+    ).toBe(true);
+    expect((await complete(uploadId)).statusCode).toBe(200);
   });
 });
