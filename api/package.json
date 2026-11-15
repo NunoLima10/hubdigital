@@ -20,7 +20,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "AGPL-3.0-only",
   "packageManager": "pnpm@10.8.0",
   "devDependencies": {
     "@testcontainers/postgresql": "^12.2.1",

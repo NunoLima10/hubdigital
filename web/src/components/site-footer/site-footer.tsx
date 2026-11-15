@@ -38,6 +38,14 @@ export function SiteFooter() {
               <Link to="/ranking" className={linkClass}>
                 Como funciona o ranking
               </Link>
+              <a
+                href="https://github.com/NunoLima10/hubdigital"
+                target="_blank"
+                rel="noreferrer"
+                className={linkClass}
+              >
+                Código-fonte (AGPL)
+              </a>
               {analyticsEnabled && (
                 // Forgetting the answer brings the cookie banner back.
                 <button
