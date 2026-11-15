@@ -12,12 +12,28 @@ import { getRequestHeader } from "@tanstack/react-start/server";
  * .dev.vars locally), read from process.env on the server only, so it never
  * reaches the browser bundle.
  */
+// nodejs_compat (wrangler.jsonc) fills process.env with the Worker's vars and
+// secrets; the web app has no Node typings, hence the narrow cast.
+const workerEnv = () =>
+  (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env;
+
+/**
+ * The API base URL a server-side render calls. When the Worker proxies the API
+ * under its own origin (API_PROXY_TARGET, src/server.ts), the render goes
+ * straight to the API instead of round-tripping through its own public URL.
+ */
+export const ssrApiBaseUrl = createIsomorphicFn()
+  .server((baseUrl: string) => {
+    const target = workerEnv()?.API_PROXY_TARGET;
+    if (!target) return baseUrl;
+    const { pathname } = new URL(baseUrl);
+    return new URL(pathname, target).toString().replace(/\/$/, "");
+  })
+  .client((baseUrl: string) => baseUrl);
+
 export const ssrApiHeaders = createIsomorphicFn()
   .server((): Record<string, string> => {
-    // nodejs_compat (wrangler.jsonc) fills process.env with the Worker's
-    // secrets; the web app has no Node typings, hence the narrow cast.
-    const { process } = globalThis as { process?: { env: Record<string, string | undefined> } };
-    const key = process?.env.API_INTERNAL_KEY;
+    const key = workerEnv()?.API_INTERNAL_KEY;
     if (!key) return {};
     const visitorIp = getRequestHeader("cf-connecting-ip");
     return {
