@@ -25,20 +25,24 @@ sessions for any untrusted account.
 
 ## Images and R2
 
-The browser allocates an upload, then sends its image to the authenticated API
-`PUT /v1/uploads/:id/content`. The API enforces the 5 MB body limit, ownership,
-declared size and MIME type, and a 16 megapixel decoding limit. It fully decodes
-and re-encodes PNG, JPEG and WebP images before writing them to R2. Animated
-images are rejected. Completed objects cannot be replaced through the API.
-The completion endpoint is an idempotent confirmation of that verified write.
+The browser allocates an upload through the authenticated API and receives a
+short-lived presigned R2 PUT URL. It sends the bytes directly to an
+`unverified/<upload-id>` staging key, then calls the authenticated completion
+endpoint. The API checks ownership, declared size and MIME type, downloads the
+staged object, enforces the 5 MB and 16 megapixel limits, and fully decodes and
+re-encodes PNG, JPEG and WebP images before writing the permanent object.
+Animated images are rejected.
 
-The API host/reverse proxy must allow request bodies up to 5 MB. Storage write
-credentials belong only to the API; clients no longer need bucket PUT CORS
-access. Deploy the API and web changes together. Previously issued presigned
-URLs remain valid until their original expiry; allow them to expire before
-considering the old direct-upload flow retired. Review and remove orphaned
-objects left by the old flow using storage inventory, without deleting objects
-referenced by projects or accounts.
+Only the permanent key is stored on projects and accounts. Because the
+presigned URL can write only to its staging key, it cannot replace a completed
+image while the URL remains valid. Completion is idempotent and removes the
+staged object after the permanent object and database record are committed.
+
+R2 bucket CORS must allow `PUT` from every deployed web origin and allow the
+`Content-Type` request header. Storage credentials remain API-only; the browser
+receives only a scoped URL that expires after `UPLOADER_URL_EXPIRES_IN` seconds
+(300 by default). Review and remove abandoned `unverified/` objects with a
+storage lifecycle rule or inventory cleanup.
 
 ## Dependency checks
 
