@@ -3,6 +3,8 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import {
   GetMakerReply,
   GetMakerRequest,
+  GetFoundingMakersReply,
+  GetFoundingMakersRequest,
   GetMakerPreferencesReply,
   UpdateMakerPreferencesReply,
   UpdateMakerPreferencesRequest,
@@ -10,6 +12,22 @@ import {
   UpdateMakerRequest,
 } from "./makers-schemas";
 import { MakersService } from "./makers-services";
+
+async function getFoundingMakersHandler(
+  req: GetFoundingMakersRequest,
+  reply: GetFoundingMakersReply,
+) {
+  const { limit, offset } = req.query;
+  const result = await MakersService.getFoundingMakers(req.db, {
+    limit,
+    offset,
+  });
+
+  return reply.status(200).send({
+    data: result.data,
+    meta: { limit, offset, total: result.total },
+  });
+}
 
 async function getMakerHandler(req: GetMakerRequest, reply: GetMakerReply) {
   const profile = await MakersService.getProfileByHandle(
@@ -75,6 +93,7 @@ async function updatePreferencesHandler(
 }
 
 export const makersController = {
+  getFoundingMakersHandler,
   getMakerHandler,
   getMyHandleHandler,
   updateMakerHandler,
