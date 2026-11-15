@@ -17,6 +17,9 @@ export const users = pgTable("users", {
   banReason: text("ban_reason"),
   banExpires: timestamp("ban_expires", { withTimezone: true }),
   onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
+  eligibilityConfirmedAt: timestamp("eligibility_confirmed_at", {
+    withTimezone: true,
+  }),
   // Hidden, not banned: the account signs in and sees its own content, nobody
   // else does, and it is told why (specs/ADMIN.md §A4). `banned` above is Better
   // Auth's own hard ban — the account cannot sign in at all.

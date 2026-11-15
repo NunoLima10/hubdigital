@@ -31,10 +31,16 @@ const sections: LegalSection[] = [
           Termos e a Política de Privacidade.
         </p>
         <p>
-          O serviço é operado por <strong>[NOME OU DENOMINAÇÃO SOCIAL]</strong>, NIF
-          <strong> [NIF]</strong>, com sede ou domicílio em <strong>[MORADA]</strong>, telefone
-          <strong> [TELEFONE]</strong> e email <strong>[EMAIL DE CONTACTO]</strong>. Estes campos
-          têm de ser completados antes da publicação definitiva.
+          O Hub Digital é um projeto de código aberto criado e mantido principalmente por
+          <strong> Nuno Lima</strong>, de Mindelo, Cabo Verde. O código e a atividade pública do
+          projeto podem ser consultados no
+          <LegalLink href="https://github.com/NunoLima10/hubdigital"> repositório do Hub Digital no GitHub</LegalLink>.
+        </p>
+        <p>
+          Para assuntos relacionados com o serviço, suporte, denúncias ou questões jurídicas,
+          contacte <a href="mailto:codeisland1460@gmail.com" className="font-medium text-primary underline underline-offset-4">codeisland1460@gmail.com</a>.
+          As contribuições de código feitas por terceiros não tornam esses contribuidores
+          responsáveis pela operação da plataforma ou pelo conteúdo publicado pelos utilizadores.
         </p>
       </>
     ),
@@ -63,10 +69,14 @@ const sections: LegalSection[] = [
     content: (
       <>
         <p>
-          A criação autónoma de uma conta destina-se a pessoas com idade igual ou superior a
-          16 anos. Uma pessoa com menos de 16 anos apenas pode utilizar uma conta quando o
-          respetivo representante legal tiver autorizado o tratamento dos seus dados e o Hub
-          Digital disponibilizar um mecanismo adequado para essa autorização.
+          No perfil, o utilizador declara que tem pelo menos 16 anos ou que possui autorização
+          do respetivo representante legal. O Hub Digital regista a data dessa declaração e
+          presume que a informação fornecida é verdadeira, sem pedir data de nascimento ou
+          documento nesta etapa.
+        </p>
+        <p>
+          Se existirem motivos razoáveis para duvidar da declaração, o Hub Digital pode solicitar
+          confirmação adicional ou limitar a conta até a situação ser esclarecida.
         </p>
         <p>
           Quem utiliza o serviço em nome de uma organização declara ter poderes para vincular
@@ -272,7 +282,8 @@ const sections: LegalSection[] = [
           competentes ou a mecanismos legalmente disponíveis de resolução extrajudicial.
         </p>
         <p>
-          Contacto para suporte, denúncias e reclamações: <strong>[EMAIL E TELEFONE]</strong>.
+          Contacto para suporte, denúncias e reclamações:{" "}
+          <a href="mailto:codeisland1460@gmail.com" className="font-medium text-primary underline underline-offset-4">codeisland1460@gmail.com</a>.
           Consulte também a nossa <a href="/privacidade" className="font-medium text-primary underline underline-offset-4">Política de Privacidade</a> e a
           <LegalLink href="https://boe.incv.cv/Bulletins/Download/5909"> legislação cabo-verdiana sobre serviços digitais</LegalLink>.
         </p>
@@ -285,7 +296,6 @@ function TermsPage() {
   return (
     <LegalDocument
       title="Termos de utilização"
-      summary="As regras para criar uma conta, publicar projetos e participar de forma segura na comunidade Hub Digital."
       sections={sections}
     />
   );

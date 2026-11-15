@@ -36,7 +36,30 @@ async function updateAvatar(db: DB, userId: string, key: string | null) {
   return image;
 }
 
+async function getEligibilityConfirmation(db: DB, userId: string) {
+  const user = await db.query.users.findFirst({
+    columns: { eligibilityConfirmedAt: true },
+    where: eq(users.id, userId),
+  });
+  return user?.eligibilityConfirmedAt ?? null;
+}
+
+async function confirmEligibility(db: DB, userId: string) {
+  const confirmedAt = new Date();
+  const [user] = await db
+    .update(users)
+    .set({ eligibilityConfirmedAt: confirmedAt })
+    .where(eq(users.id, userId))
+    .returning({ eligibilityConfirmedAt: users.eligibilityConfirmedAt });
+  return user?.eligibilityConfirmedAt ?? confirmedAt;
+}
+
 export const UserService = {
   createPublisher: errorLogger(createPublisher, "usersService.createPublisher"),
   updateAvatar: errorLogger(updateAvatar, "usersService.updateAvatar"),
+  getEligibilityConfirmation: errorLogger(
+    getEligibilityConfirmation,
+    "usersService.getEligibilityConfirmation",
+  ),
+  confirmEligibility: errorLogger(confirmEligibility, "usersService.confirmEligibility"),
 };

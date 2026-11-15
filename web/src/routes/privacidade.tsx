@@ -25,13 +25,16 @@ const sections: LegalSection[] = [
     content: (
       <>
         <p>
-          O responsável pelo tratamento é <strong>[NOME OU DENOMINAÇÃO SOCIAL]</strong>, NIF
-          <strong> [NIF]</strong>, com sede ou domicílio em <strong>[MORADA]</strong>. Pode
-          contactar o responsável através de <strong>[EMAIL DE PRIVACIDADE]</strong> ou
-          <strong> [TELEFONE]</strong>.
+          O responsável pelo tratamento dos dados pessoais é <strong>Nuno Lima</strong>, de
+          Mindelo, Cabo Verde, criador e principal responsável pela manutenção do Hub Digital.
+          Pode contactar o responsável através de{" "}
+          <a href="mailto:codeisland1460@gmail.com" className="font-medium text-primary underline underline-offset-4">codeisland1460@gmail.com</a>.
         </p>
         <p>
-          Estes elementos devem ser completados antes da publicação definitiva desta Política.
+          O Hub Digital é um projeto de código aberto. O código pode receber contribuições da
+          comunidade, mas essas contribuições não tornam os respetivos autores responsáveis pelo
+          tratamento de dados efetuado através do serviço. O perfil público do responsável está
+          disponível no <LegalLink href="https://github.com/NunoLima10">GitHub</LegalLink>.
         </p>
       </>
     ),
@@ -44,6 +47,7 @@ const sections: LegalSection[] = [
         <p>Consoante a utilização do serviço, podemos tratar:</p>
         <LegalList>
           <li>nome, email, palavra-passe protegida, imagem e dados da conta;</li>
+          <li>estado e data da confirmação de idade ou autorização do representante legal;</li>
           <li>identificadores e credenciais técnicas de autenticação Google;</li>
           <li>handle, biografia, localização, país da diáspora e preferências;</li>
           <li>websites e perfis de GitHub, LinkedIn e Instagram;</li>
@@ -64,6 +68,7 @@ const sections: LegalSection[] = [
         <p>Utilizamos os dados para:</p>
         <LegalList>
           <li>criar, autenticar e proteger contas;</li>
+          <li>gerir a elegibilidade da conta e registar a declaração do utilizador;</li>
           <li>publicar perfis, projetos e conteúdos escolhidos pelo utilizador;</li>
           <li>fornecer comentários, votos, favoritos, equipas e estatísticas;</li>
           <li>moderar conteúdos e resolver denúncias e reclamações;</li>
@@ -212,7 +217,8 @@ const sections: LegalSection[] = [
           <li>informação sobre destinatários e transferências.</li>
         </LegalList>
         <p>
-          Os pedidos são enviados para <strong>[EMAIL DE PRIVACIDADE]</strong>. Podemos solicitar
+          Os pedidos são enviados para{" "}
+          <a href="mailto:codeisland1460@gmail.com" className="font-medium text-primary underline underline-offset-4">codeisland1460@gmail.com</a>. Podemos solicitar
           informação necessária para confirmar a identidade. Também pode apresentar reclamação à
           <LegalLink href="https://www.cnpd.cv/"> Comissão Nacional de Proteção de Dados</LegalLink>.
         </p>
@@ -241,12 +247,18 @@ const sections: LegalSection[] = [
     id: "menores",
     title: "12. Menores",
     content: (
-      <p>
-        O serviço não se destina à criação autónoma de contas por menores de 16 anos. Se soubermos
-        que recolhemos dados de uma pessoa abaixo dessa idade sem autorização válida do
-        representante legal, tomaremos medidas para limitar ou eliminar os dados. O representante
-        legal pode exercer os direitos da pessoa menor através do contacto de privacidade.
-      </p>
+      <>
+        <p>
+          No perfil, o utilizador confirma que tem pelo menos 16 anos ou autorização do seu
+          representante legal. Guardamos a data dessa confirmação para gerir a elegibilidade da
+          conta; não recolhemos a data de nascimento nem documentos de identificação nesta etapa.
+        </p>
+        <p>
+          Se soubermos que uma pessoa abaixo dessa idade utiliza o serviço sem autorização válida,
+          tomaremos medidas para limitar ou eliminar os dados. O representante legal pode exercer
+          os direitos da pessoa menor através do contacto de privacidade.
+        </p>
+      </>
     ),
   },
   {
@@ -260,7 +272,8 @@ const sections: LegalSection[] = [
           atualizada no início do documento.
         </p>
         <p>
-          Contacto de privacidade: <strong>[EMAIL, TELEFONE E MORADA]</strong>. Consulte também os
+          Contacto de privacidade:{" "}
+          <a href="mailto:codeisland1460@gmail.com" className="font-medium text-primary underline underline-offset-4">codeisland1460@gmail.com</a>. Consulte também os
           nossos <a href="/termos" className="font-medium text-primary underline underline-offset-4">Termos de utilização</a> e a
           <LegalLink href="https://www.cnpd.cv/legislacao/"> legislação publicada pela CNPD</LegalLink>.
         </p>
@@ -273,7 +286,6 @@ function PrivacyPage() {
   return (
     <LegalDocument
       title="Política de privacidade"
-      summary="Como recolhemos, utilizamos, partilhamos, protegemos e eliminamos dados pessoais no Hub Digital."
       sections={sections}
     />
   );

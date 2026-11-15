@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { authClient } from "@/lib/auth-client";
 import { AccountForm } from "@/modules/account/components/account-form/account-form";
+import { EligibilityConfirmationBanner } from "@/modules/account/components/eligibility-confirmation-banner/eligibility-confirmation-banner";
 import { PasswordForm } from "@/modules/account/components/password-form/password-form";
 import { BadgePicker } from "@/modules/badges/components/badge-picker";
 import { DashboardPage } from "@/modules/dashboard/components/dashboard-page/dashboard-page";
@@ -31,6 +32,7 @@ function RouteComponent() {
 
   return (
     <DashboardPage>
+      <EligibilityConfirmationBanner />
       <section aria-label="Conta" className="border-b pb-6">
         <Profile />
       </section>

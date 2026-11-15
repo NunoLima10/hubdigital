@@ -1,7 +1,6 @@
 import { SiteFooter } from "@/components/site-footer/site-footer";
 import { Header } from "@/components/header/header";
 import { Page } from "@/layouts/page";
-import { AlertTriangle, FileText } from "lucide-react";
 import type { ReactNode } from "react";
 
 export const LEGAL_VERSION = "15 de novembro de 2026";
@@ -14,7 +13,7 @@ export type LegalSection = {
 
 type LegalDocumentProps = {
   title: string;
-  summary: string;
+  summary?: string;
   sections: LegalSection[];
 };
 
@@ -23,24 +22,18 @@ export function LegalDocument({ title, summary, sections }: LegalDocumentProps) 
     <Page header={<Header />} footer={<SiteFooter />}>
       <article className="mx-auto max-w-5xl pb-12">
         <header className="border-b pb-8 md:pb-10">
-          <div className="flex items-center gap-2 text-sm font-medium text-primary">
-            <FileText className="size-4" aria-hidden="true" />
-            Documento legal
-          </div>
-          <h1 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+          <h1 className="max-w-3xl text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
             {title}
           </h1>
-          <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">
-            {summary}
-          </p>
-          <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-2 text-sm">
+          {summary && (
+            <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground">
+              {summary}
+            </p>
+          )}
+          <dl className="mt-6 text-sm">
             <div className="flex gap-2">
-              <dt className="text-muted-foreground">Versão</dt>
+              <dt className="text-muted-foreground">Última atualização</dt>
               <dd className="font-medium">{LEGAL_VERSION}</dd>
-            </div>
-            <div className="flex gap-2">
-              <dt className="text-muted-foreground">Estado</dt>
-              <dd className="font-medium">Preparação para publicação</dd>
             </div>
           </dl>
         </header>
@@ -65,19 +58,6 @@ export function LegalDocument({ title, summary, sections }: LegalDocumentProps) 
           </aside>
 
           <div className="min-w-0">
-            <div className="mb-8 flex gap-3 border-l-4 border-primary bg-primary-soft p-4 text-sm leading-6">
-              <AlertTriangle className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
-              <div>
-                <p className="font-semibold">Informação do operador ainda necessária</p>
-                <p className="mt-1 text-muted-foreground">
-                  Antes da publicação definitiva, devem ser inseridos o nome legal, NIF,
-                  registo, morada, telefone e contactos de suporte e privacidade do responsável
-                  pelo Hub Digital. O documento permanece fora dos motores de pesquisa até essa
-                  informação ser confirmada.
-                </p>
-              </div>
-            </div>
-
             <div className="space-y-10">
               {sections.map((section) => (
                 <section key={section.id} id={section.id} className="scroll-mt-6 border-b pb-10 last:border-b-0">

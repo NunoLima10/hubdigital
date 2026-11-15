@@ -77,7 +77,7 @@ export function SignUpForm() {
             <Link to="/privacidade" target="_blank" className="font-medium text-primary underline underline-offset-4">
               Política de Privacidade
             </Link>
-            . Confirmo que tenho pelo menos 16 anos ou autorização do meu representante legal.
+            .
           </span>
         </label>
         <Button type="submit" disabled={isPending} className="w-full">
