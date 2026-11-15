@@ -1,4 +1,5 @@
 import { BadgesService } from "@/modules/badges/badges-services";
+import { ProjectBadgesService } from "@/modules/project-badges/project-badges-services";
 import { BadRequestError, NotFoundError } from "@/utils/custom-errors";
 import { FastifyRequest } from "fastify";
 import {
@@ -136,7 +137,9 @@ async function getProjectHandler(req: NumericIdRequest, reply: NumericIdReply) {
     req.params.id
   );
 
-  return reply.status(200).send({ data: { ...project, history } });
+  const badges = await ProjectBadgesService.listForAdmin(req.db, req.params.id);
+
+  return reply.status(200).send({ data: { ...project, history, badges } });
 }
 
 async function approveProjectHandler(req: ApproveRequest, reply: ApproveReply) {

@@ -18,6 +18,7 @@ import {
 } from "@/components/status-badge/status-badge";
 import { CommentsTable } from "@/modules/comments/components/comments-table/comments-table";
 import { ProjectReviewPanel } from "@/modules/queue/components/project-review-panel/project-review-panel";
+import { ProjectBadgesCard } from "@/modules/badges/project-badges-card";
 import { relativeTime } from "@/utils/relative-time";
 import {
   Alert,
@@ -267,6 +268,12 @@ function RouteComponent() {
                   )}
                 </Stack>
               </Card>
+
+              <ProjectBadgesCard
+                projectId={projectId}
+                badges={project.badges}
+                queryKey={queryKey}
+              />
 
               <Card withBorder padding="lg">
                 <Stack gap="sm">

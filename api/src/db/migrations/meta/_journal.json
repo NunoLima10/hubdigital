@@ -29,6 +29,13 @@
       "when": 1794760915487,
       "tag": "0003_site_stats_snapshots",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794772760420,
+      "tag": "0004_project_badges",
+      "breakpoints": true
     }
   ]
 }

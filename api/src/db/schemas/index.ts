@@ -21,3 +21,4 @@ export * from "./project-link-clicks";
 export * from "./project-community";
 export * from "./badges";
 export * from "./site-stats";
+export * from "./project-badges";

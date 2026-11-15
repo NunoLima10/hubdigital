@@ -38,6 +38,7 @@ import {
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
 import { currentWeek, LaunchRange } from "@/utils/week";
+import { ProjectBadgesService } from "@/modules/project-badges/project-badges-services";
 import {
   getYoutubeVideoId,
   ListSort,
@@ -172,11 +173,16 @@ async function weeklyRankForProject(
   const launched = launchedAt ? new Date(launchedAt) : null;
   if (!launched || launched < week.start || launched >= week.end) return null;
 
+  // Spelled out: a single-table select renders projects.id as a bare "id",
+  // which inside the subqueries below would bind to the inner table's own id
+  // and count every project as one vote.
+  const projectIdRef = sql.raw(`"projects"."id"`);
+
   async function rankingAt(cutoff: Date) {
     const voteCount = sql<number>`(
       select count(*)::int
       from project_upvotes pu
-      where pu.project_id = ${projects.id}
+      where pu.project_id = ${projectIdRef}
         and pu.created_at <= ${cutoff.toISOString()}::timestamptz
     )`;
     return db
@@ -187,7 +193,7 @@ async function weeklyRankForProject(
           publicProjectConditions,
           sql`exists (
             select 1 from project_announcements a
-            where a.project_id = ${projects.id}
+            where a.project_id = ${projectIdRef}
               and a.status = 'published'
               and a.published_at >= ${week.start.toISOString()}::timestamptz
               and a.published_at < ${week.end.toISOString()}::timestamptz
@@ -886,6 +892,8 @@ async function getProjectBySlug(db: DB, slug: string, userId?: string) {
   return {
     ...serializeProject(project),
     weeklyRank: await weeklyRankForProject(db, project.id, project.launchedAt),
+    badges: await ProjectBadgesService.listForProject(db, project.id),
+    bestWeeklyRank: await ProjectBadgesService.bestWeeklyRank(db, project.id),
     ...(isOwner
       ? {
           ...ownerModerationFields(project, publisher?.user),
@@ -1069,6 +1077,11 @@ async function toggleUpvote(
     .select({ upvoteCount: count() })
     .from(projectUpvotes)
     .where(eq(projectUpvotes.projectId, projectId));
+
+  if (removed.length === 0) {
+    // A milestone plaque is a bonus; a failure here must not fail the vote.
+    await ProjectBadgesService.awardUpvoteMilestones(db, projectId, upvoteCount).catch(() => {});
+  }
 
   return { upvoted: removed.length === 0, upvoteCount };
 }
