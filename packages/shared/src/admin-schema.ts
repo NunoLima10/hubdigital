@@ -2,6 +2,7 @@ import { projectProfileFields } from "./project-profile";
 import { projectGeographyFields } from "./location-schema";
 import { z } from "zod";
 import { awardedBadgeSchema } from "./badge-schema";
+import { adminProjectBadgeAwardSchema } from "./project-badge-schema";
 import { projectDraftLinkSchema } from "./project-links";
 import {
   MODERATION_BULK_MAX,
@@ -132,6 +133,7 @@ export type AdminProject = z.infer<typeof adminProjectSchema>;
 
 export const adminProjectDetailSchema = adminProjectSchema.extend({
   history: z.array(auditEntrySchema),
+  badges: z.array(adminProjectBadgeAwardSchema),
 });
 
 export type AdminProjectDetail = z.infer<typeof adminProjectDetailSchema>;

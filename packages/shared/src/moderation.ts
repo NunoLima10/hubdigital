@@ -36,6 +36,8 @@ export const moderationActionValues = [
   "category.update",
   "user.badge_grant",
   "user.badge_revoke",
+  "project.badge_grant",
+  "project.badge_revoke",
 ] as const;
 
 export type ModerationAction = (typeof moderationActionValues)[number];

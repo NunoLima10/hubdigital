@@ -4,8 +4,12 @@ import { logger } from "@/utils/logger";
 import { DBClient, setupDB, teardownDB } from "@/db";
 import { config } from "./config";
 import { analytics } from "@/lib/analytics";
+import { startProjectBadgeJobs } from "@/modules/project-badges/project-badges-services";
+
+let stopProjectBadgeJobs: (() => void) | undefined;
 
 async function gracefulShutdown(server: FastifyInstance, dbClient: DBClient) {
+  stopProjectBadgeJobs?.();
   await server.close();
   await analytics.shutdown();
   await teardownDB(dbClient);
@@ -22,6 +26,8 @@ async function start() {
       host: config.HOST,
     });
     logger.info(`Server is running on port ${config.PORT}`);
+    // Weekly ranking close, upvote milestones and pioneer plaques.
+    stopProjectBadgeJobs = startProjectBadgeJobs(db);
   } catch (error) {
     logger.error(error);
     await gracefulShutdown(server, dbClient);

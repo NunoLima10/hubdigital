@@ -31,6 +31,7 @@ import {
 } from "@/modules/submit/options";
 import type { Project } from "@/modules/submit/types/project";
 import { ProjectGeography } from "@/components/project-geography";
+import { ProjectAchievements } from "@/modules/project-detail/components/project-achievements/project-achievements";
 import {
   FavoriteHeart,
   type FavoriteHeartHandle,
@@ -254,6 +255,7 @@ export function ProjectDetailSidebar({
   return (
     <div className="space-y-6">
       {project.weeklyRank && <WeeklyRank rank={project.weeklyRank} />}
+      <ProjectAchievements project={project} />
       <section>
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Publicado por

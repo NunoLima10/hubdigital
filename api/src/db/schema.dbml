@@ -19,6 +19,8 @@ enum moderation_action {
   "category.update"
   "user.badge_grant"
   "user.badge_revoke"
+  "project.badge_grant"
+  "project.badge_revoke"
 }
 
 enum moderation_target {
@@ -291,6 +293,7 @@ table users {
   ban_reason text
   ban_expires "timestamp with time zone"
   onboarded_at "timestamp with time zone"
+  eligibility_confirmed_at "timestamp with time zone"
   shadow_banned_at "timestamp with time zone"
   shadow_banned_by text
   shadow_ban_reason text
@@ -518,6 +521,7 @@ table publishers {
   github_url text
   linkedin_url text
   instagram_url text
+  discord_url text
   profile_response profile_responses [not null]
   objective_response objective_responses [not null]
   location_response location_responses [not null]
@@ -678,6 +682,41 @@ table user_badges {
     (user_id, badge_key) [name: 'user_badges_user_badge_idx', unique]
     user_id [name: 'user_badges_featured_idx', unique]
     badge_key [name: 'user_badges_badge_idx']
+  }
+}
+
+table site_stats_snapshots {
+  day date [pk, not null]
+  payload jsonb
+  fetched_at "timestamp with time zone"
+  refreshing_at "timestamp with time zone"
+}
+
+table project_badge_awards {
+  id serial [pk, not null, increment]
+  project_id integer [not null]
+  badge_key varchar(40) [not null]
+  period varchar(10) [not null, default: '']
+  rank integer
+  awarded_at "timestamp with time zone" [not null, default: `now()`]
+  awarded_by text
+
+  indexes {
+    (project_id, badge_key, period) [name: 'project_badge_awards_unique_idx', unique]
+    (badge_key, period) [name: 'project_badge_awards_key_period_idx']
+  }
+}
+
+table weekly_ranking_results {
+  week_id varchar(8) [not null]
+  project_id integer [not null]
+  rank integer [not null]
+  upvotes integer [not null]
+  closed_at "timestamp with time zone" [not null, default: `now()`]
+
+  indexes {
+    (week_id, project_id) [pk]
+    project_id [name: 'weekly_ranking_results_project_idx']
   }
 }
 
