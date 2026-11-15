@@ -14,7 +14,7 @@ function GoogleIcon() {
   );
 }
 
-export function GoogleSignInButton() {
+export function GoogleSignInButton({ disabled = false }: { disabled?: boolean }) {
   const [isPending, setIsPending] = useState(false);
 
   async function signInWithGoogle() {
@@ -37,7 +37,7 @@ export function GoogleSignInButton() {
   }
 
   return (
-    <Button type="button" variant="outline" className="w-full" disabled={isPending} onClick={signInWithGoogle}>
+    <Button type="button" variant="outline" className="w-full" disabled={disabled || isPending} onClick={signInWithGoogle}>
       <GoogleIcon />
       {isPending ? "A redirecionar..." : "Continuar com Google"}
     </Button>
