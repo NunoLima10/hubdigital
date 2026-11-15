@@ -14,6 +14,7 @@ export const Route = createFileRoute("/sitemap.xml")({
         const xml = renderSitemap([
           { path: "/" },
           { path: "/map" },
+          { path: "/brand" },
           ...projects.map((project) => ({
             path: projectPath(project.slug),
             lastModified: parseApiDate(project.launchedAt ?? project.createdAt),
