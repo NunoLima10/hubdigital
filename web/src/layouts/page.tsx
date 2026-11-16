@@ -21,7 +21,7 @@ export function Page({
   viewTransition = false,
 }: PageProps) {
   return (
-    <div className={cn("min-h-screen bg-background", header && "pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0")}>
+    <div className={cn("flex min-h-screen flex-col bg-background", header &&"pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0")}>
       {banner}
       {header}
       <div
@@ -42,7 +42,8 @@ export function Page({
         </main>
         {rightSection && <aside className="lg:order-2">{rightSection}</aside>}
       </div>
-      {footer}
+      {/* mt-auto pins the footer to the bottom when the page content is short. */}
+      {footer && <div className="mt-auto">{footer}</div>}
     </div>
   );
 }
