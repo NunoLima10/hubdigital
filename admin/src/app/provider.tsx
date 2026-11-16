@@ -5,7 +5,7 @@ import "@mantine/notifications/styles.css";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { PropsWithChildren } from "react";
 import { queryClient } from "./query-client";
-import { theme } from "@hubdigital/theme";
+import { theme } from "./theme";
 
 export function AppProvider({ children }: PropsWithChildren) {
   return (

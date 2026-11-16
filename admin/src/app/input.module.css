@@ -1,0 +1,5 @@
+.input {
+  @mixin smaller-than $mantine-breakpoint-md {
+    --input-fz: var(--mantine-font-size-md);
+  }
+}
