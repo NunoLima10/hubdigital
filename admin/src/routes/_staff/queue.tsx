@@ -27,6 +27,7 @@ export const Route = createFileRoute("/_staff/queue")({
 });
 
 const QUEUE_KEY = ["admin", "projects", "pending"];
+const EMPTY_QUEUE: AdminProject[] = [];
 
 function RouteComponent() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -38,7 +39,7 @@ function RouteComponent() {
       fetchProjects({ status: "pending", sort: "queued", limit: 100 }),
   });
 
-  const queue = data?.data ?? [];
+  const queue = data?.data ?? EMPTY_QUEUE;
 
   // Keep a selection alive across refetches, but never point at something the
   // last approval removed from the list.

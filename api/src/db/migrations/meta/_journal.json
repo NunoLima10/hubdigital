@@ -40,8 +40,15 @@
     {
       "idx": 5,
       "version": "7",
-      "when": 1794790998669,
-      "tag": "0005_project_badge_seen",
+      "when": 1794781000000,
+      "tag": "0005_restore_database_invariants",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794793861183,
+      "tag": "0006_project_badge_seen",
       "breakpoints": true
     }
   ]
