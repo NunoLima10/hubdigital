@@ -3,6 +3,7 @@ import {
   revealVariants,
   setRevealVariant,
   getRevealVariant,
+  DEFAULT_REVEAL,
   type RevealVariant,
 } from "@/components/badge/reveal-variants";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/playground/onboarding")({
  * real onboarding plays it too.
  */
 function OnboardingPlayground() {
-  const [reveal, setReveal] = useState<RevealVariant>("sequence");
+  const [reveal, setReveal] = useState<RevealVariant>(DEFAULT_REVEAL);
   const [badgeKey, setBadgeKey] = useState<BadgeKey>("founding-silver");
   const [run, setRun] = useState(0);
   const [open, setOpen] = useState(true);
@@ -95,6 +96,9 @@ function OnboardingPlayground() {
                   onClick={() => pick(variant.id)}
                 >
                   {variant.name}
+                  {variant.id === DEFAULT_REVEAL && (
+                    <span className="ml-auto text-[11px] font-normal opacity-70">padrão</span>
+                  )}
                 </Button>
               ))}
             </div>
@@ -127,8 +131,9 @@ function OnboardingPlayground() {
             </Button>
 
             <p className={cn("text-[11px] leading-4 text-muted-foreground")}>
-              A escolha fica guardada e o onboarding real passa a usá-la. Também
-              podes forçar com <code>?reveal={reveal}</code>.
+              A escolha fica guardada neste browser e o onboarding real passa a
+              usá-la; os outros veem a padrão. Também podes forçar com{" "}
+              <code>?reveal={reveal}</code>.
             </p>
           </div>
         ) : (
