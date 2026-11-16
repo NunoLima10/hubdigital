@@ -19,5 +19,6 @@ export default async function seed(db: DB) {
     logger.info("Categories seeded successfully.");
   } catch (error) {
     logger.error(error, "Unexpected error during Categories seeding");
+    throw error;
   }
 }
