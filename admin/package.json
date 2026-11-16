@@ -1,6 +1,7 @@
 {
   "name": "@hubdigital/admin",
   "version": "1.0.0",
+  "type": "module",
   "description": "Back-office staff-only para Hub Digital",
   "main": "index.js",
   "scripts": {
