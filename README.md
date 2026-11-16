@@ -28,6 +28,8 @@ em `specs/` incluem propostas; nem todas estão implementadas.
 - Git e portas locais livres: `5432`, `3001`, `5173` e `5174`.
 
 Se ainda não tens pnpm: `npm install --global pnpm@10.8.0`.
+Para trabalhar só com Docker, Node e pnpm são dispensáveis; consulta
+[Tudo em Docker](#tudo-em-docker).
 No Windows, usa Docker Desktop com containers Linux.
 
 ## Arranque local
@@ -68,6 +70,59 @@ migrações e inicia a API e o website.
 - API: <http://localhost:3001>
 - Swagger UI: <http://localhost:3001/docs>
 - OpenAPI JSON: <http://localhost:3001/docs/json>
+
+### Tudo em Docker
+
+Com Docker não precisas de Node nem de pnpm no host. Copia os ficheiros `.env`
+como acima e gera os segredos com `openssl rand -hex 32`. Depois corre:
+
+```sh
+docker compose --profile app up
+```
+
+O serviço `setup` instala as dependências, compila `shared` e aplica as
+migrações. Se a tabela de utilizadores estiver vazia, corre o seed de
+desenvolvimento; caso contrário, aplica só os dados de referência (categorias e
+badges), sem tocar nos projetos de exemplo. Depois arrancam a API, o website e o
+back-office, nos mesmos URLs, publicados apenas em `127.0.0.1`. O código é
+montado no container e as alterações no host recarregam as apps. Os
+`node_modules` ficam em volumes do Docker, separados dos do host.
+
+Dentro do Compose, a API liga-se a `hub-digital-db` com a password do `.env` da
+raiz (o `DATABASE_URL` de `api/.env` é ignorado) e o SSR do website chama a API
+em `http://api:3001`; o browser continua a usar `localhost`. Essa password entra
+num URL sem codificação, por isso usa só letras e números.
+
+| Comando | Utilização |
+| --- | --- |
+| `docker compose exec api pnpm api:db:gen` | Correr um comando dentro do container |
+| `docker compose exec api pnpm shared:build` | Recompilar `shared`; depois `docker compose --profile app restart api web admin` |
+| `docker compose exec api pnpm api:db:seed` | Seed de desenvolvimento manual; requer `DB_SEEDING=true` em `api/.env` |
+| `docker compose exec api pnpm test:unit` | Testes sem Docker |
+| `docker compose --profile test run --rm tests` | `pnpm test` completo, com Testcontainers |
+| `docker compose --profile test run --rm tests pnpm check` | Lint, testes e builds, como no CI |
+| `docker compose --profile app down` | Parar tudo, preservando os dados |
+
+O serviço `tests` não usa a base de dados de desenvolvimento: monta o socket do
+Docker para criar PostgreSQL descartáveis e só existe no perfil `test`. Em
+Linux, define `DOCKER_GID` no `.env` da raiz com o grupo do socket
+(`getent group docker | cut -d: -f3`); o utilizador do container tem uid 1000.
+
+Para recomeçar com a base de dados vazia:
+
+```sh
+docker compose exec hub-digital-db dropdb -U postgres --force hubdigitaldb
+docker compose exec hub-digital-db createdb -U postgres hubdigitaldb
+docker compose --profile app run --rm setup
+docker compose --profile app restart api
+```
+
+`docker compose --profile app down -v` apaga todos os volumes, incluindo a base
+de dados, e não só os `node_modules`.
+
+Sem `--profile`, `docker compose up` e `pnpm docker:up` sobem só o PostgreSQL,
+por isso `pnpm dev` no host funciona como antes. Não o corras com o perfil `app`
+ativo: as portas `3001` e `5173` colidem.
 
 ### Dados de demonstração e administração
 
@@ -119,7 +174,7 @@ Nunca coloques segredos em variáveis `VITE_APP_*`: são públicas no frontend.
 | `pnpm dev` | PostgreSQL, migrações, API e website |
 | `pnpm dev:apps` | API e website, com a base de dados já preparada |
 | `pnpm admin:dev` | Back-office, num terminal separado |
-| `pnpm docker:down` | Parar PostgreSQL, preservando os dados |
+| `pnpm docker:down` | Parar todos os containers do Compose, preservando os dados |
 | `pnpm api:db:gen` | Gerar migração após alterar schemas |
 | `pnpm api:db:migrate` | Aplicar migrações existentes |
 | `pnpm api:db:seed` | Inserir dados de referência e fixtures de desenvolvimento |
