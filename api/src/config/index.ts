@@ -34,8 +34,9 @@ export const envSchema = z.object({
     ),
 
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  DB_MIGRATING: z.coerce.boolean().default(false),
-  DB_SEEDING: z.coerce.boolean().default(false),
+  // stringbool, not coerce.boolean: coercion turns the string "false" into true.
+  DB_MIGRATING: z.stringbool().default(false),
+  DB_SEEDING: z.stringbool().default(false),
 
   ADMIN_SEED_NAME: blankAsUnset(z.string()),
   ADMIN_SEED_EMAIL: blankAsUnset(z.string().email()),

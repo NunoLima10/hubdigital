@@ -12,6 +12,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx --env-file .env src/scripts/seeds.ts",
+    "db:seed:prod": "node dist/src/scripts/seed-production.js",
     "og:site": "tsx src/scripts/generate-site-share-image.ts",
     "dbml:generate": "tsx src/db/dbml.ts",
     "better-auth:gen": "npx @better-auth/cli generate --output src/db/schemas/auth.ts --yes",
