@@ -3,6 +3,7 @@ import "@/index.css";
 import { analyticsScripts } from "@/lib/analytics";
 import { seo } from "@/lib/seo";
 import { BadgeCelebration } from "@/modules/badges/components/badge-celebration";
+import { ProjectBadgeCelebration } from "@/modules/project-badges/components/project-badge-celebration";
 import { discoverySearchSchema } from "@/modules/project-list/search-params";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -60,6 +61,7 @@ function RootComponent() {
     <AppProvider>
       <Outlet />
       <BadgeCelebration />
+      <ProjectBadgeCelebration />
     </AppProvider>
   );
 }

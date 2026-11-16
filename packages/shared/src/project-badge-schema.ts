@@ -185,7 +185,26 @@ export const grantProjectBadgeBodySchema = z
     }
   });
 
+/**
+ * An award on one of the signed-in maker's projects that they haven't been
+ * shown yet, with enough of the project to celebrate it.
+ */
+export const unseenProjectBadgeSchema = projectBadgeAwardSchema.extend({
+  project: z.object({
+    id: z.number(),
+    slug: z.string(),
+    name: z.string(),
+    logoUrl: z.string().nullable(),
+  }),
+});
+
+export const markProjectBadgesSeenBodySchema = z.object({
+  ids: z.array(z.number().int().positive()).min(1).max(50),
+});
+
 export type ProjectBadgeAward = z.infer<typeof projectBadgeAwardSchema>;
+export type UnseenProjectBadge = z.infer<typeof unseenProjectBadgeSchema>;
+export type MarkProjectBadgesSeenBody = z.infer<typeof markProjectBadgesSeenBodySchema>;
 export type AdminProjectBadgeAward = z.infer<typeof adminProjectBadgeAwardSchema>;
 export type BestWeeklyRank = z.infer<typeof bestWeeklyRankSchema>;
 export type GrantProjectBadgeBody = z.infer<typeof grantProjectBadgeBodySchema>;

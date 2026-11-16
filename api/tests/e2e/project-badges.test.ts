@@ -328,4 +328,62 @@ describe("Project badges (e2e)", () => {
       expect(asMaker.statusCode).toBe(403);
     });
   });
+  describe("celebrations", () => {
+    it("lists unseen awards on the maker's own projects and marks them seen", async () => {
+      const mine = await insertProject(db, { publisherId, categoryId, slug: "meu" });
+      const otherId = await insertUser(db, { name: "Outra" });
+      const otherPublisherId = await insertPublisher(db, otherId);
+      const theirs = await insertProject(db, {
+        publisherId: otherPublisherId,
+        categoryId,
+        slug: "delas",
+      });
+
+      const [fresh] = await db
+        .insert(projectBadgeAwards)
+        .values({ projectId: mine.id, badgeKey: "upvotes-10" })
+        .returning();
+      await db.insert(projectBadgeAwards).values({
+        projectId: mine.id,
+        badgeKey: "pioneer",
+        rank: 3,
+        seenAt: new Date().toISOString(),
+      });
+      const [foreign] = await db
+        .insert(projectBadgeAwards)
+        .values({ projectId: theirs.id, badgeKey: "upvotes-10" })
+        .returning();
+
+      signedInAs(makerId);
+      const unseen = await server.inject({ method: "GET", url: "/v1/project-badges/me/unseen" });
+      expect(unseen.statusCode).toBe(200);
+      const { data } = unseen.json();
+      expect(data).toHaveLength(1);
+      expect(data[0]).toMatchObject({
+        id: fresh.id,
+        key: "upvotes-10",
+        project: { id: mine.id, slug: "meu" },
+      });
+
+      // Someone else's award id is ignored, not marked.
+      const seen = await server.inject({
+        method: "POST",
+        url: "/v1/project-badges/me/seen",
+        payload: { ids: [fresh.id, foreign.id] },
+      });
+      expect(seen.statusCode).toBe(200);
+      expect(seen.json().data).toEqual([]);
+
+      const foreignRow = await db.query.projectBadgeAwards.findFirst({
+        where: eq(projectBadgeAwards.id, foreign.id),
+      });
+      expect(foreignRow?.seenAt).toBeNull();
+    });
+
+    it("needs a signed-in user", async () => {
+      getSessionMock.mockResolvedValue(null);
+      const response = await server.inject({ method: "GET", url: "/v1/project-badges/me/unseen" });
+      expect(response.statusCode).toBe(401);
+    });
+  });
 });

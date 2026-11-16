@@ -25,6 +25,8 @@ import { Route as AuthedDashboardRouteRouteImport } from './routes/_authed/dashb
 import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
 import { Route as MakersHandleRouteImport } from './routes/makers/$handle'
 import { Route as PlaygroundBadgesRouteImport } from './routes/playground/badges'
+import { Route as PlaygroundOnboardingRouteImport } from './routes/playground/onboarding'
+import { Route as PlaygroundProjectBadgesRouteImport } from './routes/playground/project-badges'
 import { Route as ProfilesHandleRouteImport } from './routes/profiles/$handle'
 import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
 import { Route as RankingsWeekRouteImport } from './routes/rankings/$week'
@@ -115,6 +117,16 @@ const PlaygroundBadgesRoute = PlaygroundBadgesRouteImport.update({
   path: '/playground/badges',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlaygroundOnboardingRoute = PlaygroundOnboardingRouteImport.update({
+  id: '/playground/onboarding',
+  path: '/playground/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaygroundProjectBadgesRoute = PlaygroundProjectBadgesRouteImport.update({
+  id: '/playground/project-badges',
+  path: '/playground/project-badges',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfilesHandleRoute = ProfilesHandleRouteImport.update({
   id: '/profiles/$handle',
   path: '/profiles/$handle',
@@ -185,6 +197,8 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
   '/playground/badges': typeof PlaygroundBadgesRoute
+  '/playground/onboarding': typeof PlaygroundOnboardingRoute
+  '/playground/project-badges': typeof PlaygroundProjectBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
@@ -212,6 +226,8 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
   '/playground/badges': typeof PlaygroundBadgesRoute
+  '/playground/onboarding': typeof PlaygroundOnboardingRoute
+  '/playground/project-badges': typeof PlaygroundProjectBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
@@ -241,6 +257,8 @@ export interface FileRoutesById {
   '/_authed/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
   '/playground/badges': typeof PlaygroundBadgesRoute
+  '/playground/onboarding': typeof PlaygroundOnboardingRoute
+  '/playground/project-badges': typeof PlaygroundProjectBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
@@ -270,6 +288,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/makers/$handle'
     | '/playground/badges'
+    | '/playground/onboarding'
+    | '/playground/project-badges'
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
@@ -297,6 +317,8 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/makers/$handle'
     | '/playground/badges'
+    | '/playground/onboarding'
+    | '/playground/project-badges'
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
@@ -325,6 +347,8 @@ export interface FileRouteTypes {
     | '/_authed/onboarding'
     | '/makers/$handle'
     | '/playground/badges'
+    | '/playground/onboarding'
+    | '/playground/project-badges'
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
@@ -352,6 +376,8 @@ export interface RootRouteChildren {
   TermosRoute: typeof TermosRoute
   MakersHandleRoute: typeof MakersHandleRoute
   PlaygroundBadgesRoute: typeof PlaygroundBadgesRoute
+  PlaygroundOnboardingRoute: typeof PlaygroundOnboardingRoute
+  PlaygroundProjectBadgesRoute: typeof PlaygroundProjectBadgesRoute
   ProfilesHandleRoute: typeof ProfilesHandleRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
   RankingsWeekRoute: typeof RankingsWeekRoute
@@ -469,6 +495,20 @@ declare module '@tanstack/react-router' {
       path: '/playground/badges'
       fullPath: '/playground/badges'
       preLoaderRoute: typeof PlaygroundBadgesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/onboarding': {
+      id: '/playground/onboarding'
+      path: '/playground/onboarding'
+      fullPath: '/playground/onboarding'
+      preLoaderRoute: typeof PlaygroundOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/project-badges': {
+      id: '/playground/project-badges'
+      path: '/playground/project-badges'
+      fullPath: '/playground/project-badges'
+      preLoaderRoute: typeof PlaygroundProjectBadgesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profiles/$handle': {
@@ -595,6 +635,8 @@ const rootRouteChildren: RootRouteChildren = {
   TermosRoute: TermosRoute,
   MakersHandleRoute: MakersHandleRoute,
   PlaygroundBadgesRoute: PlaygroundBadgesRoute,
+  PlaygroundOnboardingRoute: PlaygroundOnboardingRoute,
+  PlaygroundProjectBadgesRoute: PlaygroundProjectBadgesRoute,
   ProfilesHandleRoute: ProfilesHandleRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
   RankingsWeekRoute: RankingsWeekRoute,

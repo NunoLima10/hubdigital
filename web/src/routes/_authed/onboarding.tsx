@@ -48,15 +48,15 @@ function RouteComponent() {
   const background =
     "min-h-screen bg-background bg-[radial-gradient(circle_at_100%_0%,color-mix(in_oklch,var(--primary)_14%,transparent),transparent_45%)]";
 
-  // The welcome screen stands on its own: no header, centred, the brand below.
+  // The welcome screen stands on its own: no header, centred, the brand above.
   if (result) {
     return (
       <main className={`${background} flex flex-col items-center justify-center px-4 py-12`}>
-        <OnboardingSuccess result={result} ready={sessionReady} />
-        <div className="mt-8 flex flex-col items-center gap-1.5 text-center animate-in fade-in-0 duration-700 delay-500 [animation-fill-mode:backwards]">
+        <div className="mb-8 flex flex-col items-center gap-1.5 text-center animate-in fade-in-0 slide-in-from-top-2 duration-700 [animation-fill-mode:backwards]">
           <BrandLogo className="text-base" />
           <p className="text-sm text-muted-foreground">Feito em Cabo Verde, para o mundo.</p>
         </div>
+        <OnboardingSuccess result={result} ready={sessionReady} />
       </main>
     );
   }

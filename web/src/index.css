@@ -353,6 +353,211 @@
   animation: badge-glint 800ms ease-in-out;
 }
 
+/*
+ * The reveal around the medal (components/badge/badge-reveal.tsx), tinted by
+ * --badge-tint. A soft halo blooms as the medal lands, then the text follows.
+ */
+.badge-reveal-card {
+  border-color: color-mix(in oklab, var(--badge-tint) 35%, var(--border));
+  background:
+    radial-gradient(120% 70% at 50% 0%, color-mix(in oklab, var(--badge-tint) 22%, transparent), transparent 70%),
+    color-mix(in oklab, var(--badge-tint) 5%, var(--card));
+  box-shadow: 0 12px 32px -18px color-mix(in oklab, var(--badge-tint) 60%, transparent);
+}
+
+/* A bolder tint, for a card that stands alone on a blurred backdrop. */
+.badge-reveal-card--strong {
+  border-color: color-mix(in oklab, var(--badge-tint) 55%, var(--border));
+  background:
+    radial-gradient(120% 90% at 0% 50%, color-mix(in oklab, var(--badge-tint) 34%, transparent), transparent 75%),
+    color-mix(in oklab, var(--badge-tint) 12%, var(--card));
+}
+
+.badge-reveal__eyebrow {
+  color: color-mix(in oklab, var(--badge-tint) 65%, var(--foreground));
+}
+
+.badge-reveal__glow {
+  position: absolute;
+  inset: 12%;
+  border-radius: 9999px;
+  background: var(--badge-tint);
+  filter: blur(28px);
+  opacity: 0.45;
+}
+
+.badge-intro .badge-reveal__glow {
+  animation: badge-glow 1.4s ease-out both;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 500ms);
+}
+
+.badge-reveal__text {
+  animation: badge-text-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + var(--badge-delay, 0ms));
+}
+
+/* Layers only some reveal variants use; hidden otherwise. */
+.badge-reveal__ring {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.badge-reveal__ring {
+  inset: 4%;
+  border-radius: 9999px;
+  border: 3px solid var(--badge-tint);
+}
+
+/* B · Queda: drops from above, bounces on the card, shockwave on impact. */
+[data-reveal="drop"] .badge-intro .badge-medal {
+  animation: badge-drop 950ms cubic-bezier(0.5, 0, 0.5, 1) both;
+  animation-delay: var(--badge-intro-delay, 0ms);
+  transform-origin: 50% 100%;
+}
+
+[data-reveal="drop"] .badge-intro .badge-reveal__ring {
+  animation: badge-shockwave 750ms ease-out forwards;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 480ms);
+}
+
+[data-reveal="drop"].badge-reveal-card {
+  animation: badge-card-impact 450ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 470ms);
+}
+
+[data-reveal="drop"] .badge-reveal__text {
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 600ms + var(--badge-delay, 0ms) / 6);
+}
+
+/*
+ * C · Encaixe (onboarding-success/avatar-badge-dock.tsx): the medal spins
+ * large over the avatar, then flies into its corner and lands with a bump.
+ * Every transform keeps the same function list so rotateY never unwinds.
+ */
+.badge-dock {
+  perspective: 700px;
+}
+
+/*
+ * The piece is laid out at its large 120px size and scaled down to 40px in
+ * the corner: a scaled-down layer stays sharp, a scaled-up one goes blurry.
+ * Its centre sits where a 40px piece at right/bottom -6px would (82px in).
+ */
+.badge-dock__medal {
+  position: absolute;
+  left: 22px;
+  top: 22px;
+  width: 120px;
+  height: 120px;
+  filter: drop-shadow(0 6px 12px rgb(0 0 0 / 0.35));
+  animation: badge-dock-medal 2.4s both;
+  animation-delay: 200ms;
+}
+
+.badge-dock__avatar {
+  animation: badge-dock-avatar 2.4s ease-out both;
+  animation-delay: 200ms;
+}
+
+.badge-dock__ring {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  border: 3px solid var(--badge-tint);
+  opacity: 0;
+  pointer-events: none;
+  animation: badge-shockwave 700ms ease-out forwards;
+  animation-delay: 2150ms;
+}
+
+@keyframes badge-dock-medal {
+  0% { opacity: 0; transform: translate(-34px, -34px) scale(0.4) rotateY(-120deg); animation-timing-function: cubic-bezier(0.2, 1.2, 0.4, 1); }
+  14% { opacity: 1; transform: translate(-34px, -34px) scale(1) rotateY(0deg); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  46% { transform: translate(-34px, -34px) scale(1) rotateY(720deg); }
+  58% { transform: translate(-34px, -34px) scale(1.03) rotateY(720deg); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.6); }
+  81% { transform: translate(0, 0) scale(0.35) rotateY(720deg); }
+  87% { transform: translate(0, 0) scale(0.45, 0.25) rotateY(720deg); }
+  93% { transform: translate(0, 0) scale(0.3, 0.36) rotateY(720deg); }
+  100% { opacity: 1; transform: translate(0, 0) scale(0.3333) rotateY(720deg); }
+}
+
+@keyframes badge-dock-avatar {
+  0%, 48% { opacity: 0; transform: scale(0.6); }
+  62% { opacity: 1; transform: scale(1.06); }
+  72%, 81% { opacity: 1; transform: scale(1); }
+  86% { transform: scale(0.94) rotate(-4deg); }
+  93% { transform: scale(1.02) rotate(1deg); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* D · Calma: a soft fade, no flourishes. */
+[data-reveal="calm"] .badge-intro .badge-medal {
+  animation: badge-calm 800ms ease-out both;
+  animation-delay: var(--badge-intro-delay, 0ms);
+}
+
+[data-reveal="calm"] .badge-intro .badge-medal__leaf,
+[data-reveal="calm"] .badge-intro .badge-medal__pop,
+[data-reveal="calm"] .badge-intro .badge-medal__draw {
+  animation: none;
+  stroke-dasharray: none;
+}
+
+[data-reveal="calm"] .badge-intro .badge-reveal__glow {
+  animation: badge-glow-soft 1.2s ease-out both;
+  animation-delay: var(--badge-intro-delay, 0ms);
+}
+
+[data-reveal="calm"] .badge-reveal__text {
+  animation-duration: 800ms;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 300ms);
+}
+
+@keyframes badge-drop {
+  0% { opacity: 0; transform: translateY(-260px) scale(0.9); }
+  12% { opacity: 1; }
+  50% { transform: translateY(0) scale(1.08, 0.86); }
+  66% { transform: translateY(-30px) scale(0.97, 1.04); }
+  82% { transform: translateY(0) scale(1.03, 0.96); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes badge-shockwave {
+  0% { opacity: 0.9; transform: scale(0.7); }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+
+@keyframes badge-card-impact {
+  0% { transform: none; }
+  35% { transform: translateY(7px) scale(0.99); }
+  100% { transform: none; }
+}
+
+@keyframes badge-glow-soft {
+  from { opacity: 0; }
+  to { opacity: 0.45; }
+}
+
+@keyframes badge-calm {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes badge-glow {
+  0% { opacity: 0; transform: scale(0.5); }
+  45% { opacity: 0.8; transform: scale(1.15); }
+  100% { opacity: 0.45; transform: scale(1); }
+}
+
+@keyframes badge-text-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
 @keyframes badge-land {
   0% { opacity: 0; transform: translateY(24px) scale(0.35) rotateY(-160deg); }
   60% { opacity: 1; }
@@ -401,7 +606,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   .badge-medal,
-  .badge-medal * {
+  .badge-medal *,
+  .badge-reveal__glow,
+  .badge-reveal__text,
+  .badge-reveal__ring,
+  .badge-dock__avatar,
+  .badge-dock__medal,
+  .badge-dock__ring,
+  .badge-reveal-card {
     animation: none !important;
     transition: none !important;
   }
@@ -409,6 +621,11 @@
   .badge-hover:hover .badge-medal,
   .badge-hover:focus-visible .badge-medal {
     transform: none;
+  }
+
+  /* No flight: the piece sits in its corner from the start. */
+  .badge-dock__medal {
+    transform: scale(0.3333);
   }
 }
 
