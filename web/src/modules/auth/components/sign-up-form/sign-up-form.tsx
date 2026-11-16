@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { ChevronDown } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -11,12 +13,15 @@ import {
 } from "../../schemas/auth-schema";
 import { useEmailSignUp } from "../../hooks/use-email-sign-up";
 import { AuthCard } from "../auth-card/auth-card";
-import { AuthDivider } from "../auth-divider/auth-divider";
 import { GoogleSignInButton } from "../google-sign-in-button/google-sign-in-button";
+
+const LEGAL_ERROR = "Aceita os Termos de utilização e a Política de Privacidade para continuar.";
 
 export function SignUpForm() {
   const navigate = useNavigate();
   const [acceptedLegal, setAcceptedLegal] = useState(false);
+  const [googleLegalError, setGoogleLegalError] = useState(false);
+  const [emailLegalError, setEmailLegalError] = useState(false);
   const form = useForm<EmailSignUpCredentials>({
     resolver: zodResolver(emailSignUpSchema),
     defaultValues: { email: "", name: "", password: "", confirmPassword: "" },
@@ -29,42 +34,84 @@ export function SignUpForm() {
       form.resetField("confirmPassword");
     },
   });
+
   return (
     <AuthCard
       title="Criar uma conta"
       subtitle="Regista-te para partilhar os teus projetos"
     >
-      <div className="mb-4 space-y-4">
-        <GoogleSignInButton disabled={!acceptedLegal} />
-        <AuthDivider />
-      </div>
-      <form
-        onSubmit={form.handleSubmit((values) => emailSignUp(values))}
-        className="space-y-4"
-      >
-        {(
-          [
-            ["name", "Nome", "text"],
-            ["email", "Email", "email"],
-            ["password", "Palavra-passe", "password"],
-            ["confirmPassword", "Confirmar palavra-passe", "password"],
-          ] as const
-        ).map(([name, label, type]) => (
-          <label key={name} className="block space-y-1.5 text-sm font-medium">
-            {label}
-            <Input type={type} required {...form.register(name)} />
-            {form.formState.errors[name] && (
-              <span className="text-xs text-destructive">
-                {form.formState.errors[name]?.message}
-              </span>
-            )}
-          </label>
-        ))}
-        <label className="flex items-start gap-3 rounded-md border p-3 text-sm leading-5">
+      <div className="space-y-4">
+        <div className="space-y-1.5">
+          <GoogleSignInButton
+            canProceed={() => {
+              setGoogleLegalError(!acceptedLegal);
+              return acceptedLegal;
+            }}
+          />
+          {googleLegalError && !acceptedLegal && (
+            <p role="alert" className="text-xs text-destructive">
+              {LEGAL_ERROR}
+            </p>
+          )}
+        </div>
+
+        <details className="group rounded-md border">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground [&::-webkit-details-marker]:hidden">
+            Ou cria conta com email e palavra-passe
+            <ChevronDown className="size-4 shrink-0 transition-transform group-open:rotate-180" />
+          </summary>
+          <form
+            onSubmit={(event) => {
+              if (!acceptedLegal) {
+                event.preventDefault();
+                setEmailLegalError(true);
+                return;
+              }
+              return form.handleSubmit((values) => emailSignUp(values))(event);
+            }}
+            className="space-y-4 border-t p-3"
+          >
+            {(
+              [
+                ["name", "Nome", "text"],
+                ["email", "Email", "email"],
+                ["password", "Palavra-passe", "password"],
+                ["confirmPassword", "Confirmar palavra-passe", "password"],
+              ] as const
+            ).map(([name, label, type]) => (
+              <label key={name} className="block space-y-1.5 text-sm font-medium">
+                {label}
+                <Input type={type} required {...form.register(name)} />
+                {form.formState.errors[name] && (
+                  <span className="text-xs text-destructive">
+                    {form.formState.errors[name]?.message}
+                  </span>
+                )}
+              </label>
+            ))}
+            <div className="space-y-1.5">
+              <Button type="submit" disabled={isPending} className="w-full">
+                {isPending ? "A criar..." : "Criar conta"}
+              </Button>
+              {emailLegalError && !acceptedLegal && (
+                <p role="alert" className="text-xs text-destructive">
+                  {LEGAL_ERROR}
+                </p>
+              )}
+            </div>
+          </form>
+        </details>
+
+        <label
+          className={cn(
+            "flex items-start gap-3 rounded-md border p-3 text-sm leading-5 transition-colors",
+            (googleLegalError || emailLegalError) && !acceptedLegal && "border-destructive",
+          )}
+        >
           <input
             type="checkbox"
-            required
             checked={acceptedLegal}
+            aria-invalid={(googleLegalError || emailLegalError) && !acceptedLegal}
             onChange={(event) => setAcceptedLegal(event.target.checked)}
             className="mt-0.5 size-4 shrink-0 accent-[var(--primary)]"
           />
@@ -80,16 +127,14 @@ export function SignUpForm() {
             .
           </span>
         </label>
-        <Button type="submit" disabled={isPending} className="w-full">
-          {isPending ? "A criar..." : "Criar conta"}
-        </Button>
+
         <p className="text-center text-sm text-muted-foreground">
           Já tens conta?{" "}
           <Link to="/sign-in" className="text-primary hover:underline">
             Iniciar sessão
           </Link>
         </p>
-      </form>
+      </div>
     </AuthCard>
   );
 }

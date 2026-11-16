@@ -14,10 +14,16 @@ function GoogleIcon() {
   );
 }
 
-export function GoogleSignInButton({ disabled = false }: { disabled?: boolean }) {
+export function GoogleSignInButton({
+  canProceed,
+}: {
+  /** Return false to block the redirect (e.g. terms not accepted yet). */
+  canProceed?: () => boolean;
+}) {
   const [isPending, setIsPending] = useState(false);
 
   async function signInWithGoogle() {
+    if (canProceed && !canProceed()) return;
     setIsPending(true);
 
     try {
@@ -37,7 +43,7 @@ export function GoogleSignInButton({ disabled = false }: { disabled?: boolean })
   }
 
   return (
-    <Button type="button" variant="outline" className="w-full" disabled={disabled || isPending} onClick={signInWithGoogle}>
+    <Button type="button" variant="outline" className="w-full" disabled={isPending} onClick={signInWithGoogle}>
       <GoogleIcon />
       {isPending ? "A redirecionar..." : "Continuar com Google"}
     </Button>
