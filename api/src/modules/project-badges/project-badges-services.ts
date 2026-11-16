@@ -1,8 +1,15 @@
 import { DB } from "@/db";
-import { projectBadgeAwards, projects, users, weeklyRankingResults } from "@/db/schemas";
+import {
+  projectBadgeAwards,
+  projects,
+  publishers,
+  users,
+  weeklyRankingResults,
+} from "@/db/schemas";
 import { errorLogger } from "@/utils/error-logger";
 import { logger } from "@/utils/logger";
 import { publicProjectConditions } from "@/utils/project-visibility";
+import { toPublicUrl } from "@/utils/public-url";
 import { previousWeek, type WeekRange } from "@/utils/week";
 import {
   PIONEER_PROJECT_LIMIT,
@@ -12,7 +19,7 @@ import {
   weeklyBadgeFor,
   type ProjectBadgeKey,
 } from "@hubdigital/shared";
-import { and, asc, count, desc, eq, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 
 type AwardRow = typeof projectBadgeAwards.$inferSelect;
 
@@ -224,6 +231,63 @@ async function runAutomaticAwards(db: DB, now = new Date()) {
   await awardPioneers(db);
 }
 
+/** Awards on the user's own live projects that they haven't been shown, oldest first. */
+async function listUnseenForUser(db: DB, userId: string) {
+  const rows = await db
+    .select({
+      award: projectBadgeAwards,
+      project: {
+        id: projects.id,
+        slug: projects.slug,
+        name: projects.name,
+        logoKey: projects.logoKey,
+      },
+    })
+    .from(projectBadgeAwards)
+    .innerJoin(projects, eq(projects.id, projectBadgeAwards.projectId))
+    .innerJoin(publishers, eq(publishers.id, projects.publisherId))
+    .where(
+      and(
+        eq(publishers.userId, userId),
+        isNull(projectBadgeAwards.seenAt),
+        isNull(projects.deletedAt),
+      ),
+    )
+    .orderBy(asc(projectBadgeAwards.awardedAt), asc(projectBadgeAwards.id));
+
+  return rows
+    .filter(({ award }) => isKnown(award.badgeKey))
+    .map(({ award, project }) => ({
+      ...serialize(award),
+      project: {
+        id: project.id,
+        slug: project.slug,
+        name: project.name,
+        logoUrl: toPublicUrl(project.logoKey),
+      },
+    }));
+}
+
+/** Marks awards as shown; ids on someone else's projects are ignored. */
+async function markSeenForUser(db: DB, userId: string, ids: number[]) {
+  const owned = db
+    .select({ id: projects.id })
+    .from(projects)
+    .innerJoin(publishers, eq(publishers.id, projects.publisherId))
+    .where(eq(publishers.userId, userId));
+
+  await db
+    .update(projectBadgeAwards)
+    .set({ seenAt: new Date().toISOString() })
+    .where(
+      and(
+        inArray(projectBadgeAwards.id, ids),
+        inArray(projectBadgeAwards.projectId, owned),
+        isNull(projectBadgeAwards.seenAt),
+      ),
+    );
+}
+
 export type GrantProjectBadgeResult =
   | { outcome: "granted"; award: ReturnType<typeof serialize> }
   | { outcome: "already_held" | "not_manual" | "month_taken" };
@@ -286,6 +350,8 @@ export const ProjectBadgesService = {
   ),
   closeWeek: errorLogger(closeWeek, "projectBadgesService.closeWeek"),
   runAutomaticAwards: errorLogger(runAutomaticAwards, "projectBadgesService.runAutomaticAwards"),
+  listUnseenForUser: errorLogger(listUnseenForUser, "projectBadgesService.listUnseenForUser"),
+  markSeenForUser: errorLogger(markSeenForUser, "projectBadgesService.markSeenForUser"),
   grant: errorLogger(grant, "projectBadgesService.grant"),
   revoke: errorLogger(revoke, "projectBadgesService.revoke"),
 };

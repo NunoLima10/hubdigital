@@ -6,6 +6,11 @@ const errorCodes = {
     en: "User already registered",
     pt: "Este email já está registado",
   },
+  // What current Better Auth versions send for a taken email on sign-up (422).
+  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: {
+    en: "User already registered",
+    pt: "Este email já está registado. Entra na tua conta ou usa outro email.",
+  },
   INVALID_EMAIL_OR_PASSWORD: {
     en: "Invalid email or password",
     pt: "Email ou palavra-passe inválidos",

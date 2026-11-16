@@ -16,6 +16,7 @@ import {
   MarkAnatomy,
   StackedLockup,
 } from "./brand-assets";
+import { CelebrationShowcase } from "./brand-celebrations";
 import { BadgeShowcase, MicroInteractions } from "./brand-demos";
 import { EmbedBannerShowcase, ProjectPlaqueShowcase } from "./brand-project-badges";
 
@@ -30,6 +31,7 @@ const sections = [
   { id: "ilhas", title: "As ilhas" },
   { id: "distintivos", title: "Distintivos" },
   { id: "placas", title: "Placas de projeto" },
+  { id: "celebracoes", title: "Celebrações" },
   { id: "banners", title: "Banners para projetos" },
   { id: "movimento", title: "Micro-interações" },
   { id: "assim-nao", title: "Assim não" },
@@ -472,6 +474,18 @@ function PlaquesSection() {
   );
 }
 
+function CelebrationsSection() {
+  return (
+    <Section
+      id="celebracoes"
+      title="Momentos para celebrar"
+      lead="Quando alguém ou um projeto ganha uma conquista, o Hub para um instante e faz festa: a peça ganha entra em grande e encaixa no sítio a que pertence. Toca uma só vez, por cima do site, e desliga-se com prefers-reduced-motion."
+    >
+      <CelebrationShowcase />
+    </Section>
+  );
+}
+
 function BannersSection() {
   return (
     <Section
@@ -693,6 +707,7 @@ export function BrandPage() {
           <IslandsSection />
           <BadgesSection />
           <PlaquesSection />
+          <CelebrationsSection />
           <BannersSection />
           <MotionSection />
           <DontsSection />

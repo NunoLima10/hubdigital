@@ -19,6 +19,7 @@ import {
 } from "fastify-type-provider-zod";
 import { usersRoutes } from "./modules/users/users-routes";
 import { badgesRoutes } from "./modules/badges/badges-routes";
+import { projectBadgesRoutes } from "./modules/project-badges/project-badges-routes";
 import { projectsRoutes } from "./modules/projects/projects-routes";
 import { projectStatsRoutes } from "./modules/project-stats/project-stats-routes";
 import { categoriesRoutes } from "./modules/categories/categories-routes";
@@ -110,6 +111,7 @@ export async function buildServer(db: DB) {
   await server.register(commentsRoutes, { prefix: "/v1" });
   await server.register(makersRoutes, { prefix: "/v1/makers" });
   await server.register(badgesRoutes, { prefix: "/v1/badges" });
+  await server.register(projectBadgesRoutes, { prefix: "/v1/project-badges" });
   await server.register(reportsRoutes, { prefix: "/v1/reports" });
   await server.register(settingsRoutes, { prefix: "/v1/settings" });
   await server.register(shareImagesRoutes, { prefix: "/v1/share-images" });

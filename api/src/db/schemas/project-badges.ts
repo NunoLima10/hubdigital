@@ -36,6 +36,11 @@ export const projectBadgeAwards = pgTable(
     awardedAt: timestamp("awarded_at", { withTimezone: true, mode: "string" })
       .defaultNow()
       .notNull(),
+    /**
+     * When the maker was shown the celebration for it; null until then. The
+     * migration that added it marked every award held at the time as seen.
+     */
+    seenAt: timestamp("seen_at", { withTimezone: true, mode: "string" }),
     /** The staff member who granted it; null for an automatic award. */
     awardedBy: text("awarded_by").references(() => users.id, {
       onDelete: "set null",
