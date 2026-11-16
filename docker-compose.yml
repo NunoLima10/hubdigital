@@ -79,6 +79,27 @@ services:
       setup:
         condition: service_completed_successfully
 
+  tests:
+    <<: *node
+    profiles: [test]
+    entrypoint: ["sh", "docker/install-and-run.sh"]
+    command: pnpm test
+    group_add: ["${DOCKER_GID:-0}"]
+    environment:
+      TESTCONTAINERS_HOST_OVERRIDE: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+      - api_node_modules:/workspace/api/node_modules
+      - web_node_modules:/workspace/web/node_modules
+      - admin_node_modules:/workspace/admin/node_modules
+      - shared_node_modules:/workspace/packages/shared/node_modules
+      - theme_node_modules:/workspace/packages/theme/node_modules
+      - pnpm_store:/pnpm-store
+      - /var/run/docker.sock:/var/run/docker.sock
+
 volumes:
   pgdata:
   node_modules:
