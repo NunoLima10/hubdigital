@@ -87,6 +87,21 @@ nunca publiques uma base de dados de demonstração em produção.
 Preserva o volume existente; não é um comando de reset. O seed pode inserir ou
 atualizar dados de referência. Consulta os [detalhes dos fixtures](api/src/db/seeds/data/README.md).
 
+### Seed de produção
+
+Produção precisa apenas dos dados estáticos: categorias, badges e, se as
+variáveis `ADMIN_SEED_*` estiverem definidas, o primeiro administrador. Depois
+de `pnpm api:build` e das migrações, corre:
+
+```sh
+pnpm api:db:seed:prod
+```
+
+Usa o build compilado e as variáveis do ambiente (não lê `api/.env` nem precisa
+de `DB_SEEDING`). Nunca cria contas de demonstração nem projetos de exemplo,
+seja qual for o `NODE_ENV`, e pode correr em cada deploy: atualiza nomes de
+categorias e badges sem duplicar linhas. Termina com erro se algo falhar.
+
 ### Integrações opcionais
 
 - **Uploads:** requerem R2 e as variáveis `CLOUDFLARE_*` da API. Sem configuração,
@@ -108,6 +123,7 @@ Nunca coloques segredos em variáveis `VITE_APP_*`: são públicas no frontend.
 | `pnpm api:db:gen` | Gerar migração após alterar schemas |
 | `pnpm api:db:migrate` | Aplicar migrações existentes |
 | `pnpm api:db:seed` | Inserir dados de referência e fixtures de desenvolvimento |
+| `pnpm api:db:seed:prod` | Inserir só os dados de referência de produção (categorias, badges, admin) |
 | `pnpm api:db:studio` | Inspecionar a base de dados local |
 | `pnpm test:unit` | Testes unitários da API e testes web, sem Docker |
 | `pnpm test` | Todos os testes API e web; requer Docker |

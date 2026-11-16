@@ -27,5 +27,6 @@ export default async function seed(db: DB) {
     logger.info("Badges seeded successfully.");
   } catch (error) {
     logger.error(error, "Unexpected error during Badges seeding");
+    throw error;
   }
 }

@@ -26,6 +26,7 @@
     "api:db:migrate": "pnpm --filter @hubdigital/api db:migrate",
     "api:dbml": "pnpm --filter @hubdigital/api dbml:generate",
     "api:db:seed": "pnpm --filter @hubdigital/api db:seed",
+    "api:db:seed:prod": "pnpm --filter @hubdigital/api db:seed:prod",
     "api:build": "pnpm run --filter @hubdigital/api build",
     "api:start": "pnpm run --filter @hubdigital/api start",
     "docker:up": "docker compose up -d --wait --wait-timeout 120",
