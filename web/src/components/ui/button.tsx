@@ -15,11 +15,13 @@ const buttonVariants = cva(
         destructive: "bg-destructive text-white hover:bg-destructive/85",
         link: "text-primary underline-offset-4 hover:underline",
       },
+      // One height scale for every control: 40px on mobile for touch,
+      // 36px from md up. `sm` is only for dense surfaces (tables, chips).
       size: {
-        default: "h-9 px-4 py-2",
+        default: "h-10 px-4 md:h-9",
         sm: "h-8 px-3",
-        lg: "h-10 px-5",
-        icon: "size-9",
+        lg: "h-11 px-6 md:h-10",
+        icon: "size-10 md:size-9",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

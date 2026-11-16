@@ -1,3 +1,4 @@
+import { buttonVariants } from "@/components/ui/button";
 import { noop } from "@tanstack/react-query";
 import { Header } from "@/components/header/header";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
@@ -95,7 +96,7 @@ function ProfilePage() {
                     href={data.websiteUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
+                    className={buttonVariants({ variant: "outline", className: "px-3" })}
                   >
                     <Globe className="size-4" />
                     Site
@@ -106,7 +107,7 @@ function ProfilePage() {
                     href={data.githubUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
+                    className={buttonVariants({ variant: "outline", className: "px-3" })}
                   >
                     <Github className="size-4" />
                     GitHub
@@ -117,7 +118,7 @@ function ProfilePage() {
                     href={data.linkedinUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
+                    className={buttonVariants({ variant: "outline", className: "px-3" })}
                   >
                     <Linkedin className="size-4" />
                     LinkedIn
@@ -128,7 +129,7 @@ function ProfilePage() {
                     href={data.instagramUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
+                    className={buttonVariants({ variant: "outline", className: "px-3" })}
                   >
                     <Instagram className="size-4" />
                     Instagram
@@ -139,7 +140,7 @@ function ProfilePage() {
                     href={data.discordUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
+                    className={buttonVariants({ variant: "outline", className: "px-3" })}
                   >
                     <MessageCircle className="size-4" />
                     Discord

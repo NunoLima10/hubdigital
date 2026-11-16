@@ -1,3 +1,4 @@
+import { buttonVariants } from "@/components/ui/button";
 import { MessageSquare } from "lucide-react";
 import { primaryProjectLink, projectLinkHref, projectLinkReferralHref, projectLinkActionLabel, projectLinkDisplayLabel, type ProjectLinkInput } from "@hubdigital/shared";
 import { ProjectLinkIcon } from "./project-link-icon";
@@ -12,7 +13,7 @@ export function ProjectDestinationActions({ links, availability, onVisit, feedba
     <div className="space-y-3">
       <a href={primary ? projectLinkReferralHref(primary)! : feedbackHref} target={primary ? "_blank" : undefined}
         rel={primary ? "noopener noreferrer" : undefined} onClick={primary ? () => onVisit?.(primary) : undefined}
-        className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background hover:bg-foreground/85">
+        className={buttonVariants({ className: "h-auto min-h-10 w-full whitespace-normal py-2 md:h-auto md:min-h-9" })}>
         {primary ? <ProjectLinkIcon link={primary} /> : <MessageSquare className="size-4" />}
         {primary ? projectLinkActionLabel(primary, availability) : "Dar feedback"}
       </a>
