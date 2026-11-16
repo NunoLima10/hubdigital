@@ -156,7 +156,7 @@ export function CelebrationShowcase() {
 
         <MomentCard
           title="Boas-vindas · Encaixe"
-          status="testing"
+          status="live"
           still={
             <DockedStill
               round
@@ -181,8 +181,8 @@ export function CelebrationShowcase() {
           }
         >
           O fim do onboarding para quem ganha um distintivo de fundador. A medalha gira no
-          lugar do avatar e encaixa no canto, onde ficava o visto. Ainda em teste entre quatro
-          variantes; as outras vivem no playground.
+          lugar do avatar e encaixa no canto, onde ficava o visto; o cartão por baixo mostra a
+          medalha numerada. As outras três variantes ficam no playground para comparar.
         </MomentCard>
       </div>
 

@@ -1,7 +1,8 @@
 /*
- * Candidate animations for the onboarding achievement reveal, kept side by
- * side while one is chosen. The playground (/playground/onboarding) stores the
- * pick, and `?reveal=<id>` forces one on the real onboarding screen.
+ * The animations for the onboarding achievement reveal. Everyone gets
+ * DEFAULT_REVEAL (Encaixe); the others stay to compare in the playground
+ * (/playground/onboarding), which stores a pick for this browser, and
+ * `?reveal=<id>` forces one on the real onboarding screen.
  */
 
 export const revealVariants = [
@@ -29,13 +30,16 @@ export const revealVariants = [
 
 export type RevealVariant = (typeof revealVariants)[number]["id"];
 
+/** What everyone sees on onboarding unless a variant is forced. */
+export const DEFAULT_REVEAL: RevealVariant = "dock";
+
 const STORAGE_KEY = "hubdigital-reveal-variant";
 const isVariant = (value: unknown): value is RevealVariant =>
   revealVariants.some((variant) => variant.id === value);
 
-/** The forced variant: `?reveal=` first, then the playground's pick. */
+/** The forced variant (`?reveal=` first, then the playground's pick), or the default. */
 export function getRevealVariant(): RevealVariant {
-  if (typeof window === "undefined") return "sequence";
+  if (typeof window === "undefined") return DEFAULT_REVEAL;
   const fromUrl = new URLSearchParams(window.location.search).get("reveal");
   if (isVariant(fromUrl)) return fromUrl;
   try {
@@ -44,7 +48,7 @@ export function getRevealVariant(): RevealVariant {
   } catch {
     // Storage blocked: fall back to the default.
   }
-  return "sequence";
+  return DEFAULT_REVEAL;
 }
 
 export function setRevealVariant(variant: RevealVariant) {
