@@ -23,6 +23,11 @@
         "API_PROXY_TARGET": "https://hubdigital-staging.up.railway.app"
       }
       // "routes": [{ "pattern": "staging.hubdigital.cv", "custom_domain": true }]
+    },
+    "docker": {
+      "vars": {
+        "API_PROXY_TARGET": "http://api:3001"
+      }
     }
   }
 }

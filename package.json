@@ -30,7 +30,7 @@
     "api:build": "pnpm run --filter @hubdigital/api build",
     "api:start": "pnpm run --filter @hubdigital/api start",
     "docker:up": "docker compose up -d --wait --wait-timeout 120",
-    "docker:down": "docker compose down",
+    "docker:down": "docker compose --profile=* down",
     "api:setup": "pnpm docker:up && pnpm shared:build && pnpm api:db:migrate && pnpm api:db:seed"
   },
   "keywords": [],

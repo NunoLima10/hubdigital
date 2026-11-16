@@ -1,3 +1,21 @@
+x-node: &node
+  image: hubdigital-dev:node24
+  build:
+    context: docker
+    dockerfile: dev.Dockerfile
+  profiles: [app]
+  volumes:
+    - .:/workspace
+    - node_modules:/workspace/node_modules
+    - api_node_modules:/workspace/api/node_modules
+    - web_node_modules:/workspace/web/node_modules
+    - admin_node_modules:/workspace/admin/node_modules
+    - shared_node_modules:/workspace/packages/shared/node_modules
+    - theme_node_modules:/workspace/packages/theme/node_modules
+    - pnpm_store:/pnpm-store
+
+x-database-url: &database-url postgres://postgres:${HUBDIGITAL_DB_PASSWORD}@hub-digital-db:5432/hubdigitaldb
+
 services:
   hub-digital-db:
     container_name: hub-digital-db
@@ -17,5 +35,56 @@ services:
       POSTGRES_PASSWORD: ${HUBDIGITAL_DB_PASSWORD:?Set HUBDIGITAL_DB_PASSWORD in your root .env}
       POSTGRES_DB: hubdigitaldb
 
+  setup:
+    <<: *node
+    command: sh docker/setup.sh
+    environment:
+      DATABASE_URL: *database-url
+      NODE_ENV: development
+      DB_SEEDING: "true"
+    depends_on:
+      hub-digital-db:
+        condition: service_healthy
+
+  api:
+    <<: *node
+    command: pnpm --filter @hubdigital/api dev
+    environment:
+      DATABASE_URL: *database-url
+    ports:
+      - "127.0.0.1:3001:3001"
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+
+  web:
+    <<: *node
+    command: pnpm --filter @hubdigital/web dev --host 0.0.0.0 --port 5173 --strictPort
+    environment:
+      CLOUDFLARE_ENV: docker
+    ports:
+      - "127.0.0.1:5173:5173"
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+
+  admin:
+    <<: *node
+    command: pnpm --filter @hubdigital/admin dev --host 0.0.0.0 --port 5174 --strictPort
+    ports:
+      - "127.0.0.1:5174:5174"
+    depends_on:
+      setup:
+        condition: service_completed_successfully
+
 volumes:
   pgdata:
+  node_modules:
+  api_node_modules:
+  web_node_modules:
+  admin_node_modules:
+  shared_node_modules:
+  theme_node_modules:
+  pnpm_store:
