@@ -1,3 +1,4 @@
+import { buttonVariants } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { useMyHandle } from "@/modules/makers/hooks/use-maker";
 import { Link } from "@tanstack/react-router";
@@ -29,7 +30,7 @@ export function Profile() {
         <Link
           to="/profiles/$handle"
           params={{ handle }}
-          className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border px-3 text-sm font-medium hover:bg-muted"
+          className={buttonVariants({ variant: "outline", className: "px-3" })}
         >
           Ver perfil
           <ExternalLink className="size-4" />

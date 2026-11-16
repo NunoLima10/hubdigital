@@ -1,3 +1,4 @@
+import { buttonVariants } from "@/components/ui/button";
 import { useUpload } from "@/hooks/use-upload";
 import { RequiredIndicator } from "@/components/required-indicator/required-indicator";
 import { useImagePreview } from "@/modules/submit/hooks/use-image-preview";
@@ -67,7 +68,7 @@ export function ImageSelector({
       </div>
       {!hasImage ? (
         <label
-          className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm hover:bg-muted ${isUploading ? "pointer-events-none opacity-50" : ""}`}
+          className={buttonVariants({ variant: "outline", className: `cursor-pointer px-3 font-normal ${isUploading ? "pointer-events-none opacity-50" : ""}` })}
         >
           <Upload className="size-4" />
           {actionLabel}
