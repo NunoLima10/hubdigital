@@ -202,6 +202,65 @@ describe("Makers module (e2e)", () => {
     );
   });
 
+  it("lists public founding makers in membership order with pagination", async () => {
+    const secondUserId = randomUUID();
+    await db.insert(users).values({
+      id: secondUserId,
+      name: "Bruno Lopes",
+      email: "bruno-" + secondUserId + "@example.com",
+      role: "user",
+    });
+    await db.insert(publishers).values({
+      userId: secondUserId,
+      handle: "bruno-lopes",
+      bio: "A construir a comunidade",
+      profileResponse: "founder",
+      objectiveResponse: "launch-product",
+      locationResponse: "CV1",
+      foundUsByResponse: "friends",
+    });
+
+    const first = await server.inject({
+      method: "GET",
+      url: "/v1/makers/founding?limit=1&offset=0",
+    });
+    const second = await server.inject({
+      method: "GET",
+      url: "/v1/makers/founding?limit=1&offset=1",
+    });
+
+    expect(first.statusCode).toBe(200);
+    expect(first.json()).toMatchObject({
+      data: [
+        {
+          name: "Ana Furtado",
+          membershipNumber: publisherMembershipNumber,
+          featuredBadge: null,
+        },
+      ],
+      meta: { limit: 1, offset: 0, total: 2 },
+    });
+    expect(second.json().data[0]).toMatchObject({
+      name: "Bruno Lopes",
+      membershipNumber: publisherMembershipNumber + 1,
+    });
+  });
+
+  it("keeps shadow-banned makers out of the public founding roll", async () => {
+    await db
+      .update(users)
+      .set({ shadowBannedAt: new Date() })
+      .where(eq(users.id, currentUserId));
+
+    const response = await server.inject({
+      method: "GET",
+      url: "/v1/makers/founding",
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({ data: [], meta: { total: 0 } });
+  });
+
   it("sums upvotes across the maker's projects", async () => {
     const inserted = await db
       .insert(projects)

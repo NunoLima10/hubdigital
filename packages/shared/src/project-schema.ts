@@ -1,6 +1,7 @@
 import { projectProfileFields } from "./project-profile";
 import { countryValues as importCountryValues } from "./location-options";
 import { z } from "zod";
+import { bestWeeklyRankSchema, projectBadgeAwardSchema } from "./project-badge-schema";
 import {
   draftLocationSchema,
   locationSchema,
@@ -251,6 +252,9 @@ export const projectSchema = z.object({
     })
     .nullable()
     .optional(),
+  // Achievements, on the public project page only.
+  badges: z.array(projectBadgeAwardSchema).optional(),
+  bestWeeklyRank: bestWeeklyRankSchema.nullable().optional(),
 
   editReview: z
     .object({

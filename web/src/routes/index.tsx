@@ -8,6 +8,7 @@ import { noop } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { seo } from "@/lib/seo";
 import { HomeSidebar } from "@/modules/project-list/components/home-sidebar/home-sidebar";
+import { SiteFooter } from "@/components/site-footer/site-footer";
 
 const launchSections = [
   {
@@ -83,6 +84,7 @@ function Home() {
       viewTransition
       banner={<AnnouncementBanner />}
       header={<Header />}
+      footer={<SiteFooter />}
       rightSection={<HomeSidebar />}
     >
       <div className="space-y-10">

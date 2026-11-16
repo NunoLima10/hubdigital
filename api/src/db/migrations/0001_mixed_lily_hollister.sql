@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "eligibility_confirmed_at" timestamp with time zone;

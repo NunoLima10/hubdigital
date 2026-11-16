@@ -14,6 +14,7 @@ type Values = {
   githubUrl: string;
   linkedinUrl: string;
   instagramUrl: string;
+  discordUrl: string;
 };
 const empty: Values = {
   bio: "",
@@ -21,6 +22,7 @@ const empty: Values = {
   githubUrl: "",
   linkedinUrl: "",
   instagramUrl: "",
+  discordUrl: "",
 };
 export function ProfileForm() {
   const { data: handle, isLoading: loadingHandle } = useMyHandle();
@@ -42,6 +44,7 @@ export function ProfileForm() {
         githubUrl: profile.githubUrl ?? "",
         linkedinUrl: profile.linkedinUrl ?? "",
         instagramUrl: profile.instagramUrl ?? "",
+        discordUrl: profile.discordUrl ?? "",
       });
   }, [profile, reset]);
   const { updateMaker, isPending } = useUpdateMaker();
@@ -63,6 +66,7 @@ export function ProfileForm() {
     ["githubUrl", "GitHub", "https://github.com/utilizador"],
     ["linkedinUrl", "LinkedIn", "https://linkedin.com/in/utilizador"],
     ["instagramUrl", "Instagram", "https://instagram.com/utilizador"],
+    ["discordUrl", "Discord", "https://discord.com/users/123456789"],
   ] as const;
   return (
     <div className="space-y-5">

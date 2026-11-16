@@ -19,6 +19,7 @@ import {
 } from "fastify-type-provider-zod";
 import { usersRoutes } from "./modules/users/users-routes";
 import { badgesRoutes } from "./modules/badges/badges-routes";
+import { projectBadgesRoutes } from "./modules/project-badges/project-badges-routes";
 import { projectsRoutes } from "./modules/projects/projects-routes";
 import { projectStatsRoutes } from "./modules/project-stats/project-stats-routes";
 import { categoriesRoutes } from "./modules/categories/categories-routes";
@@ -28,6 +29,7 @@ import { makersRoutes } from "./modules/makers/makers-routes";
 import { reportsRoutes } from "./modules/reports/reports-routes";
 import { settingsRoutes } from "./modules/settings/settings-routes";
 import { shareImagesRoutes } from "./modules/share-images/share-images-routes";
+import { siteStatsRoutes } from "./modules/site-stats/site-stats-routes";
 import { config } from "./config";
 import { sql } from "drizzle-orm";
 import betterAuth from "./plugins/better-auth";
@@ -109,9 +111,11 @@ export async function buildServer(db: DB) {
   await server.register(commentsRoutes, { prefix: "/v1" });
   await server.register(makersRoutes, { prefix: "/v1/makers" });
   await server.register(badgesRoutes, { prefix: "/v1/badges" });
+  await server.register(projectBadgesRoutes, { prefix: "/v1/project-badges" });
   await server.register(reportsRoutes, { prefix: "/v1/reports" });
   await server.register(settingsRoutes, { prefix: "/v1/settings" });
   await server.register(shareImagesRoutes, { prefix: "/v1/share-images" });
+  await server.register(siteStatsRoutes, { prefix: "/v1/site-stats" });
   // Registered last, and behind its own role guard — see modules/admin/admin-routes.
   await server.register(adminRoutes, { prefix: "/v1/admin" });
 

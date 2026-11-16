@@ -11,9 +11,17 @@ import {
 } from "@/modules/submit/options";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { makerHead } from "@/modules/makers/seo";
-import { Github, Globe, Instagram, Linkedin, UserRound } from "lucide-react";
+import {
+  Github,
+  Globe,
+  Instagram,
+  Linkedin,
+  MessageCircle,
+  UserRound,
+} from "lucide-react";
 import { ProfileBadge } from "@/components/badge/profile-badge";
 import { ProfileAchievements } from "@/modules/badges/components/profile-achievements";
+import { SiteFooter } from "@/components/site-footer/site-footer";
 
 export const Route = createFileRoute("/profiles/$handle")({
   loader: ({ context, params }) =>
@@ -27,7 +35,7 @@ function ProfilePage() {
   const { data, isLoading, isError } = useMaker(handle);
   const showLoading = useDelayedLoading(isLoading);
   return (
-    <Page header={<Header />}>
+    <Page header={<Header />} footer={<SiteFooter />}>
       {showLoading && (
         <div className="space-y-4" aria-label="A carregar perfil">
           <div className="size-20 animate-pulse rounded-full bg-muted" />
@@ -126,6 +134,17 @@ function ProfilePage() {
                     Instagram
                   </a>
                 )}
+                {data.discordUrl && (
+                  <a
+                    href={data.discordUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-9 items-center gap-2 rounded-md border px-3 text-sm font-medium text-foreground hover:bg-muted"
+                  >
+                    <MessageCircle className="size-4" />
+                    Discord
+                  </a>
+                )}
               </nav>
             </div>
             <div className="flex self-start overflow-hidden rounded-lg border text-center text-sm sm:col-start-2 lg:col-start-auto">
@@ -147,67 +166,87 @@ function ProfilePage() {
               </div>
             </div>
           </header>
-          {data.badges.length > 0 && (
-            <ProfileAchievements
-              badges={data.badges}
-              membershipNumber={data.membershipNumber}
-            />
-          )}
-          {[
-            {
-              title: "Projetos publicados",
-              projects: data.ownedProjects ?? [],
-              empty: "Ainda não publicou nenhum projeto.",
-            },
-            {
-              title: "Participações em equipas",
-              projects: data.collaborations ?? [],
-              empty: "Ainda não tem colaborações públicas.",
-            },
-          ].map((section) => (
-            <section key={section.title} className="border-t pt-6">
-              <h2 className="mb-3 text-lg font-semibold">{section.title}</h2>
-              {section.projects.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{section.empty}</p>
-              ) : (
-                section.projects.map((project) => (
-                  <div key={project.id}>
-                    {"contributionRole" in project &&
-                      Boolean(project.contributionRole) && (
-                        <p className="px-3 pt-2 text-xs text-muted-foreground">
-                          Papel no projeto: {String(project.contributionRole)}
-                        </p>
-                      )}
-                    <ProjectCard
-                      key={project.id}
-                      id={project.id}
-                      slug={project.slug}
-                      title={project.name}
-                      description={project.shortDescription}
-                      iconUrl={project.logoUrl ?? undefined}
-                      topis={
-                        [
-                          project.category?.name,
-                          project.pricing
-                            ? pricingLabels[project.pricing]
-                            : undefined,
-                          project.availability === "not_available" &&
-                          project.projectStage
-                            ? projectStageLabels[project.projectStage]
-                            : project.availability
-                              ? availabilityLabels[project.availability]
-                              : undefined,
-                        ].filter(Boolean) as string[]
-                      }
-                      upCount={project.upvoteCount}
-                      hasUpvoted={project.hasUpvoted}
-                      commentCount={project.commentCount}
-                    />
-                  </div>
-                ))
-              )}
-            </section>
-          ))}
+          <div
+            className={
+              data.badges.length > 0
+                ? "grid items-start gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)] lg:gap-10"
+                : ""
+            }
+          >
+            {data.badges.length > 0 && (
+              <ProfileAchievements
+                badges={data.badges}
+                membershipNumber={data.membershipNumber}
+                sidebar
+                className="border-0 pt-0 lg:col-start-2 lg:row-start-1"
+              />
+            )}
+            <div className="space-y-8 lg:col-start-1 lg:row-start-1">
+              {[
+                {
+                  title: "Projetos publicados",
+                  projects: data.ownedProjects ?? [],
+                  empty: "Ainda não publicou nenhum projeto.",
+                },
+                {
+                  title: "Participações em equipas",
+                  projects: data.collaborations ?? [],
+                  empty: "Ainda não tem colaborações públicas.",
+                },
+              ].map((section, index) => (
+                <section
+                  key={section.title}
+                  className={
+                    index === 0 && data.badges.length > 0
+                      ? "border-t pt-6 lg:border-t-0 lg:pt-0"
+                      : index === 0
+                        ? ""
+                        : "border-t pt-6"
+                  }
+                >
+                  <h2 className="mb-3 text-lg font-semibold">{section.title}</h2>
+                  {section.projects.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">{section.empty}</p>
+                  ) : (
+                    section.projects.map((project) => (
+                      <div key={project.id}>
+                        {"contributionRole" in project &&
+                          Boolean(project.contributionRole) && (
+                            <p className="px-3 pt-2 text-xs text-muted-foreground">
+                              Papel no projeto: {String(project.contributionRole)}
+                            </p>
+                          )}
+                        <ProjectCard
+                          id={project.id}
+                          slug={project.slug}
+                          title={project.name}
+                          description={project.shortDescription}
+                          iconUrl={project.logoUrl ?? undefined}
+                          topis={
+                            [
+                              project.category?.name,
+                              project.pricing
+                                ? pricingLabels[project.pricing]
+                                : undefined,
+                              project.availability === "not_available" &&
+                              project.projectStage
+                                ? projectStageLabels[project.projectStage]
+                                : project.availability
+                                  ? availabilityLabels[project.availability]
+                                  : undefined,
+                            ].filter(Boolean) as string[]
+                          }
+                          upCount={project.upvoteCount}
+                          hasUpvoted={project.hasUpvoted}
+                          commentCount={project.commentCount}
+                        />
+                      </div>
+                    ))
+                  )}
+                </section>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </Page>

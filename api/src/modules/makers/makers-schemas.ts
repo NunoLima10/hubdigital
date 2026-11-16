@@ -2,6 +2,7 @@ import { errorResponseSchema, routeErrorResponses } from "@/shared/schemas";
 import {
   makerProfileSchema,
   makerProfileUpdateSchema,
+  foundingMakerSchema,
   foundUsByQuestionValues,
   locationQuestionValues,
   objectiveQuestionValues,
@@ -12,6 +13,34 @@ import { z } from "zod";
 import { abroadCountryValues } from "@hubdigital/shared";
 
 const handleParamsSchema = z.object({ handle: z.string() });
+
+const foundingMakersQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(50).default(10),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+export const getFoundingMakersRouteSchema = {
+  tags: ["makers"],
+  querystring: foundingMakersQuerySchema,
+  response: {
+    200: z.object({
+      data: z.array(foundingMakerSchema),
+      meta: z.object({
+        limit: z.number(),
+        offset: z.number(),
+        total: z.number(),
+      }),
+    }),
+    ...routeErrorResponses,
+  },
+};
+
+type GetFoundingMakersGeneric = {
+  Querystring: z.infer<typeof foundingMakersQuerySchema>;
+};
+
+export type GetFoundingMakersRequest = FastifyRequest<GetFoundingMakersGeneric>;
+export type GetFoundingMakersReply = FastifyReply<GetFoundingMakersGeneric>;
 
 export const getMakerRouteSchema = {
   tags: ["makers"],

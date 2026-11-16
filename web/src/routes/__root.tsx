@@ -3,6 +3,7 @@ import "@/index.css";
 import { analyticsScripts } from "@/lib/analytics";
 import { seo } from "@/lib/seo";
 import { BadgeCelebration } from "@/modules/badges/components/badge-celebration";
+import { ProjectBadgeCelebration } from "@/modules/project-badges/components/project-badge-celebration";
 import { discoverySearchSchema } from "@/modules/project-list/search-params";
 import type { QueryClient } from "@tanstack/react-query";
 import {
@@ -26,6 +27,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0" },
       { name: "theme-color", content: "#0a0a0a" },
+      {
+        name: "keywords",
+        content:
+          "Cabo Verde, projetos digitais, startups, produtos, makers, tecnologia, inovação, open source, Hub Digital",
+      },
+      { name: "author", content: "Hub Digital" },
       ...seo({}).meta,
     ],
     links: [
@@ -54,6 +61,7 @@ function RootComponent() {
     <AppProvider>
       <Outlet />
       <BadgeCelebration />
+      <ProjectBadgeCelebration />
     </AppProvider>
   );
 }

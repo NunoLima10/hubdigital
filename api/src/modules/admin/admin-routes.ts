@@ -8,7 +8,15 @@ import { AdminProjectsService } from "./projects-services";
 import { withAudit } from "./audit-services";
 import { BadRequestError, ConflictError, NotFoundError } from "@/utils/custom-errors";
 import { BadgesService } from "@/modules/badges/badges-services";
-import { badgeKeySchema, grantBadgeBodySchema, type BadgeKey } from "@hubdigital/shared";
+import {
+  badgeKeySchema,
+  grantBadgeBodySchema,
+  grantProjectBadgeBodySchema,
+  projectBadgeCatalog,
+  type BadgeKey,
+  type GrantProjectBadgeBody,
+} from "@hubdigital/shared";
+import { ProjectBadgesService } from "@/modules/project-badges/project-badges-services";
 import { requireAdmin } from "@/hooks/has-role";
 import { FastifyInstance } from "fastify";
 import { adminController } from "./admin-controllers";
@@ -194,6 +202,79 @@ export async function adminRoutes(server: FastifyInstance) {
   server.delete("/projects/:id/shadow-ban", {
     schema: restoreProjectRouteSchema,
     handler: adminController.unhideProjectHandler,
+  });
+
+  /* project badges — only the manual ones; the rest follow their rule */
+
+  server.post("/projects/:id/badges", {
+    schema: {
+      params: z.object({ id: z.coerce.number().int().positive() }),
+      body: grantProjectBadgeBodySchema,
+    },
+    handler: async (req, reply) => {
+      const { id } = req.params as { id: number };
+      const { key, period } = req.body as GrantProjectBadgeBody;
+
+      const project = await req.db.query.projects.findFirst({
+        where: and(eq(projects.id, id), isNull(projects.deletedAt)),
+        columns: { id: true },
+      });
+      if (!project) throw new NotFoundError();
+
+      const result = await withAudit(
+        req.db,
+        { id: req.user!.id },
+        async (tx) => {
+          const granted = await ProjectBadgesService.grant(tx, id, key, period, req.user!.id);
+          if (granted.outcome === "not_manual")
+            throw new BadRequestError("Esta conquista é atribuída automaticamente.");
+          if (granted.outcome === "month_taken")
+            throw new ConflictError("Outro projeto já é o projeto deste mês.");
+          return granted.outcome === "granted" ? granted.award : null;
+        },
+        (award) => ({
+          action: "project.badge_grant",
+          targetType: "project",
+          targetId: id,
+          metadata: { badge: award.key, period: award.period },
+        }),
+      );
+      if (!result) throw new ConflictError("Este projeto já tem esta conquista.");
+
+      return reply.status(201).send({ data: result });
+    },
+  });
+
+  server.delete("/projects/:id/badges/:awardId", {
+    schema: {
+      params: z.object({
+        id: z.coerce.number().int().positive(),
+        awardId: z.coerce.number().int().positive(),
+      }),
+    },
+    handler: async (req) => {
+      const { id, awardId } = req.params as { id: number; awardId: number };
+
+      const result = await withAudit(
+        req.db,
+        { id: req.user!.id },
+        async (tx) => {
+          const removed = await ProjectBadgesService.revoke(tx, id, awardId);
+          if (removed === "not_manual")
+            throw new BadRequestError("Conquistas automáticas não podem ser removidas.");
+          return removed;
+        },
+        (award) => ({
+          action: "project.badge_revoke",
+          targetType: "project",
+          targetId: id,
+          metadata: { badge: award.key, period: award.period },
+        }),
+      );
+      if (!result) throw new NotFoundError();
+
+      return { data: { id: result.id, key: result.key, name: projectBadgeCatalog[result.key].name } };
+    },
   });
 
   server.post("/publishers/:id/trust", {

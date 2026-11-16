@@ -25,31 +25,30 @@ export function useImagePreview(file: File | null | undefined) {
   const [preview, setPreview] = useState<undefined | PreviewImage>();
 
   useEffect(() => {
-    if (file) {
-      const url = URL.createObjectURL(file);
-      const img = new Image();
-      img.src = url;
+    setPreview(undefined);
+    if (!file) return;
 
-      img.onload = () => {
-        setPreview({
-          url: url,
-          width: img.width,
-          height: img.height,
-          size: file.size,
-          sizeDisplay: formatBytes(file.size),
-        });
-      };
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    let cancelled = false;
 
-      return () => {
-        URL.revokeObjectURL(url);
-        setPreview(undefined);
-      };
-    }
+    img.onload = () => {
+      if (cancelled) return;
+      setPreview({
+        url,
+        width: img.width,
+        height: img.height,
+        size: file.size,
+        sizeDisplay: formatBytes(file.size),
+      });
+    };
+    img.src = url;
 
-    if (preview) {
-      URL.revokeObjectURL(preview.url);
-      setPreview(undefined);
-    }
+    return () => {
+      cancelled = true;
+      img.onload = null;
+      URL.revokeObjectURL(url);
+    };
   }, [file]);
 
   return preview;

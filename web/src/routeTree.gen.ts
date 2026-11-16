@@ -11,16 +11,22 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedRouteImport } from './routes/_authed'
+import { Route as BrandRouteImport } from './routes/brand'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as MapRouteImport } from './routes/map'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as RankingRouteImport } from './routes/ranking'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as TermosRouteImport } from './routes/termos'
 import { Route as AuthedDashboardRouteRouteImport } from './routes/_authed/dashboard/route'
 import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
 import { Route as MakersHandleRouteImport } from './routes/makers/$handle'
 import { Route as PlaygroundBadgesRouteImport } from './routes/playground/badges'
+import { Route as PlaygroundOnboardingRouteImport } from './routes/playground/onboarding'
+import { Route as PlaygroundProjectBadgesRouteImport } from './routes/playground/project-badges'
 import { Route as ProfilesHandleRouteImport } from './routes/profiles/$handle'
 import { Route as ProjectsSlugRouteImport } from './routes/projects/$slug'
 import { Route as RankingsWeekRouteImport } from './routes/rankings/$week'
@@ -41,6 +47,11 @@ const AuthedRoute = AuthedRouteImport.update({
   id: '/_authed',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BrandRoute = BrandRouteImport.update({
+  id: '/brand',
+  path: '/brand',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
@@ -49,6 +60,16 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
 const MapRoute = MapRouteImport.update({
   id: '/map',
   path: '/map',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RankingRoute = RankingRouteImport.update({
+  id: '/ranking',
+  path: '/ranking',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -71,6 +92,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermosRoute = TermosRouteImport.update({
+  id: '/termos',
+  path: '/termos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthedDashboardRouteRoute = AuthedDashboardRouteRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -89,6 +115,16 @@ const MakersHandleRoute = MakersHandleRouteImport.update({
 const PlaygroundBadgesRoute = PlaygroundBadgesRouteImport.update({
   id: '/playground/badges',
   path: '/playground/badges',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaygroundOnboardingRoute = PlaygroundOnboardingRouteImport.update({
+  id: '/playground/onboarding',
+  path: '/playground/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaygroundProjectBadgesRoute = PlaygroundProjectBadgesRouteImport.update({
+  id: '/playground/project-badges',
+  path: '/playground/project-badges',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfilesHandleRoute = ProfilesHandleRouteImport.update({
@@ -147,16 +183,22 @@ const AuthedDashboardSubmitRoute = AuthedDashboardSubmitRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/brand': typeof BrandRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/map': typeof MapRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos': typeof TermosRoute
   '/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
   '/playground/badges': typeof PlaygroundBadgesRoute
+  '/playground/onboarding': typeof PlaygroundOnboardingRoute
+  '/playground/project-badges': typeof PlaygroundProjectBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
@@ -170,16 +212,22 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/brand': typeof BrandRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/map': typeof MapRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos': typeof TermosRoute
   '/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
   '/playground/badges': typeof PlaygroundBadgesRoute
+  '/playground/onboarding': typeof PlaygroundOnboardingRoute
+  '/playground/project-badges': typeof PlaygroundProjectBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
@@ -195,16 +243,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authed': typeof AuthedRouteWithChildren
+  '/brand': typeof BrandRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/map': typeof MapRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/ranking': typeof RankingRoute
   '/reset-password': typeof ResetPasswordRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/termos': typeof TermosRoute
   '/_authed/dashboard': typeof AuthedDashboardRouteRouteWithChildren
   '/_authed/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
   '/playground/badges': typeof PlaygroundBadgesRoute
+  '/playground/onboarding': typeof PlaygroundOnboardingRoute
+  '/playground/project-badges': typeof PlaygroundProjectBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
   '/projects/$slug': typeof ProjectsSlugRoute
   '/rankings/$week': typeof RankingsWeekRoute
@@ -220,16 +274,22 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/brand'
     | '/forgot-password'
     | '/map'
+    | '/privacidade'
+    | '/ranking'
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/sitemap.xml'
+    | '/termos'
     | '/dashboard'
     | '/onboarding'
     | '/makers/$handle'
     | '/playground/badges'
+    | '/playground/onboarding'
+    | '/playground/project-badges'
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
@@ -243,16 +303,22 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/brand'
     | '/forgot-password'
     | '/map'
+    | '/privacidade'
+    | '/ranking'
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/sitemap.xml'
+    | '/termos'
     | '/dashboard'
     | '/onboarding'
     | '/makers/$handle'
     | '/playground/badges'
+    | '/playground/onboarding'
+    | '/playground/project-badges'
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
@@ -267,16 +333,22 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authed'
+    | '/brand'
     | '/forgot-password'
     | '/map'
+    | '/privacidade'
+    | '/ranking'
     | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/sitemap.xml'
+    | '/termos'
     | '/_authed/dashboard'
     | '/_authed/onboarding'
     | '/makers/$handle'
     | '/playground/badges'
+    | '/playground/onboarding'
+    | '/playground/project-badges'
     | '/profiles/$handle'
     | '/projects/$slug'
     | '/rankings/$week'
@@ -292,14 +364,20 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthedRoute: typeof AuthedRouteWithChildren
+  BrandRoute: typeof BrandRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   MapRoute: typeof MapRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
+  RankingRoute: typeof RankingRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignInRoute: typeof SignInRoute
   SignUpRoute: typeof SignUpRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermosRoute: typeof TermosRoute
   MakersHandleRoute: typeof MakersHandleRoute
   PlaygroundBadgesRoute: typeof PlaygroundBadgesRoute
+  PlaygroundOnboardingRoute: typeof PlaygroundOnboardingRoute
+  PlaygroundProjectBadgesRoute: typeof PlaygroundProjectBadgesRoute
   ProfilesHandleRoute: typeof ProfilesHandleRoute
   ProjectsSlugRoute: typeof ProjectsSlugRoute
   RankingsWeekRoute: typeof RankingsWeekRoute
@@ -321,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/brand': {
+      id: '/brand'
+      path: '/brand'
+      fullPath: '/brand'
+      preLoaderRoute: typeof BrandRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forgot-password': {
       id: '/forgot-password'
       path: '/forgot-password'
@@ -333,6 +418,20 @@ declare module '@tanstack/react-router' {
       path: '/map'
       fullPath: '/map'
       preLoaderRoute: typeof MapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ranking': {
+      id: '/ranking'
+      path: '/ranking'
+      fullPath: '/ranking'
+      preLoaderRoute: typeof RankingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -363,6 +462,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/termos': {
+      id: '/termos'
+      path: '/termos'
+      fullPath: '/termos'
+      preLoaderRoute: typeof TermosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authed/dashboard': {
       id: '/_authed/dashboard'
       path: '/dashboard'
@@ -389,6 +495,20 @@ declare module '@tanstack/react-router' {
       path: '/playground/badges'
       fullPath: '/playground/badges'
       preLoaderRoute: typeof PlaygroundBadgesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/onboarding': {
+      id: '/playground/onboarding'
+      path: '/playground/onboarding'
+      fullPath: '/playground/onboarding'
+      preLoaderRoute: typeof PlaygroundOnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/project-badges': {
+      id: '/playground/project-badges'
+      path: '/playground/project-badges'
+      fullPath: '/playground/project-badges'
+      preLoaderRoute: typeof PlaygroundProjectBadgesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profiles/$handle': {
@@ -503,14 +623,20 @@ const AuthedRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthedRoute: AuthedRouteWithChildren,
+  BrandRoute: BrandRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   MapRoute: MapRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
+  RankingRoute: RankingRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermosRoute: TermosRoute,
   MakersHandleRoute: MakersHandleRoute,
   PlaygroundBadgesRoute: PlaygroundBadgesRoute,
+  PlaygroundOnboardingRoute: PlaygroundOnboardingRoute,
+  PlaygroundProjectBadgesRoute: PlaygroundProjectBadgesRoute,
   ProfilesHandleRoute: ProfilesHandleRoute,
   ProjectsSlugRoute: ProjectsSlugRoute,
   RankingsWeekRoute: RankingsWeekRoute,

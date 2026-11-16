@@ -8,6 +8,48 @@
       "when": 1794690195690,
       "tag": "0000_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794750602667,
+      "tag": "0001_mixed_lily_hollister",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794750676788,
+      "tag": "0002_secret_multiple_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794760915487,
+      "tag": "0003_site_stats_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794772760420,
+      "tag": "0004_project_badges",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794781000000,
+      "tag": "0005_restore_database_invariants",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794793861183,
+      "tag": "0006_project_badge_seen",
+      "breakpoints": true
     }
   ]
 }

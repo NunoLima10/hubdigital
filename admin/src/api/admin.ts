@@ -11,6 +11,7 @@ import type {
   AdminUserDetail,
   AuditEntryView,
   BadgeKey,
+  GrantProjectBadgeBody,
   CategorySummary,
   ModerationTarget,
   ProjectStatus,
@@ -194,6 +195,14 @@ export async function hideUser(id: string, reason: string) {
 
 export async function unhideUser(id: string) {
   await API.delete(`${endpoints.adminUsers}/${id}/shadow-ban`);
+}
+
+export async function grantProjectBadge(projectId: number, body: GrantProjectBadgeBody) {
+  await API.post(`${endpoints.adminProjects}/${projectId}/badges`, body);
+}
+
+export async function revokeProjectBadge(projectId: number, awardId: number) {
+  await API.delete(`${endpoints.adminProjects}/${projectId}/badges/${awardId}`);
 }
 
 export async function grantBadge(id: string, key: BadgeKey) {

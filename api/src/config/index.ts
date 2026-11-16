@@ -37,9 +37,9 @@ export const envSchema = z.object({
   DB_MIGRATING: z.coerce.boolean().default(false),
   DB_SEEDING: z.coerce.boolean().default(false),
 
-  ADMIN_SEED_NAME: z.string().optional(),
-  ADMIN_SEED_EMAIL: z.string().email().optional(),
-  ADMIN_SEED_PASSWORD: z.string().min(8).optional(),
+  ADMIN_SEED_NAME: blankAsUnset(z.string()),
+  ADMIN_SEED_EMAIL: blankAsUnset(z.string().email()),
+  ADMIN_SEED_PASSWORD: blankAsUnset(z.string().min(8)),
 
   GOOGLE_CLIENT_ID: z.string(),
   GOOGLE_CLIENT_SECRET: z.string(),
@@ -79,12 +79,26 @@ export const envSchema = z.object({
   // the web server's IP. Never exposed to browsers.
   API_INTERNAL_KEY: blankAsUnset(z.string().min(32)),
 
-  CLOUDFLARE_PUBLIC_URL: z.string().url().optional(),
-  CLOUDFLARE_BUCKET: z.string().optional(),
-  CLOUDFLARE_ENDPOINT: z.string().url().optional(),
-  CLOUDFLARE_ACCESS_KEY_ID: z.string().optional(),
-  CLOUDFLARE_ACCESS_KEY_SECRET: z.string().optional(),
+  // PostHog product analytics (src/lib/analytics.ts). Unset: nothing is sent.
+  // The project token (phc_...) is the same one the web app uses.
+  POSTHOG_API_KEY: blankAsUnset(z.string()),
+  POSTHOG_HOST: z.string().url().default("https://eu.i.posthog.com"),
+  // Reading from PostHog (src/lib/posthog-query.ts) for the public site stats.
+  // A personal API key with only the query:read scope; never sent to browsers.
+  // The app host is PostHog's private API, not the ingestion host above.
+  POSTHOG_PERSONAL_API_KEY: blankAsUnset(z.string()),
+  POSTHOG_PROJECT_ID: blankAsUnset(z.string()),
+  POSTHOG_APP_HOST: z.string().url().default("https://eu.posthog.com"),
+  // Only events tagged with this environment count in the public stats.
+  POSTHOG_STATS_ENVIRONMENT: z.string().default("production"),
+
+  CLOUDFLARE_PUBLIC_URL: blankAsUnset(z.string().url()),
+  CLOUDFLARE_BUCKET: blankAsUnset(z.string()),
+  CLOUDFLARE_ENDPOINT: blankAsUnset(z.string().url()),
+  CLOUDFLARE_ACCESS_KEY_ID: blankAsUnset(z.string()),
+  CLOUDFLARE_ACCESS_KEY_SECRET: blankAsUnset(z.string()),
   CLOUDFLARE_REGION: z.string().default("auto"),
+  UPLOADER_URL_EXPIRES_IN: z.coerce.number().int().positive().default(300),
 });
 
 const env = envSchema.parse(process.env);

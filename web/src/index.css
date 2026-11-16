@@ -353,6 +353,211 @@
   animation: badge-glint 800ms ease-in-out;
 }
 
+/*
+ * The reveal around the medal (components/badge/badge-reveal.tsx), tinted by
+ * --badge-tint. A soft halo blooms as the medal lands, then the text follows.
+ */
+.badge-reveal-card {
+  border-color: color-mix(in oklab, var(--badge-tint) 35%, var(--border));
+  background:
+    radial-gradient(120% 70% at 50% 0%, color-mix(in oklab, var(--badge-tint) 22%, transparent), transparent 70%),
+    color-mix(in oklab, var(--badge-tint) 5%, var(--card));
+  box-shadow: 0 12px 32px -18px color-mix(in oklab, var(--badge-tint) 60%, transparent);
+}
+
+/* A bolder tint, for a card that stands alone on a blurred backdrop. */
+.badge-reveal-card--strong {
+  border-color: color-mix(in oklab, var(--badge-tint) 55%, var(--border));
+  background:
+    radial-gradient(120% 90% at 0% 50%, color-mix(in oklab, var(--badge-tint) 34%, transparent), transparent 75%),
+    color-mix(in oklab, var(--badge-tint) 12%, var(--card));
+}
+
+.badge-reveal__eyebrow {
+  color: color-mix(in oklab, var(--badge-tint) 65%, var(--foreground));
+}
+
+.badge-reveal__glow {
+  position: absolute;
+  inset: 12%;
+  border-radius: 9999px;
+  background: var(--badge-tint);
+  filter: blur(28px);
+  opacity: 0.45;
+}
+
+.badge-intro .badge-reveal__glow {
+  animation: badge-glow 1.4s ease-out both;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 500ms);
+}
+
+.badge-reveal__text {
+  animation: badge-text-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + var(--badge-delay, 0ms));
+}
+
+/* Layers only some reveal variants use; hidden otherwise. */
+.badge-reveal__ring {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.badge-reveal__ring {
+  inset: 4%;
+  border-radius: 9999px;
+  border: 3px solid var(--badge-tint);
+}
+
+/* B · Queda: drops from above, bounces on the card, shockwave on impact. */
+[data-reveal="drop"] .badge-intro .badge-medal {
+  animation: badge-drop 950ms cubic-bezier(0.5, 0, 0.5, 1) both;
+  animation-delay: var(--badge-intro-delay, 0ms);
+  transform-origin: 50% 100%;
+}
+
+[data-reveal="drop"] .badge-intro .badge-reveal__ring {
+  animation: badge-shockwave 750ms ease-out forwards;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 480ms);
+}
+
+[data-reveal="drop"].badge-reveal-card {
+  animation: badge-card-impact 450ms cubic-bezier(0.3, 1.6, 0.5, 1) both;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 470ms);
+}
+
+[data-reveal="drop"] .badge-reveal__text {
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 600ms + var(--badge-delay, 0ms) / 6);
+}
+
+/*
+ * C · Encaixe (onboarding-success/avatar-badge-dock.tsx): the medal spins
+ * large over the avatar, then flies into its corner and lands with a bump.
+ * Every transform keeps the same function list so rotateY never unwinds.
+ */
+.badge-dock {
+  perspective: 700px;
+}
+
+/*
+ * The piece is laid out at its large 120px size and scaled down to 40px in
+ * the corner: a scaled-down layer stays sharp, a scaled-up one goes blurry.
+ * Its centre sits where a 40px piece at right/bottom -6px would (82px in).
+ */
+.badge-dock__medal {
+  position: absolute;
+  left: 22px;
+  top: 22px;
+  width: 120px;
+  height: 120px;
+  filter: drop-shadow(0 6px 12px rgb(0 0 0 / 0.35));
+  animation: badge-dock-medal 2.4s both;
+  animation-delay: 200ms;
+}
+
+.badge-dock__avatar {
+  animation: badge-dock-avatar 2.4s ease-out both;
+  animation-delay: 200ms;
+}
+
+.badge-dock__ring {
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  border: 3px solid var(--badge-tint);
+  opacity: 0;
+  pointer-events: none;
+  animation: badge-shockwave 700ms ease-out forwards;
+  animation-delay: 2150ms;
+}
+
+@keyframes badge-dock-medal {
+  0% { opacity: 0; transform: translate(-34px, -34px) scale(0.4) rotateY(-120deg); animation-timing-function: cubic-bezier(0.2, 1.2, 0.4, 1); }
+  14% { opacity: 1; transform: translate(-34px, -34px) scale(1) rotateY(0deg); animation-timing-function: cubic-bezier(0.45, 0, 0.55, 1); }
+  46% { transform: translate(-34px, -34px) scale(1) rotateY(720deg); }
+  58% { transform: translate(-34px, -34px) scale(1.03) rotateY(720deg); animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.6); }
+  81% { transform: translate(0, 0) scale(0.35) rotateY(720deg); }
+  87% { transform: translate(0, 0) scale(0.45, 0.25) rotateY(720deg); }
+  93% { transform: translate(0, 0) scale(0.3, 0.36) rotateY(720deg); }
+  100% { opacity: 1; transform: translate(0, 0) scale(0.3333) rotateY(720deg); }
+}
+
+@keyframes badge-dock-avatar {
+  0%, 48% { opacity: 0; transform: scale(0.6); }
+  62% { opacity: 1; transform: scale(1.06); }
+  72%, 81% { opacity: 1; transform: scale(1); }
+  86% { transform: scale(0.94) rotate(-4deg); }
+  93% { transform: scale(1.02) rotate(1deg); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* D · Calma: a soft fade, no flourishes. */
+[data-reveal="calm"] .badge-intro .badge-medal {
+  animation: badge-calm 800ms ease-out both;
+  animation-delay: var(--badge-intro-delay, 0ms);
+}
+
+[data-reveal="calm"] .badge-intro .badge-medal__leaf,
+[data-reveal="calm"] .badge-intro .badge-medal__pop,
+[data-reveal="calm"] .badge-intro .badge-medal__draw {
+  animation: none;
+  stroke-dasharray: none;
+}
+
+[data-reveal="calm"] .badge-intro .badge-reveal__glow {
+  animation: badge-glow-soft 1.2s ease-out both;
+  animation-delay: var(--badge-intro-delay, 0ms);
+}
+
+[data-reveal="calm"] .badge-reveal__text {
+  animation-duration: 800ms;
+  animation-delay: calc(var(--badge-intro-delay, 0ms) + 300ms);
+}
+
+@keyframes badge-drop {
+  0% { opacity: 0; transform: translateY(-260px) scale(0.9); }
+  12% { opacity: 1; }
+  50% { transform: translateY(0) scale(1.08, 0.86); }
+  66% { transform: translateY(-30px) scale(0.97, 1.04); }
+  82% { transform: translateY(0) scale(1.03, 0.96); }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes badge-shockwave {
+  0% { opacity: 0.9; transform: scale(0.7); }
+  100% { opacity: 0; transform: scale(1.9); }
+}
+
+@keyframes badge-card-impact {
+  0% { transform: none; }
+  35% { transform: translateY(7px) scale(0.99); }
+  100% { transform: none; }
+}
+
+@keyframes badge-glow-soft {
+  from { opacity: 0; }
+  to { opacity: 0.45; }
+}
+
+@keyframes badge-calm {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes badge-glow {
+  0% { opacity: 0; transform: scale(0.5); }
+  45% { opacity: 0.8; transform: scale(1.15); }
+  100% { opacity: 0.45; transform: scale(1); }
+}
+
+@keyframes badge-text-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
 @keyframes badge-land {
   0% { opacity: 0; transform: translateY(24px) scale(0.35) rotateY(-160deg); }
   60% { opacity: 1; }
@@ -401,13 +606,344 @@
 
 @media (prefers-reduced-motion: reduce) {
   .badge-medal,
-  .badge-medal * {
+  .badge-medal *,
+  .badge-reveal__glow,
+  .badge-reveal__text,
+  .badge-reveal__ring,
+  .badge-dock__avatar,
+  .badge-dock__medal,
+  .badge-dock__ring,
+  .badge-reveal-card {
     animation: none !important;
     transition: none !important;
   }
 
   .badge-hover:hover .badge-medal,
   .badge-hover:focus-visible .badge-medal {
+    transform: none;
+  }
+
+  /* No flight: the piece sits in its corner from the start. */
+  .badge-dock__medal {
+    transform: scale(0.3333);
+  }
+}
+
+/*
+ * Project plaques (components/project-badge/project-plaque.tsx). Square, so
+ * they never read as a person's medal. Always alive in small ways (glint,
+ * star ring, crown, rising sparks); .plaque-intro on an ancestor adds the
+ * drop-in entry, staggered with --plaque-intro-delay.
+ */
+@property --plaque-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.project-plaque {
+  perspective: 700px;
+}
+
+.project-plaque__body {
+  transform: rotateX(var(--plaque-rx, 0deg)) rotateY(var(--plaque-ry, 0deg));
+  transition: transform 160ms ease-out;
+  filter: drop-shadow(0 6px 10px rgb(10 20 40 / 0.22));
+}
+
+.project-plaque[data-aura]::before {
+  content: "";
+  position: absolute;
+  inset: 3%;
+  border-radius: 24%;
+  background: conic-gradient(from var(--plaque-angle), #f7d116, #ff9f1c, #fff6c8, #024bff, #f7d116);
+  filter: blur(10px);
+  opacity: 0.8;
+  animation: plaque-spin 4s linear infinite;
+}
+
+.project-plaque[data-aura="holo"]::before {
+  background: conic-gradient(from var(--plaque-angle), #59f3ff, #7c8cff, #ff7ad9, #ffd66b, #59f3ff);
+}
+
+.project-plaque__glint {
+  transform: translateX(-140px);
+  animation: plaque-glint 5.5s ease-in-out 1.2s infinite;
+}
+
+.project-plaque__star,
+.project-plaque__crown,
+.project-plaque__twinkle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.project-plaque__star {
+  animation: plaque-star 3s ease-in-out var(--plaque-star-delay, 0s) infinite;
+}
+
+/* 1º da semana: the crown is hidden at rest and drops onto the numeral on
+   hover or tap, nudging it down to make room. */
+.project-plaque__crown {
+  opacity: 0;
+  transform: translateY(-22px) scale(0.6);
+  transition:
+    opacity 180ms ease-out,
+    transform 420ms cubic-bezier(0.2, 1.5, 0.4, 1);
+}
+
+.project-plaque__lift {
+  transition: transform 320ms cubic-bezier(0.2, 1.2, 0.4, 1);
+}
+
+.project-plaque:is(:hover, :active, :focus-visible) .project-plaque__crown {
+  opacity: 1;
+  transform: none;
+}
+
+.project-plaque:is(:hover, :active, :focus-visible) .project-plaque__lift {
+  transform: translateY(16px);
+}
+
+.project-plaque__twinkle {
+  animation: badge-twinkle 2.6s ease-in-out infinite;
+}
+
+.project-plaque__arrow {
+  animation: plaque-bob 2.4s ease-in-out infinite;
+}
+
+.project-plaque__rise {
+  animation: plaque-rise 2.4s ease-out infinite;
+}
+
+.project-plaque__lava {
+  animation: badge-lava 2.6s ease-in-out infinite;
+}
+
+/*
+ * One hover moment per kind (the crown above is 1º da semana's):
+ * top 3 / top 10 roll their place like a scoreboard; upvotes launch the arrow
+ * and count up (CountUp in the component), 100 and 500 add a flame and a
+ * burst; the team's pick splits and rejoins the H and redraws its check;
+ * project of the month turns its star ring; the pioneer flag waves.
+ * Extras that only exist mid-animation stay hidden at rest.
+ */
+.project-plaque__flame,
+.project-plaque__burst,
+.project-plaque__pop {
+  opacity: 0;
+}
+
+.project-plaque__rank,
+.project-plaque__launch,
+.project-plaque__pop,
+.project-plaque__seal,
+.project-plaque__h-top,
+.project-plaque__h-middle,
+.project-plaque__h-bottom {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.project-plaque__podium {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+}
+
+.project-plaque__flame {
+  transform-box: fill-box;
+  transform-origin: top center;
+}
+
+.project-plaque__burst {
+  transform-box: view-box;
+}
+
+.project-plaque__orbit {
+  transform-box: view-box;
+  transform-origin: 100px 80px;
+}
+
+.project-plaque__check {
+  stroke-dasharray: 1;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .project-plaque:is(:hover, :active) .project-plaque__rank {
+    animation: plaque-rank-roll 720ms cubic-bezier(0.3, 1.2, 0.5, 1) both;
+  }
+
+  .project-plaque:is(:hover, :active) .project-plaque__podium {
+    animation: plaque-podium 720ms ease-out both;
+  }
+
+  .project-plaque:is(:hover, :active) .project-plaque__pop {
+    animation: plaque-pop 520ms ease-out both;
+  }
+
+  .project-plaque:is(:hover, :active) .project-plaque__launch {
+    animation: plaque-launch 950ms cubic-bezier(0.3, 0, 0.3, 1) both;
+  }
+
+  .project-plaque:is(:hover, :active) .project-plaque__flame {
+    animation: plaque-flame 950ms ease-out both;
+  }
+
+  .project-plaque:is(:hover, :active) .project-plaque__burst {
+    animation: plaque-burst 700ms cubic-bezier(0.2, 0.7, 0.3, 1) 450ms both;
+  }
+
+  .project-plaque:is(:hover, :active) :is(.project-plaque__h-top, .project-plaque__h-middle, .project-plaque__h-bottom) {
+    animation: 600ms cubic-bezier(0.3, 1.5, 0.5, 1) both;
+  }
+
+  .project-plaque:is(:hover, :active) .project-plaque__h-top { animation-name: hub-lift-top; }
+  .project-plaque:is(:hover, :active) .project-plaque__h-middle { animation-name: hub-lift-middle; }
+  .project-plaque:is(:hover, :active) .project-plaque__h-bottom { animation-name: hub-lift-bottom; }
+
+  .project-plaque:is(:hover, :active) .project-plaque__seal {
+    animation: plaque-seal 520ms cubic-bezier(0.3, 1.5, 0.5, 1) 260ms both;
+  }
+
+  .project-plaque:is(:hover, :active) .project-plaque__check {
+    animation: plaque-check 380ms ease-out 480ms both;
+  }
+
+  /* Projeto do mês: the ring turns around the month while each star fades
+     out and back in turn, so a wave of light runs around the number. */
+  .project-plaque:is(:hover, :active) .project-plaque__orbit {
+    animation: plaque-orbit 4s linear infinite;
+  }
+
+  .project-plaque:is(:hover, :active) .project-plaque__orbit .project-plaque__star {
+    animation: plaque-chase 1.2s ease-in-out calc(var(--plaque-star-delay, 0s) * -0.4) infinite;
+  }
+
+  .project-plaque:is(:hover, :active) .project-plaque__flag {
+    animation: plaque-wave 1.1s ease-in-out infinite;
+  }
+
+  .project-plaque:is(:hover, :active) .project-plaque__flag.project-plaque__lava {
+    animation:
+      plaque-wave 1.1s ease-in-out infinite,
+      badge-lava 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes plaque-rank-roll {
+  0% { transform: none; opacity: 1; }
+  30% { transform: translateY(-30px); opacity: 0; }
+  31% { transform: translateY(30px); opacity: 0; }
+  75% { transform: translateY(-4px); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+
+@keyframes plaque-podium {
+  0%, 60%, 100% { transform: none; }
+  72% { transform: scaleY(0.8); }
+  86% { transform: scaleY(1.06); }
+}
+
+@keyframes plaque-pop {
+  0% { opacity: 0; transform: scale(0); }
+  40% { opacity: 1; transform: scale(1.25) rotate(20deg); }
+  100% { opacity: 0; transform: scale(0.6) rotate(45deg); }
+}
+
+@keyframes plaque-launch {
+  0% { transform: none; opacity: 1; }
+  18% { transform: translateY(5px) scale(1.08, 0.9); }
+  48% { transform: translateY(-14px) scale(0.95, 1.08); opacity: 1; }
+  60% { transform: translateY(-26px); opacity: 0; }
+  61% { transform: translateY(24px); opacity: 0; }
+  85% { transform: translateY(-3px); opacity: 1; }
+  100% { transform: none; opacity: 1; }
+}
+
+@keyframes plaque-flame {
+  0%, 15% { opacity: 0; transform: scaleY(0.3); }
+  25% { opacity: 1; transform: scaleY(1.2); }
+  38% { opacity: 1; transform: scaleY(0.8); }
+  50% { opacity: 1; transform: scaleY(1.3); }
+  58%, 100% { opacity: 0; transform: scaleY(0.4); }
+}
+
+@keyframes plaque-burst {
+  from { opacity: 1; transform: rotate(var(--burst-angle)) translateX(0) scale(1); }
+  to { opacity: 0; transform: rotate(var(--burst-angle)) translateX(var(--burst-distance)) scale(0.4); }
+}
+
+@keyframes plaque-seal {
+  0%, 100% { transform: none; }
+  45% { transform: scale(1.3) rotate(-12deg); }
+}
+
+@keyframes plaque-check {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes plaque-chase {
+  0%, 100% { opacity: 1; transform: scale(1.35); }
+  50% { opacity: 0.1; transform: scale(0.5); }
+}
+
+@keyframes plaque-orbit {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes plaque-wave {
+  0%, 100% { d: path("M81 40 Q100 32 112 40 T140 42 V78 Q126 86 112 78 T81 76 Z"); }
+  50% { d: path("M81 40 Q96 48 112 40 T140 36 V72 Q126 64 112 78 T81 76 Z"); }
+}
+
+.plaque-intro .project-plaque__body {
+  animation: plaque-drop 900ms cubic-bezier(0.2, 1.25, 0.4, 1) both;
+  animation-delay: var(--plaque-intro-delay, 0ms);
+}
+
+@keyframes plaque-drop {
+  0% { opacity: 0; transform: translateY(-36px) rotateX(75deg) scale(0.6); }
+  55% { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+
+@keyframes plaque-spin {
+  to { --plaque-angle: 360deg; }
+}
+
+@keyframes plaque-glint {
+  0% { transform: translateX(-140px); }
+  28%, 100% { transform: translateX(260px); }
+}
+
+@keyframes plaque-star {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  8% { transform: scale(1.5); opacity: 1; }
+  16% { transform: scale(1); opacity: 0.85; }
+}
+
+@keyframes plaque-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes plaque-rise {
+  0% { transform: translateY(10px); opacity: 0; }
+  25% { opacity: 0.9; }
+  100% { transform: translateY(-34px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-plaque::before,
+  .project-plaque__body,
+  .project-plaque * {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .project-plaque__body {
     transform: none;
   }
 }

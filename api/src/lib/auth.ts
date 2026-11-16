@@ -37,6 +37,11 @@ const authConfig = {
         type: "date",
         required: false,
       },
+      eligibilityConfirmedAt: {
+        type: "date",
+        required: false,
+        input: false,
+      },
       // `input: false` is load-bearing: without it these are writable through
       // updateUser and an account could lift its own sanction.
       shadowBannedAt: {

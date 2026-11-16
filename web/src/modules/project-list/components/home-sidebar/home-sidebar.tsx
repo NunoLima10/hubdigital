@@ -1,61 +1,96 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, FolderKanban, Layers3, Rocket } from "lucide-react";
-import { useCategories } from "@/modules/submit/hooks/use-categories";
-import { useProjects } from "../../hooks/use-projects";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ProfileBadge } from "@/components/badge/profile-badge";
+import { PersonAvatar } from "@/modules/invitations/components/person-avatar";
+import { useFoundingMakers } from "@/modules/makers/hooks/use-founding-makers";
+import { SiteStatsCard } from "./site-stats-card";
+import { GithubProjectCard } from "./github-project-card";
+
+function FoundingRoll() {
+  const makers = useFoundingMakers();
+  const people = makers.data?.data ?? [];
+
+  return (
+    <section aria-labelledby="founding-makers-title">
+      <h2 id="founding-makers-title" className="mb-2 text-sm font-semibold">
+        Inovadores de Cabo Verde
+      </h2>
+
+      {makers.isLoading ? (
+        <ol
+          className="space-y-1"
+          role="status"
+          aria-label="A carregar os inovadores"
+        >
+          {Array.from({ length: 5 }, (_, i) => (
+            <li key={i} className="flex items-center gap-2.5 px-1 py-1.5">
+              <Skeleton className="size-8 shrink-0 rounded-full" />
+              <Skeleton className="h-4 flex-1" style={{ maxWidth: `${60 + ((i * 17) % 30)}%` }} />
+              <Skeleton className="ml-auto h-4 w-14 shrink-0" />
+            </li>
+          ))}
+        </ol>
+      ) : makers.isError ? (
+        <div className="py-3 text-sm text-muted-foreground">
+          <p>Não foi possível mostrar os membros agora.</p>
+          <button
+            type="button"
+            onClick={() => void makers.refetch()}
+            className="mt-2 font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      ) : people.length ? (
+        <ol className="space-y-1" aria-label="Primeiros membros da comunidade">
+          {people.map((person) => (
+            <li
+              key={person.membershipNumber}
+              className="flex items-center gap-2.5 rounded-md px-1 py-1.5"
+            >
+              <span className="relative shrink-0">
+                <PersonAvatar
+                  name={person.name}
+                  image={person.image}
+                  className="size-8 border-0"
+                />
+                {person.featuredBadge && (
+                  <ProfileBadge
+                    badgeKey={person.featuredBadge}
+                    membershipNumber={person.membershipNumber}
+                    className="absolute -right-1.5 -bottom-1 size-4"
+                  />
+                )}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium">
+                {person.name}
+              </span>
+              <Link
+                to="/profiles/$handle"
+                params={{ handle: person.handle }}
+                aria-label={`Ver perfil de ${person.name}`}
+                className="shrink-0 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground outline-none transition-colors hover:bg-primary-soft hover:text-primary focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                Ver perfil
+              </Link>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="py-3 text-sm text-muted-foreground">
+          Os primeiros inovadores vão aparecer aqui.
+        </p>
+      )}
+    </section>
+  );
+}
 
 export function HomeSidebar() {
-  const all = useProjects({ period: "all" });
-  const weekly = useProjects({ period: "this_week" });
-  const { data: categories } = useCategories();
-  const stats = [
-    {
-      label: "Projetos publicados",
-      value: all.data?.meta.total,
-      icon: FolderKanban,
-    },
-    { label: "Esta semana", value: weekly.data?.meta.total, icon: Rocket },
-    { label: "Categorias", value: categories?.length, icon: Layers3 },
-  ];
   return (
     <div className="space-y-7">
-      <section aria-labelledby="site-stats-title">
-        <h2 id="site-stats-title" className="mb-3 text-sm font-semibold">
-          Hub Digital em números
-        </h2>
-        <div className="grid grid-cols-3 gap-2 lg:grid-cols-1">
-          {stats.map(({ label, value, icon: Icon }) => (
-            <div
-              key={label}
-              className="flex flex-col items-start gap-1 rounded-lg border bg-card px-3 py-3 lg:flex-row lg:items-center lg:gap-3 lg:px-4"
-            >
-              <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary-soft text-primary lg:size-9">
-                <Icon className="size-4" />
-              </span>
-              <div>
-                <div className="text-lg font-semibold tabular-nums">
-                  {value === undefined ? "—" : value.toLocaleString("pt-CV")}
-                </div>
-                <div className="text-[11px] leading-4 text-muted-foreground lg:text-xs">
-                  {label}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-      <section className="hidden rounded-lg border bg-muted/40 p-5 lg:block">
-        <h2 className="font-semibold">Feito em Cabo Verde</h2>
-        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Descobre produtos, ferramentas e ideias criadas pela comunidade
-          cabo-verdiana.
-        </p>
-        <Link
-          to="/dashboard/submit"
-          className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
-        >
-          Partilhar um projeto <ArrowRight className="size-4" />
-        </Link>
-      </section>
+      <SiteStatsCard />
+      <FoundingRoll />
+      <GithubProjectCard />
     </div>
   );
 }

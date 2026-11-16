@@ -20,6 +20,8 @@ const actionLabels: Record<string, string> = {
   "report.resolve": "Resolveu relatórios",
   "user.badge_grant": "Atribuiu um distintivo",
   "user.badge_revoke": "Removeu um distintivo",
+  "project.badge_grant": "Atribuiu uma conquista",
+  "project.badge_revoke": "Removeu uma conquista",
 };
 
 export function actionLabel(action: string) {

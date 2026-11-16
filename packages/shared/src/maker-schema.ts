@@ -29,6 +29,7 @@ export const makerProfileUpdateSchema = z.object({
   githubUrl: optionalUrl,
   linkedinUrl: optionalUrl,
   instagramUrl: optionalUrl,
+  discordUrl: optionalUrl,
 });
 
 export const makerProfileSchema = z.object({
@@ -41,6 +42,7 @@ export const makerProfileSchema = z.object({
   githubUrl: z.string().nullable(),
   linkedinUrl: z.string().nullable(),
   instagramUrl: z.string().nullable(),
+  discordUrl: z.string().nullable(),
   /** Upvotes gathered across every project this maker has published. */
   totalUpvotes: z.number(),
   projectCount: z.number(),
@@ -58,5 +60,15 @@ export const makerProfileSchema = z.object({
   ),
 });
 
+/** A public maker as shown in the chronological founding-members roll. */
+export const foundingMakerSchema = z.object({
+  handle: z.string(),
+  name: z.string(),
+  image: z.string().nullable(),
+  membershipNumber: z.number().int().positive(),
+  featuredBadge: badgeKeySchema.nullable(),
+});
+
 export type MakerProfile = z.infer<typeof makerProfileSchema>;
 export type MakerProfileUpdate = z.infer<typeof makerProfileUpdateSchema>;
+export type FoundingMaker = z.infer<typeof foundingMakerSchema>;

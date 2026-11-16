@@ -67,7 +67,7 @@ export function BadgeCelebration() {
     <Dialog
       open={open}
       onClose={close}
-      title={`Ganhaste o distintivo ${badgeCatalog[next.key].name}`}
+      title={`Ganhaste a conquista ${badgeCatalog[next.key].name}`}
       hideHeader
       className="md:max-w-sm"
     >

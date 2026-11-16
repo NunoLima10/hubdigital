@@ -25,3 +25,7 @@ export * from "./project-profile";
 export * from "./community-schema";
 
 export * from "./badge-schema";
+
+export * from "./project-badge-schema";
+
+export * from "./site-stats";

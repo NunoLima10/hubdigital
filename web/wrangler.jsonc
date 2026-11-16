@@ -1,8 +1,28 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
+  // Top level = production (Worker "hubdigital-web").
   "name": "hubdigital-web",
   "compatibility_date": "2026-09-20",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
-  "observability": { "enabled": true }
+  "main": "src/server.ts",
+  "upload_source_maps": true,
+  "observability": { "enabled": true },
+  // Custom domain, once the zone is on Cloudflare:
+  // "routes": [{ "pattern": "hubdigital.cv", "custom_domain": true }],
+
+  "env": {
+    // Staging environment (Worker "hubdigital-web-staging"). The Cloudflare
+    // Vite plugin picks it at build time from CLOUDFLARE_ENV, set in
+    // .env.staging: `pnpm deploy:staging`. routes and vars are not inherited
+    // from the top level.
+    "staging": {
+      "vars": {
+        // The Worker serves the API under its own origin at /v1 (src/server.ts)
+        // so auth cookies are first-party on workers.dev. Drop it once the
+        // site and the API share a domain (staging. / api-staging.).
+        "API_PROXY_TARGET": "https://hubdigital-staging.up.railway.app"
+      }
+      // "routes": [{ "pattern": "staging.hubdigital.cv", "custom_domain": true }]
+    }
+  }
 }
