@@ -3,7 +3,7 @@ import { ProjectProfile } from "@/components/project-profile";
 import { ProjectDestinationActions } from "@/components/project-destination-actions";
 import { ProjectGallery } from "@/components/project-gallery/project-gallery";
 import { projectViewTransitionName } from "@/lib/project-view-transition";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   ProjectSummary,
   ProjectVoteButton,
@@ -414,7 +414,7 @@ function ShareLinkButton({ title }: { title: string }) {
     <button
       type="button"
       onClick={share}
-      className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-md border text-sm hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+      className={buttonVariants({ variant: "outline", className: "flex-1 font-normal" })}
     >
       <span aria-hidden="true" className="relative size-4">
         <Share2

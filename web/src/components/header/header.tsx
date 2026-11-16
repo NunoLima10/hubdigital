@@ -1,6 +1,7 @@
 import { BrandLogo } from "@/components/brand-logo/brand-logo";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { cn } from "@/lib/utils";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import {
@@ -20,6 +21,11 @@ const ProjectSearch = lazy(() =>
   ),
 );
 
+const navLinkClass = cn(
+  buttonVariants({ variant: "ghost" }),
+  "px-3 text-muted-foreground hover:text-foreground",
+);
+
 function ThemeToggle({
   dark,
   onToggle,
@@ -31,7 +37,6 @@ function ThemeToggle({
     <Button
       variant="ghost"
       size="icon"
-      className="size-11"
       onClick={onToggle}
       aria-label="Alternar esquema de cores"
     >
@@ -70,7 +75,6 @@ export function Header({
     setDark(next);
   }
   const isDashboard = context === "dashboard";
-  const hasAuthenticatedActions = isDashboard || Boolean(session);
   const showContextLink = isDashboard || Boolean(session);
   const contextLink = isDashboard
     ? { to: "/" as const, label: "Explorar", icon: Compass }
@@ -115,41 +119,45 @@ export function Header({
             aria-label="Hub Digital, página inicial"
             className="mr-auto shrink-0 rounded focus-visible:outline-2 focus-visible:outline-ring"
           >
-            <BrandLogo />
+            {/* On narrow phones the mark alone leaves room for both
+                Entrar and Criar conta. */}
+            <BrandLogo wordmarkClassName="max-[419px]:hidden" />
           </Link>
           {!isDashboard && (
             <Link
               to="/map"
-              className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:inline-flex"
+              className={cn(navLinkClass, "hidden md:inline-flex")}
               aria-label="Mapa de projetos"
               title="Mapa de projetos"
             >
-              <Map className="size-4" />
-              <span className="hidden md:inline">Mapa</span>
+              <Map />
+              Mapa
             </Link>
           )}
           {showContextLink && (
             <Link
               to={contextLink.to}
-              className="hidden h-11 shrink-0 items-center justify-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring md:inline-flex"
+              className={cn(navLinkClass, "hidden md:inline-flex")}
               aria-label={contextLink.label}
               title={contextLink.label}
             >
-              <ContextIcon className="size-4" />
-              <span className="hidden md:inline">{contextLink.label}</span>
+              <ContextIcon />
+              {contextLink.label}
             </Link>
           )}
-          <div>
-            <ThemeToggle dark={dark} onToggle={toggleTheme} />
-          </div>
+          <ThemeToggle dark={dark} onToggle={toggleTheme} />
           <button
             type="button"
             onClick={() => setSearchOpen(true)}
             aria-label="Procurar projetos"
             aria-keyshortcuts="Control+K Meta+K"
-            className={`${isDashboard ? "md:hidden" : ""} inline-flex size-11 shrink-0 items-center justify-center gap-2 rounded-md border focus-visible:outline-2 focus-visible:outline-ring border-transparent text-sm text-muted-foreground hover:bg-muted hover:text-foreground lg:w-44 lg:justify-start lg:border-input lg:px-3 xl:w-52`}
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "icon" }),
+              "font-normal text-muted-foreground hover:text-foreground lg:w-44 lg:justify-start lg:border-input lg:px-3 xl:w-52",
+              isDashboard && "md:hidden",
+            )}
           >
-            <Search className="size-4" />
+            <Search />
             <span className="hidden lg:inline">Procurar projetos</span>
           </button>
           {sessionPending ? (
@@ -160,44 +168,39 @@ export function Header({
               aria-hidden
               className="mx-1.5 size-8 shrink-0 animate-pulse rounded-full bg-muted"
             />
+          ) : session ? (
+            // The dashboard has its own profile entry on desktop.
+            <Link
+              to="/dashboard/profile"
+              aria-label="Abrir perfil"
+              title={session.user.name}
+              className={cn(
+                buttonVariants({ variant: "ghost", size: "icon" }),
+                isDashboard && "md:hidden",
+              )}
+            >
+              {avatar}
+            </Link>
           ) : (
             <>
               <Link
-                to={session ? "/dashboard/profile" : "/sign-in"}
-                aria-label={session ? "Abrir perfil" : "Entrar"}
-                title={session ? session.user.name : "Entrar"}
-                className={
-                  session
-                    ? "inline-flex size-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-ring md:hidden"
-                    : "inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-foreground px-3 text-sm font-medium text-background hover:bg-foreground/85 focus-visible:outline-2 focus-visible:outline-ring md:hidden"
-                }
+                to="/sign-in"
+                className={cn(
+                  buttonVariants({ variant: "ghost" }),
+                  "px-2 sm:px-3",
+                  isDashboard && "md:hidden",
+                )}
               >
-                {session ? avatar : "Entrar"}
+                Entrar
               </Link>
-              {!isDashboard &&
-                (session ? (
-                  <Link
-                    to="/dashboard/profile"
-                    className="hidden size-11 shrink-0 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-ring md:flex"
-                    aria-label="Abrir perfil"
-                    title={session.user.name}
-                  >
-                    {avatar}
-                  </Link>
-                ) : (
-                  <Link
-                    to="/sign-in"
-                    className="hidden text-sm font-medium hover:text-primary md:block"
-                  >
-                    Entrar
-                  </Link>
-                ))}
-              {!hasAuthenticatedActions && (
+              {/* Most visitors arrive on a phone, so sign-up stays one tap away
+                  at every width. */}
+              {!isDashboard && (
                 <Link
                   to="/sign-up"
-                  className="hidden h-11 shrink-0 items-center gap-2 md:inline-flex rounded-md bg-foreground px-3 text-sm font-medium text-background hover:bg-foreground/85"
+                  className={cn(buttonVariants(), "px-3")}
                 >
-                  <UserRound className="size-4" />
+                  <UserRound className="max-sm:hidden" />
                   Criar conta
                 </Link>
               )}

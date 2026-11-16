@@ -20,7 +20,13 @@ export function LogoMark({ className }: { className?: string }) {
 
 const SPARK_ANGLES = Array.from({ length: 8 }, (_, i) => i * 45);
 
-export function BrandLogo({ className }: { className?: string }) {
+export function BrandLogo({
+  className,
+  wordmarkClassName,
+}: {
+  className?: string;
+  wordmarkClassName?: string;
+}) {
   return (
     <span className={cn("hub-lift inline-flex items-center gap-2 font-semibold tracking-tight", className)}>
       <span className="relative inline-flex">
@@ -35,7 +41,7 @@ export function BrandLogo({ className }: { className?: string }) {
           ))}
         </span>
       </span>
-      Hub Digital
+      <span className={wordmarkClassName}>Hub Digital</span>
     </span>
   );
 }
