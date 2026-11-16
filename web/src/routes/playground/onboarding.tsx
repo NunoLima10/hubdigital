@@ -115,7 +115,7 @@ function OnboardingPlayground() {
                   setBadgeKey(event.target.value as BadgeKey);
                   replay();
                 }}
-                className="h-8 rounded-md border bg-background px-2 text-sm text-foreground"
+                className="h-8 rounded-md border bg-background px-2 text-base md:text-sm text-foreground"
               >
                 {badgeDefinitions.map((badge) => (
                   <option key={badge.key} value={badge.key}>

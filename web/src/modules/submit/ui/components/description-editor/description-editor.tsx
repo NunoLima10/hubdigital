@@ -108,7 +108,7 @@ export function DescriptionEditor({
       </div>
       <EditorContent
         editor={editor}
-        className="prose-project min-h-36 px-3 py-2 text-sm [&_.tiptap]:min-h-32 [&_.tiptap]:outline-none"
+        className="prose-project min-h-36 px-3 py-2 text-base md:text-sm [&_.tiptap]:min-h-32 [&_.tiptap]:outline-none"
       />
     </div>
   );
