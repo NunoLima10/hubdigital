@@ -80,6 +80,12 @@ como acima e gera os segredos com `openssl rand -hex 32`. Depois corre:
 docker compose --profile app up
 ```
 
+`Ctrl+C` termina tudo. Com `docker compose --profile app up -d --wait` a stack
+arranca em segundo plano e o terminal volta quando os containers estão a correr.
+O mesmo comando levanta tudo de novo depois de um `down` sem `-v`, porque os
+volumes guardam a base de dados e as dependências. Depois de alterar
+`docker/dev.Dockerfile`, junta `--build` ao `up` ou ao `run`.
+
 O serviço `setup` instala as dependências, compila `shared` e aplica as
 migrações. Se a tabela de utilizadores estiver vazia, corre o seed de
 desenvolvimento; caso contrário, aplica só os dados de referência (categorias e
