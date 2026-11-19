@@ -21,7 +21,7 @@ import { and, desc, eq, isNotNull, isNull, lt, or } from "drizzle-orm";
  * number of API instances, and a PostHog outage or a deploy never empties the
  * card. A short in-process memo spares the database a read per home visit.
  */
-export const REFRESH_INTERVAL_MS = 24 * 60 * 60_000;
+export const REFRESH_INTERVAL_MS = 5 * 60_000;
 /** A claim older than this is presumed dead (crash, timeout) and retaken. */
 const CLAIM_TIMEOUT_MS = 5 * 60_000;
 const MEMO_TTL_MS = 60_000;
@@ -41,7 +41,7 @@ type StatsRow = {
 };
 
 // One pass over $pageview answers both periods. The all-time half reads the
-// whole history; cheap at this size and at one query a day.
+// whole history; cheap at this size and at one query every five minutes.
 const STATS_QUERY = `
   SELECT
     toYear(now()) AS year,
