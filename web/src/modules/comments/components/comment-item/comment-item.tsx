@@ -140,7 +140,7 @@ export function CommentItem({
         )}
         {mode === "view" && !comment.isDeleted && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
-                {canReply && !isReply && onReply && (
+                {canReply && onReply && (
                   <button className={actionClass} onClick={() => setMode("reply")}>
                     <MessageCircle className="size-3.5" />
                     Responder
