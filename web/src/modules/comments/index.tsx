@@ -138,8 +138,9 @@ function CommentThreadView({
                 comment={reply}
                 isNew={reply.id === freshId}
                 isReply
-                canReply={false}
+                canReply={canReply}
                 isPending={isPending}
+                onReply={onReply}
                 onEdit={onEdit}
                 onDelete={onDelete}
               />

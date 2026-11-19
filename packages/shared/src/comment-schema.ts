@@ -15,7 +15,7 @@ export const commentBodySchema = z.object({
     .trim()
     .min(1, "Escreve alguma coisa antes de enviar.")
     .max(COMMENT_MAX_LENGTH, "O comentário é demasiado longo."),
-  /** Set to reply to a top-level comment; replies never nest further. */
+  /** Set to reply in a thread; reply-to-reply is flattened under its root. */
   parentId: z.number().int().positive().nullish(),
 });
 
