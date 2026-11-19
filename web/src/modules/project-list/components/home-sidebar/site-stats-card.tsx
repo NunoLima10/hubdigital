@@ -34,7 +34,7 @@ function AboutStats() {
       <Popover.Portal>
         <Popover.Positioner sideOffset={6} align="start" className="z-50">
           <Popover.Popup className="max-w-64 rounded-lg border bg-popover p-3 text-xs leading-5 text-popover-foreground shadow-lg outline-none">
-            Medido com PostHog, sem nomes nem emails. Atualizado uma vez por dia.
+            Medido com PostHog, sem nomes nem emails. Atualizado a cada cinco minutos.
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>

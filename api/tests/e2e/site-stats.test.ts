@@ -39,7 +39,7 @@ const row = (visitors: number) => ({
   since: "2026-05-02T10:00:00Z",
 });
 
-const HOURS = 60 * 60_000;
+const MINUTES = 60_000;
 
 describe("Site stats snapshots (e2e)", () => {
   let container: Awaited<ReturnType<PostgreSqlContainer["start"]>>;
@@ -47,11 +47,11 @@ describe("Site stats snapshots (e2e)", () => {
   let dbClient: Awaited<ReturnType<typeof setupDB>>["dbClient"];
   let db: Awaited<ReturnType<typeof setupDB>>["db"];
 
-  /** Pretends the latest refresh happened `hours` ago. */
-  async function ageSnapshots(hours: number) {
+  /** Pretends the latest refresh happened `minutes` ago. */
+  async function ageSnapshots(minutes: number) {
     await db
       .update(siteStatsSnapshots)
-      .set({ fetchedAt: new Date(Date.now() - hours * HOURS) });
+      .set({ fetchedAt: new Date(Date.now() - minutes * MINUTES) });
   }
 
   beforeAll(async () => {
@@ -110,7 +110,7 @@ describe("Site stats snapshots (e2e)", () => {
     runHogQL.mockResolvedValueOnce([row(5)]);
     await SiteStatsService.get(db);
     await SiteStatsService.settle();
-    await ageSnapshots(23);
+    await ageSnapshots(4);
 
     expect((await SiteStatsService.get(db))?.yearToDate.visitors).toBe(5);
     expect(runHogQL).toHaveBeenCalledTimes(1);
@@ -120,7 +120,7 @@ describe("Site stats snapshots (e2e)", () => {
     runHogQL.mockResolvedValueOnce([row(5)]);
     await SiteStatsService.get(db);
     await SiteStatsService.settle();
-    await ageSnapshots(25);
+    await ageSnapshots(6);
 
     runHogQL.mockResolvedValueOnce([row(8)]);
     expect((await SiteStatsService.get(db))?.yearToDate.visitors).toBe(5);
@@ -134,7 +134,7 @@ describe("Site stats snapshots (e2e)", () => {
     runHogQL.mockResolvedValueOnce([row(5)]);
     await SiteStatsService.get(db);
     await SiteStatsService.settle();
-    await ageSnapshots(25);
+    await ageSnapshots(6);
 
     runHogQL.mockResolvedValue([row(8)]);
     await Promise.all(Array.from({ length: 5 }, () => SiteStatsService.get(db)));
@@ -147,7 +147,7 @@ describe("Site stats snapshots (e2e)", () => {
     runHogQL.mockResolvedValueOnce([row(5)]);
     await SiteStatsService.get(db);
     await SiteStatsService.settle();
-    await ageSnapshots(25);
+    await ageSnapshots(6);
 
     runHogQL.mockRejectedValue(new Error("429"));
     expect((await SiteStatsService.get(db))?.yearToDate.visitors).toBe(5);
