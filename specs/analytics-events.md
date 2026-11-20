@@ -232,7 +232,7 @@ dados do projeto PostHog.
 
 ```
 browser ──GET /v1/site-stats──▶ API ──▶ site_stats_snapshots (Postgres)
-                                          │  snapshot com mais de 24 h?
+                                          │  snapshot com mais de 5 min?
                                           ▼  (um só pedido, em segundo plano)
                      POST https://eu.posthog.com/api/projects/:id/query/
                      Authorization: Bearer <POSTHOG_PERSONAL_API_KEY>
@@ -258,19 +258,19 @@ browser ──GET /v1/site-stats──▶ API ──▶ site_stats_snapshots (Po
 
 | Situação | O que a API faz |
 | --- | --- |
-| Snapshot com menos de 24 h | devolve-o, sem PostHog |
-| Snapshot com mais de 24 h | devolve-o **na hora** e atualiza em segundo plano |
+| Snapshot com menos de 5 min | devolve-o, sem PostHog |
+| Snapshot com mais de 5 min | devolve-o **na hora** e atualiza em segundo plano |
 | Nenhum snapshot (primeira vez) | espera pelo PostHog e guarda |
 | PostHog falha | mantém o último snapshot; volta a tentar após 5 min |
 
 - **Um só pedido ao PostHog** por intervalo, mesmo com muitos visitantes ou
   várias instâncias da API: quem quer atualizar "reclama" a linha de hoje com
   um upsert condicional (`refreshing_at` vazio ou com mais de 5 min, e
-  `fetched_at` com mais de 24 h). Só quem ganha faz a query.
+  `fetched_at` com mais de 5 min). Só quem ganha faz a query.
 - Uma falha deixa a reclamação ativa até expirar, para não martelar o PostHog
   enquanto está em baixo.
 - Um memo em memória de 60 s evita uma leitura à DB por cada visita à home.
-- O intervalo é `REFRESH_INTERVAL_MS` em `site-stats-services.ts` (24 h).
+- O intervalo é `REFRESH_INTERVAL_MS` em `site-stats-services.ts` (5 min).
 - Deploys e reinícios já não esvaziam o card nem disparam queries.
 
 **Ambiente:** só conta eventos com `environment = POSTHOG_STATS_ENVIRONMENT`
@@ -302,7 +302,7 @@ Uma só query sobre `$pageview` responde aos dois períodos:
 | `allTime.*` | as mesmas sem filtro de data | totais desde o início |
 | `allTime.since` | `min(timestamp)` | mês do primeiro pageview |
 
-A parte "desde sempre" lê o histórico inteiro, mas corre uma vez por dia.
+A parte "desde sempre" lê o histórico inteiro, mas corre uma vez a cada cinco minutos.
 
 **Atenção aos visitantes únicos:** quem recusa cookies (ou não respondeu) é
 contado com um hash **diário**. Num intervalo de 30 dias, a mesma pessoa

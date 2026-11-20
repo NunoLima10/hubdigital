@@ -46,7 +46,7 @@ export function ProjectRequestsFields({
         Como podem ajudar?{" "}
         <span className="text-muted-foreground">(opcional)</span>
         <textarea
-          className="min-h-24 w-full rounded-md border bg-background p-3 text-sm focus-visible:outline-2 focus-visible:outline-ring"
+          className="min-h-24 w-full rounded-md border bg-background p-3 text-base md:text-sm focus-visible:outline-2 focus-visible:outline-ring"
           maxLength={500}
           placeholder="Conta o que precisas e como entrar em contacto…"
           {...form.register("helpDescription")}

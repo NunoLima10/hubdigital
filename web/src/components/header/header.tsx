@@ -1,3 +1,4 @@
+import { LoginButton } from "@/components/login-button/login-button";
 import { BrandLogo } from "@/components/brand-logo/brand-logo";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
@@ -183,8 +184,8 @@ export function Header({
             </Link>
           ) : (
             <>
-              <Link
-                to="/sign-in"
+              {/* A modal, so signing in never loses the page the visitor is on. */}
+              <LoginButton
                 className={cn(
                   buttonVariants({ variant: "ghost" }),
                   "px-2 sm:px-3",
@@ -192,7 +193,7 @@ export function Header({
                 )}
               >
                 Entrar
-              </Link>
+              </LoginButton>
               {/* Most visitors arrive on a phone, so sign-up stays one tap away
                   at every width. */}
               {!isDashboard && (

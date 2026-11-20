@@ -1,5 +1,4 @@
-import { LoginButton } from "@/components/login-button/login-button";
-import { Dialog } from "@/components/ui/dialog";
+import { SignInDialog } from "@/modules/auth/components/sign-in-dialog/sign-in-dialog";
 
 type SignInToVoteProps = {
   opened: boolean;
@@ -8,19 +7,18 @@ type SignInToVoteProps = {
 
 /**
  * Clicking upvote while logged out used to fail silently with a 401. This turns
- * that dead end into the sign-in prompt, and the caller replays the vote once a
- * session exists.
+ * that dead end into the sign-in modal, and the caller replays the vote once a
+ * session exists (the modal closes itself then: `opened` requires no session).
  */
 export function SignInToVote({ opened, onClose }: SignInToVoteProps) {
   return (
-    <Dialog open={opened} onClose={onClose} title="Entra para votar">
-      <div className="space-y-4">
-        <p className="text-sm leading-6">
-          Os votos definem o ranking da semana, por isso cada pessoa vota uma
-          vez. Entra na tua conta e o teu voto é registado automaticamente.
-        </p>
-        <LoginButton />
-      </div>
-    </Dialog>
+    <SignInDialog
+      open={opened}
+      onClose={onClose}
+      // Keep the pending vote: the caller closes this once the session arrives.
+      onSignedIn={() => {}}
+      title="Entra para votar"
+      subtitle="Cada pessoa vota uma vez. Entra e o teu voto é registado automaticamente."
+    />
   );
 }

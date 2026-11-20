@@ -134,7 +134,7 @@ export function CelebrationShowcase() {
                 aria-label="Placa"
                 value={plaque}
                 onChange={(event) => setPlaque(event.target.value as ProjectBadgeKey)}
-                className="h-8 rounded-md border bg-background px-2 text-sm"
+                className="h-8 rounded-md border bg-background px-2 text-base md:text-sm"
               >
                 {projectBadgeKeyValues.map((key) => (
                   <option key={key} value={key}>

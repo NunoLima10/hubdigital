@@ -17,7 +17,12 @@ import { GoogleSignInButton } from "../google-sign-in-button/google-sign-in-butt
 
 const LEGAL_ERROR = "Aceita os Termos de utilização e a Política de Privacidade para continuar.";
 
-export function SignUpForm() {
+export function SignUpForm({
+  signInRedirect,
+}: {
+  /** Return path the "Iniciar sessão" link hands back to /sign-in. */
+  signInRedirect?: string;
+}) {
   const navigate = useNavigate();
   const [acceptedLegal, setAcceptedLegal] = useState(false);
   const [googleLegalError, setGoogleLegalError] = useState(false);
@@ -130,7 +135,11 @@ export function SignUpForm() {
 
         <p className="text-center text-sm text-muted-foreground">
           Já tens conta?{" "}
-          <Link to="/sign-in" className="text-primary hover:underline">
+          <Link
+            to="/sign-in"
+            search={signInRedirect ? { redirect: signInRedirect } : {}}
+            className="text-primary hover:underline"
+          >
             Iniciar sessão
           </Link>
         </p>
