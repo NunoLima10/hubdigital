@@ -93,6 +93,10 @@ const paginationQuerySchema = z.object({
 
 const listProjectsQuerySchema = paginationQuerySchema.extend({
   period: z.enum(listPeriodValues).default("all"),
+  // What places a project inside `period`: `launch` (the weekly ranking) needs
+  // a published announcement in the range; `published` (discovery search) also
+  // accepts a project whose own publication falls in the range.
+  periodMatch: z.enum(["launch", "published"]).default("launch"),
   sort: z.enum(listSortValues).default("upvotes"),
   q: z.string().trim().min(1).max(120).optional(),
   categoryId: z.coerce.number().int().positive().optional(),
