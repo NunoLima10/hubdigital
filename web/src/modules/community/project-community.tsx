@@ -1,3 +1,4 @@
+import { LoginButton, loginLinkClassName } from "@/components/login-button/login-button";
 import {
   useInfiniteQuery,
   useMutation,
@@ -142,9 +143,13 @@ export function Announcements({
         ))}
       </ul>
       {!session && data.length > 0 && (
-        <Link to="/sign-in" className="text-sm text-primary hover:underline">
+        <LoginButton
+          className={loginLinkClassName}
+          title="Entra para apoiar"
+          subtitle="Entra na tua conta e volta a este anúncio para o apoiar."
+        >
           Entrar para apoiar anúncios
-        </Link>
+        </LoginButton>
       )}
       {showLoadMore && hasNextPage && (
         <Button
