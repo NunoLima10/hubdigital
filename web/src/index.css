@@ -181,8 +181,10 @@
     top: calc(-1 * var(--hub-locked-scroll-y, 0px)) !important;
     left: 0 !important;
     width: calc(100vw - var(--hub-scrollbar-width, 0px)) !important;
-    height: 100dvh !important;
-    overflow: hidden !important;
+    /* No height cap or overflow clip here: the body keeps its full height and
+       is only shifted up by the scroll offset. Capping it at 100dvh cut off
+       everything below (100dvh - scrollY), so the page went blank behind a
+       dialog opened further down. The viewport already clips what's off-screen. */
   }
 
   html.hub-map-fullscreen {
