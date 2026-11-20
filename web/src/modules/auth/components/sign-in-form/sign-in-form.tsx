@@ -38,8 +38,8 @@ export function SignInForm({
   const form = useForm<EmailSignInCredentials>({
     resolver: zodResolver(emailSignInSchema),
     defaultValues: {
-      email: "demo.publisher@hubdigital.cv",
-      password: "demo1234",
+      email: "",
+      password: "",
     },
   });
   const { emailSignIn, isPending } = useEmailSignIn({

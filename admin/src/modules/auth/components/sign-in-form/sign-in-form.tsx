@@ -33,11 +33,9 @@ export function SignInForm() {
   });
 
   const form = useForm<EmailSignInCredentials>({
-    // Prefilled with the dev-only demo admin account seeded by the API
-    // (api/src/db/seeds/users/demo-admin.ts) for quick local access.
     initialValues: {
-      email: "demo.admin@hubdigital.cv",
-      password: "demo1234",
+      email: "",
+      password: "",
     },
     validate: zod4Resolver(emailSignInSchema),
   });
@@ -73,7 +71,7 @@ export function SignInForm() {
           label="Email"
           required
           autoComplete="username"
-          placeholder="admin@hubdigital.cv"
+          placeholder="nome@email.com"
           {...form.getInputProps("email")}
           key={form.key("email")}
         />
