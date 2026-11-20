@@ -6,6 +6,16 @@ const NODE_ENVS = ["development", "test", "production"] as const;
 const blankAsUnset = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((value) => (value === "" ? undefined : value), schema.optional());
 
+/** A true/false flag; blank or unset is false. */
+const envFlag = z.preprocess(
+  (value) => {
+    if (typeof value !== "string") return value;
+    const trimmed = value.trim().replace(/^["']|["']$/g, "");
+    return trimmed === "" ? undefined : trimmed;
+  },
+  z.stringbool().default(false),
+);
+
 export const envSchema = z.object({
   NODE_ENV: z.enum(NODE_ENVS).default("development"),
   PORT: z.coerce.number().int().positive().default(3001),
@@ -35,8 +45,9 @@ export const envSchema = z.object({
 
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   // stringbool, not coerce.boolean: coercion turns the string "false" into true.
-  DB_MIGRATING: z.stringbool().default(false),
-  DB_SEEDING: z.stringbool().default(false),
+  // Trimmed, and blank counts as unset, so `DB_SEEDING=` can't stop the API booting.
+  DB_MIGRATING: envFlag,
+  DB_SEEDING: envFlag,
 
   ADMIN_SEED_NAME: blankAsUnset(z.string()),
   ADMIN_SEED_EMAIL: blankAsUnset(z.string().email()),
