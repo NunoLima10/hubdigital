@@ -1214,6 +1214,22 @@ describe("Projects module (e2e)", () => {
       expect(listed.json().data[0].slug).toBe("meu-rascunho");
       const week=await server.inject({method:"GET",url:"/v1/projects?period=this_week"});expect(week.json().data).toHaveLength(0);
       expect(await db.query.projectAnnouncements.findMany()).toHaveLength(0);
+
+      // Discovery search matches on publication too, so the new project shows
+      // up there even though it has not been announced.
+      for (const period of ["this_week", "this_month"]) {
+        const searched = await server.inject({
+          method: "GET",
+          url: `/v1/projects?period=${period}&periodMatch=published`,
+        });
+        expect(searched.statusCode).toBe(200);
+        expect(searched.json().data.map((p: { slug: string }) => p.slug)).toEqual(["meu-rascunho"]);
+      }
+      const lastWeek = await server.inject({
+        method: "GET",
+        url: "/v1/projects?period=last_week&periodMatch=published",
+      });
+      expect(lastWeek.json().data).toHaveLength(0);
     });
 
     it("does not move the launch date when publishing twice", async () => {

@@ -26,6 +26,11 @@ export type ProjectsResponse = {
 
 export type ProjectsQuery = ProjectFilterValues & {
   period?: ListPeriod;
+  /**
+   * `launch` (default) counts only projects announced in `period`, as the
+   * weekly ranking does; `published` also counts projects published in it.
+   */
+  periodMatch?: "launch" | "published";
   sort?: ListSort;
   limit?: number;
   /** A specific ISO week (`2026-W35`); takes precedence over `period`. */
@@ -48,6 +53,7 @@ type ProjectsQueryKeyInput = ProjectsQuery & { userId?: string | null };
  */
 export function projectsQueryKey({
   period = "all",
+  periodMatch = "launch",
   sort = "upvotes",
   limit = 50,
   week,
@@ -65,6 +71,7 @@ export function projectsQueryKey({
     ...queryKeys.projects,
     {
       period,
+      periodMatch,
       sort,
       limit,
       week: week ?? null,
@@ -98,6 +105,7 @@ async function fetchProjects(query: ProjectsQuery) {
     params: {
       limit,
       period: query.period ?? "all",
+      periodMatch: query.periodMatch,
       sort: query.sort ?? "upvotes",
       // Axios omits undefined params, so unset filters simply do not appear.
       q: query.q,

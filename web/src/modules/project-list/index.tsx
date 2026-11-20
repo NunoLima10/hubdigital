@@ -28,6 +28,7 @@ const emptyMessages: Record<ListPeriod, string> = {
 
 type Props = {
   period?: ListPeriod;
+  periodMatch?: "launch" | "published";
   week?: string;
   filters?: ProjectFilterValues;
   onSelect?: () => void;
@@ -41,6 +42,7 @@ type Props = {
 };
 export function ProjectList({
   period = "all",
+  periodMatch,
   week,
   filters = {},
   onSelect,
@@ -54,6 +56,7 @@ export function ProjectList({
 }: Props) {
   const { data, isLoading, isError, isFetching, refetch } = useProjects({
     period,
+    periodMatch,
     week,
     sort,
     limit,
