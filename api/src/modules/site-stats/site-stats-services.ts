@@ -1,4 +1,3 @@
-import { config } from "@/config";
 import type { DB } from "@/db";
 import { siteStatsSnapshots } from "@/db/schemas";
 import { posthogQueryEnabled, runHogQL } from "@/lib/posthog-query";
@@ -42,6 +41,7 @@ type StatsRow = {
 
 // One pass over $pageview answers both periods. The all-time half reads the
 // whole history; cheap at this size and at one query every five minutes.
+// Each environment has its own PostHog project, so every pageview counts.
 const STATS_QUERY = `
   SELECT
     toYear(now()) AS year,
@@ -54,15 +54,12 @@ const STATS_QUERY = `
     min(timestamp) AS since
   FROM events
   WHERE event = '$pageview'
-    AND properties.environment = {environment}
 `;
 
 const toCount = (value: unknown) => Number(value ?? 0) || 0;
 
 async function fetchFromPostHog(): Promise<SiteStats> {
-  const [row] = await runHogQL<StatsRow>("site-stats", STATS_QUERY, {
-    environment: config.POSTHOG_STATS_ENVIRONMENT,
-  });
+  const [row] = await runHogQL<StatsRow>("site-stats", STATS_QUERY);
   const allPageviews = toCount(row?.all_pageviews);
 
   return {

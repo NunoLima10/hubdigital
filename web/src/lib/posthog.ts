@@ -26,7 +26,8 @@ import type { PostHog, Properties } from "posthog-js";
  */
 
 export const analyticsEnabled = Boolean(env.POSTHOG_KEY);
-const analyticsContext = { app: "web", environment: import.meta.env.MODE };
+// Each environment sends to its own PostHog project (VITE_APP_POSTHOG_KEY).
+const analyticsContext = { app: "web" };
 
 let loading: Promise<PostHog | null> | null = null;
 
@@ -61,8 +62,7 @@ function load(): Promise<PostHog | null> {
         capture_pageview: "history_change",
         capture_pageleave: true,
         // init can queue the first automatic pageview before register() below.
-        // Add the query-critical context at send time so that first view is
-        // included in the public statistics too.
+        // Add the context at send time so that first view carries it too.
         before_send: (event) => ({
           ...event,
           properties: { ...event.properties, ...analyticsContext },

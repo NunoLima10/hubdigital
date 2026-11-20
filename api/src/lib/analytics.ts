@@ -49,7 +49,6 @@ export const analytics = {
       properties: {
         ...properties,
         app: "api",
-        environment: config.NODE_ENV,
       },
     });
   },
