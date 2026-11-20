@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { fullDate, relativeTime } from "@/modules/comments/utils/relative-time";
 import { useSiteStats } from "@/modules/project-list/hooks/use-site-stats";
 import { Popover } from "@base-ui/react/popover";
 import { Info } from "lucide-react";
@@ -22,7 +23,8 @@ function StatBox({ value, label }: Readonly<{ value: number; label: string }>) {
   );
 }
 
-function AboutStats() {
+// The popup mounts only when opened, so "há x minutos" is fresh each time.
+function AboutStats({ updatedAt }: Readonly<{ updatedAt: string }>) {
   return (
     <Popover.Root>
       <Popover.Trigger
@@ -34,7 +36,13 @@ function AboutStats() {
       <Popover.Portal>
         <Popover.Positioner sideOffset={6} align="start" className="z-50">
           <Popover.Popup className="max-w-64 rounded-lg border bg-popover p-3 text-xs leading-5 text-popover-foreground shadow-lg outline-none">
-            Medido com PostHog, sem nomes nem emails. Atualizado a cada cinco minutos.
+            <p>Medido com PostHog, sem nomes nem emails. Atualizado a cada cinco minutos.</p>
+            <p className="mt-1 text-muted-foreground">
+              Última atualização:{" "}
+              <time dateTime={updatedAt} title={fullDate(updatedAt)}>
+                {relativeTime(updatedAt)}
+              </time>
+            </p>
           </Popover.Popup>
         </Popover.Positioner>
       </Popover.Portal>
@@ -79,7 +87,7 @@ export function SiteStatsCard() {
         <h2 id="site-stats-title" className="text-base font-semibold">
           Estatísticas {stats.year}
         </h2>
-        <AboutStats />
+        <AboutStats updatedAt={stats.updatedAt} />
       </div>
       <dl className="grid grid-cols-2 gap-3">
         <StatBox value={stats.yearToDate.visitors} label="Visitantes" />

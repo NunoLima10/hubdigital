@@ -57,6 +57,7 @@ import {
   ilike,
   inArray,
   isNull,
+  lt,
   ne,
   or,
   sql,
@@ -585,6 +586,8 @@ async function listMyProjects(
   };
 }
 
+export type PeriodMatch = "launch" | "published";
+
 export type ProjectFilters = {
   /** Free text matched against the name and the short description. */
   q?: string;
@@ -604,14 +607,28 @@ export type ProjectFilters = {
 function publicProjectFilter(
   week?: LaunchRange | null,
   filters: ProjectFilters = {},
+  periodMatch: PeriodMatch = "launch",
 ) {
   // A hidden project keeps its own upvote rows, so unhiding restores it with
   // its count intact.
   const conditions: (SQL | undefined)[] = [publicProjectConditions];
 
   if (week) {
+    const start = week.start.toISOString();
+    const end = week.end.toISOString();
+    const announced = sql`exists (select 1 from project_announcements a where a.project_id=${projects.id} and a.status='published' and a.published_at>=${start}::timestamptz and a.published_at<${end}::timestamptz)`;
+    // The ranking only counts announced launches; discovery search also lists
+    // a project published in the range that has not been announced yet.
     conditions.push(
-      sql`exists (select 1 from project_announcements a where a.project_id=${projects.id} and a.status='published' and a.published_at>=${week.start.toISOString()}::timestamptz and a.published_at<${week.end.toISOString()}::timestamptz)`,
+      periodMatch === "published"
+        ? or(
+            and(
+              gte(projects.publishedAt, sql`${start}::timestamptz`),
+              lt(projects.publishedAt, sql`${end}::timestamptz`),
+            ),
+            announced,
+          )
+        : announced,
     );
   }
 
@@ -673,15 +690,17 @@ type ListProjectsOptions = ProjectFilters & {
   sort: ListSort;
   /** Restricts the listing to a launch period; null lists every launch. */
   week?: LaunchRange | null;
+  /** How `week` is matched; see {@link publicProjectFilter}. */
+  periodMatch?: PeriodMatch;
 };
 
 async function listProjects(
   db: DB,
-  { limit, offset, sort, week, ...filters }: ListProjectsOptions,
+  { limit, offset, sort, week, periodMatch, ...filters }: ListProjectsOptions,
   userId?: string,
 ) {
   const { relatedTo, ...publicFilters } = filters;
-  let where = publicProjectFilter(week, publicFilters);
+  let where = publicProjectFilter(week, publicFilters, periodMatch);
   let relatedScore: SQL<number> | undefined;
 
   if (relatedTo) {

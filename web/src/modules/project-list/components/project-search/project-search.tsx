@@ -119,6 +119,7 @@ export function ProjectSearch({ onClose }: { onClose: () => void }) {
         </h3>
         <ProjectList
           period={period}
+          periodMatch="published"
           filters={filters}
           onSelect={onClose}
           transitionScope="search"

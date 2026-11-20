@@ -101,8 +101,6 @@ export const envSchema = z.object({
   POSTHOG_PERSONAL_API_KEY: blankAsUnset(z.string()),
   POSTHOG_PROJECT_ID: blankAsUnset(z.string()),
   POSTHOG_APP_HOST: z.string().url().default("https://eu.posthog.com"),
-  // Only events tagged with this environment count in the public stats.
-  POSTHOG_STATS_ENVIRONMENT: z.string().default("production"),
 
   CLOUDFLARE_PUBLIC_URL: blankAsUnset(z.string().url()),
   CLOUDFLARE_BUCKET: blankAsUnset(z.string()),
