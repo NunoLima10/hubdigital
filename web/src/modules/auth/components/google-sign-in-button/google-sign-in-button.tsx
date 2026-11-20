@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { DEFAULT_SIGNED_IN_PATH } from "../../utils/redirect";
 
 function GoogleIcon() {
   return (
@@ -16,9 +17,12 @@ function GoogleIcon() {
 
 export function GoogleSignInButton({
   canProceed,
+  redirectTo = DEFAULT_SIGNED_IN_PATH,
 }: {
   /** Return false to block the redirect (e.g. terms not accepted yet). */
   canProceed?: () => boolean;
+  /** Same-site path Google sends the visitor back to once signed in. */
+  redirectTo?: string;
 }) {
   const [isPending, setIsPending] = useState(false);
 
@@ -29,7 +33,7 @@ export function GoogleSignInButton({
     try {
       const { error } = await authClient.signIn.social({
         provider: "google",
-        callbackURL: `${window.location.origin}/dashboard/releases`,
+        callbackURL: `${window.location.origin}${redirectTo}`,
       });
 
       if (error) {

@@ -4,7 +4,13 @@ import { Page } from "@/layouts/page";
 import { authClient } from "@/lib/auth-client";
 import { DashboardHeader } from "@/modules/dashboard/components/header/header";
 import { SideBar } from "@/modules/dashboard/components/side-bar/side-bar";
-import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
+import { safeRedirect } from "@/modules/auth/utils/redirect";
+import {
+  createFileRoute,
+  Navigate,
+  Outlet,
+  useLocation,
+} from "@tanstack/react-router";
 
 export const Route = createFileRoute("/_authed")({
   // Private pages: titled for the tab, never indexed.
@@ -14,6 +20,7 @@ export const Route = createFileRoute("/_authed")({
 
 function AuthedLayout() {
   const { data, isPending, error, refetch } = authClient.useSession();
+  const location = useLocation();
 
   if (isPending) return <AuthenticatedRoutePending />;
 
@@ -21,7 +28,16 @@ function AuthedLayout() {
   // the session: offer a retry instead of signing the user out of the page.
   if (error) return <SessionCheckFailed onRetry={() => void refetch()} />;
 
-  if (!data) return <Navigate to={"/"} replace />;
+  // Send them to sign in and straight back to the page they asked for.
+  if (!data) {
+    return (
+      <Navigate
+        to="/sign-in"
+        search={{ redirect: safeRedirect(location.href) }}
+        replace
+      />
+    );
+  }
 
   return <Outlet />;
 }
