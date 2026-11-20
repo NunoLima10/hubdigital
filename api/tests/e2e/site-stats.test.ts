@@ -99,7 +99,7 @@ describe("Site stats snapshots (e2e)", () => {
       yearToDate: { visitors: 5, pageviews: 20, homeViews: 10 },
       allTime: { visitors: 5, since: "2026-05-02T10:00:00.000Z" },
     });
-    expect(runHogQL.mock.calls[0][2]).toEqual({ environment: "production" });
+    expect(runHogQL.mock.calls[0][1]).not.toContain("environment");
 
     const [stored] = await db.select().from(siteStatsSnapshots);
     expect(stored.payload).toEqual(stats);

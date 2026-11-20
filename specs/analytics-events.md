@@ -20,7 +20,7 @@ que perguntas respondem.
    O PostHog serve a equipa: funis, retenção, aquisição, comportamento.
 5. **Convenção de nomes:** `objeto_verbo_no_passado` em snake_case
    (`project_published`, `comment_created`). Propriedades em snake_case.
-   Todos os eventos levam `app` (`web` | `api`) e `environment`.
+   Todos os eventos levam `app` (`web` | `api`).
 
 ## O que já está montado
 
@@ -49,9 +49,9 @@ POSTHOG_API_KEY=phc_...        # o mesmo token público do projeto
 POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
-Em dev os eventos vão para o mesmo projeto com `environment=development`;
-filtrar por `environment = production` nos insights (ou adicionar ao filtro
-de contas de teste).
+Um projeto PostHog por ambiente (dev, staging, produção): cada um usa o
+token e o `POSTHOG_PROJECT_ID` do seu projeto. Os eventos não levam marca de
+ambiente.
 
 ## Catálogo de eventos
 
@@ -273,10 +273,9 @@ browser ──GET /v1/site-stats──▶ API ──▶ site_stats_snapshots (Po
 - O intervalo é `REFRESH_INTERVAL_MS` em `site-stats-services.ts` (5 min).
 - Deploys e reinícios já não esvaziam o card nem disparam queries.
 
-**Ambiente:** só conta eventos com `environment = POSTHOG_STATS_ENVIRONMENT`
-(por omissão `production`), para dev e staging não inflacionarem os números.
-Em dev, pôr `POSTHOG_STATS_ENVIRONMENT=development` para ver os próprios
-eventos.
+**Ambiente:** conta todos os pageviews do projeto em `POSTHOG_PROJECT_ID`.
+Como cada ambiente tem o seu projeto, dev e staging não inflacionam a
+produção.
 
 ### Variáveis (API)
 
@@ -284,7 +283,6 @@ eventos.
 POSTHOG_PERSONAL_API_KEY=phx_...   # chave pessoal, scope só "query:read"
 POSTHOG_PROJECT_ID=351277
 POSTHOG_APP_HOST=https://eu.posthog.com   # host privado (≠ eu.i.posthog.com)
-POSTHOG_STATS_ENVIRONMENT=production
 ```
 
 Criar a chave com **apenas** o scope `query:read` e restrita ao projeto Hub
