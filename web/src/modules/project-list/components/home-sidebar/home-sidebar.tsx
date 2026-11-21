@@ -5,6 +5,7 @@ import { PersonAvatar } from "@/modules/invitations/components/person-avatar";
 import { useFoundingMakers } from "@/modules/makers/hooks/use-founding-makers";
 import { SiteStatsCard } from "./site-stats-card";
 import { GithubProjectCard } from "./github-project-card";
+import { LaunchRaffleCard } from "./launch-raffle-card";
 
 function FoundingRoll() {
   const makers = useFoundingMakers();
@@ -89,6 +90,7 @@ export function HomeSidebar() {
   return (
     <div className="space-y-7">
       <SiteStatsCard />
+      <LaunchRaffleCard />
       <FoundingRoll />
       <GithubProjectCard />
     </div>

@@ -30,6 +30,7 @@ import { reportsRoutes } from "./modules/reports/reports-routes";
 import { settingsRoutes } from "./modules/settings/settings-routes";
 import { shareImagesRoutes } from "./modules/share-images/share-images-routes";
 import { siteStatsRoutes } from "./modules/site-stats/site-stats-routes";
+import { launchCampaignRoutes } from "./modules/launch-campaign/launch-campaign-routes";
 import { config } from "./config";
 import { sql } from "drizzle-orm";
 import betterAuth from "./plugins/better-auth";
@@ -116,6 +117,8 @@ export async function buildServer(db: DB) {
   await server.register(settingsRoutes, { prefix: "/v1/settings" });
   await server.register(shareImagesRoutes, { prefix: "/v1/share-images" });
   await server.register(siteStatsRoutes, { prefix: "/v1/site-stats" });
+  // Temporary: launch raffle with Ola.cv. Remove after the draw.
+  await server.register(launchCampaignRoutes, { prefix: "/v1/launch-campaign" });
   // Registered last, and behind its own role guard — see modules/admin/admin-routes.
   await server.register(adminRoutes, { prefix: "/v1/admin" });
 
