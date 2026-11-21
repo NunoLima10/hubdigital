@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useNavigate } from "@tanstack/react-router";
@@ -86,7 +87,11 @@ export function SignUpForm({
             ).map(([name, label, type]) => (
               <label key={name} className="block space-y-1.5 text-sm font-medium">
                 {label}
-                <Input type={type} required {...form.register(name)} />
+                {type === "password" ? (
+                  <PasswordInput required {...form.register(name)} />
+                ) : (
+                  <Input type={type} required {...form.register(name)} />
+                )}
                 {form.formState.errors[name] && (
                   <span className="text-xs text-destructive">
                     {form.formState.errors[name]?.message}

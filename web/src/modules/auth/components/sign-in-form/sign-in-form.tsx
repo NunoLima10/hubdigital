@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Link, useRouter } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
@@ -75,8 +76,7 @@ export function SignInForm({
         </label>
         <label className="block space-y-1.5 text-sm font-medium">
           Palavra-passe
-          <Input
-            type="password"
+          <PasswordInput
             autoComplete="current-password"
             required
             {...form.register("password")}

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { authClient } from "@/lib/auth-client";
 import { getAuthErrorMessage } from "@/modules/auth/utils/get-auth-error-message";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -79,7 +79,7 @@ export function PasswordForm() {
           {fields.map(([name, label, autoComplete]) => (
             <label key={name} className="block space-y-1.5 text-sm font-medium">
               {label}
-              <Input type="password" autoComplete={autoComplete} {...form.register(name)} />
+              <PasswordInput autoComplete={autoComplete} {...form.register(name)} />
               {form.formState.errors[name]?.message && (
                 <span className="text-xs text-destructive">
                   {form.formState.errors[name]?.message}
