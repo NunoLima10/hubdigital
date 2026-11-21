@@ -11,6 +11,7 @@ import {
   type RevealVariant,
 } from "@/components/badge/reveal-variants";
 import { prefersReducedMotion } from "@/lib/motion";
+import { track } from "@/lib/posthog";
 import { cn } from "@/lib/utils";
 import { Link } from "@tanstack/react-router";
 import confetti from "canvas-confetti";
@@ -115,14 +116,34 @@ export function OnboardingSuccess({
       "group w-full sm:w-auto",
       !ready && "pointer-events-none opacity-50",
     );
+  // Which next step people take after onboarding, and whether it's the one
+  // we suggested (the highlighted button follows their objective).
+  const trackCta = (cta: "publish" | "explore") => {
+    if (preview) return;
+    track("onboarding_cta_clicked", {
+      cta,
+      suggested: cta === (wantsToLaunch ? "publish" : "explore"),
+      objective: result.objectiveResponse,
+    });
+  };
   const explore = (
-    <Link to="/" aria-disabled={!ready} className={linkClass(!wantsToLaunch)}>
+    <Link
+      to="/"
+      aria-disabled={!ready}
+      className={linkClass(!wantsToLaunch)}
+      onClick={() => trackCta("explore")}
+    >
       <Compass />
       Explorar projetos
     </Link>
   );
   const publish = (
-    <Link to="/dashboard/submit" aria-disabled={!ready} className={linkClass(wantsToLaunch)}>
+    <Link
+      to="/dashboard/submit"
+      aria-disabled={!ready}
+      className={linkClass(wantsToLaunch)}
+      onClick={() => trackCta("publish")}
+    >
       <Plus />
       Publicar o meu primeiro projeto
     </Link>
