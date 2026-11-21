@@ -1,4 +1,5 @@
 import { DB } from "@/db";
+import { NotificationsService } from "@/modules/notifications/notifications-services";
 import {
   projectBadgeAwards,
   projects,
@@ -226,7 +227,13 @@ async function closeWeek(db: DB, week: WeekRange) {
 async function runAutomaticAwards(db: DB, now = new Date()) {
   const week = previousWeek(now);
   const ranked = await closeWeek(db, week);
-  if (ranked !== null) logger.info({ week: week.weekId, ranked }, "Weekly ranking closed");
+  if (ranked !== null) {
+    logger.info({ week: week.weekId, ranked }, "Weekly ranking closed");
+    // Only the instance that closed the week gets here, so it is told once.
+    if (ranked > 0 && week.weekId) {
+      NotificationsService.weeklyRankingClosed(db, week.weekId);
+    }
+  }
   await awardAllUpvoteMilestones(db);
   await awardPioneers(db);
 }

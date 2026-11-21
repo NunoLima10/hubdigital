@@ -78,6 +78,7 @@ desistem do formulário.
 | `onboarding_step_completed` | Web | `step` (0..n), `question` (`profile` \| `objective` \| `location` \| `found_us`), `answer` (valor do enum) |
 | `onboarding_completed` | API (`POST /users/onboarding`) | `profile`, `objective`, `location_type` (`cv` \| `diaspora`), `island` ou `country` (só nível país/ilha), `found_us` |
 | `eligibility_confirmed` | API (`PUT /users/me/eligibility-confirmation`) | — |
+| `onboarding_cta_clicked` | Web (ecrã de sucesso) | `cta` (`publish` \| `explore`), `suggested` (bool: era o botão em destaque), `objective` |
 
 E em `onboarding_completed`, gravar as mesmas respostas como **propriedades
 da pessoa** (`profile`, `objective`, `found_us`, `location_type`). São
@@ -85,7 +86,8 @@ categorias, não dados pessoais, e permitem cortar todos os outros insights por
 perfil ("estudantes publicam menos?", "quem veio pelo LinkedIn fica mais?").
 
 Responde: funil registo → onboarding concluído, em que pergunta se desiste,
-de onde vêm as pessoas (`found_us`).
+de onde vêm as pessoas (`found_us`), e o que fazem a seguir ao onboarding
+(publicar vs explorar, e se seguem o botão sugerido).
 
 ### 3. Submissão e publicação de projetos
 

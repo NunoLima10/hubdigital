@@ -1,4 +1,5 @@
 import { BadgesService } from "@/modules/badges/badges-services";
+import { NotificationsService } from "@/modules/notifications/notifications-services";
 import { ProjectBadgesService } from "@/modules/project-badges/project-badges-services";
 import { BadRequestError, NotFoundError } from "@/utils/custom-errors";
 import { FastifyRequest } from "fastify";
@@ -159,6 +160,12 @@ async function approveProjectHandler(req: ApproveRequest, reply: ApproveReply) {
 
   // Null means the project is not in `pending`, so there is nothing to approve.
   if (!result) throw new NotFoundError();
+
+  NotificationsService.projectStatusChanged(req.db, {
+    projectId: result.id,
+    event: "approved",
+    reviewerId: actor.id,
+  });
 
   return reply.status(200).send({ data: result });
 }

@@ -33,12 +33,22 @@ export const Route = createRootRouteWithContext<RouterContext>()({
           "Cabo Verde, projetos digitais, startups, produtos, makers, tecnologia, inovação, open source, Hub Digital",
       },
       { name: "author", content: "Hub Digital" },
+      // Installed app (PWA): name and status bar when added to the home screen.
+      { name: "application-name", content: "Hub Digital" },
+      { name: "apple-mobile-web-app-title", content: "Hub Digital" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      {
+        name: "apple-mobile-web-app-status-bar-style",
+        content: "black-translucent",
+      },
       ...seo({}).meta,
     ],
     links: [
       { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
@@ -88,6 +98,15 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <body>
         {children}
         <Scripts />
+        {import.meta.env.PROD && (
+          // Service worker (public/sw.js): installable app + offline page.
+          // Production only, so dev never serves stale files from its cache.
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}))`,
+            }}
+          />
+        )}
       </body>
     </html>
   );

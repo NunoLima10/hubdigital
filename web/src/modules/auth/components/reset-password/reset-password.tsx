@@ -1,6 +1,6 @@
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
@@ -52,7 +52,7 @@ export function ResetPassword() {
         ).map(([name, label]) => (
           <label key={name} className="block space-y-1.5 text-sm font-medium">
             {label}
-            <Input type="password" required {...form.register(name)} />
+            <PasswordInput required {...form.register(name)} />
             {form.formState.errors[name] && (
               <span className="text-xs text-destructive">
                 {form.formState.errors[name]?.message}

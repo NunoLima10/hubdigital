@@ -211,7 +211,7 @@ export function ProjectCollaborators({
       className="space-y-4 rounded-xl border border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5"
       aria-labelledby="collaborators-title"
     >
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 flex-1 items-start gap-3">
           <span
             aria-hidden="true"
@@ -231,6 +231,7 @@ export function ProjectCollaborators({
         </div>
         <Button
           type="button"
+          className="w-full shrink-0 sm:w-auto"
           disabled={!selection && !projectId}
           onClick={() => {
             change.reset();

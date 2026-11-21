@@ -1,4 +1,5 @@
 import { SettingsService } from "@/modules/settings/settings-services";
+import { NotificationsService } from "@/modules/notifications/notifications-services";
 import {
   NotFoundError,
   ServiceUnavailableError,
@@ -72,9 +73,15 @@ async function updateProjectHandler(
     throw new NotFoundError();
   }
 
-  return reply.status(200).send({
-    data: project,
-  });
+  const { editNotice, ...data } = project;
+  if (editNotice) {
+    NotificationsService.publishedProjectEdited(req.db, {
+      projectId: data.id,
+      ...editNotice,
+    });
+  }
+
+  return reply.status(200).send({ data });
 }
 
 async function listMyProjectsHandler(
@@ -196,7 +203,16 @@ async function publishProjectHandler(
     throw new NotFoundError();
   }
 
-  return reply.status(200).send({ data: project });
+  // A repeat publish of a live or queued project changes nothing to announce.
+  if (project.changed) {
+    NotificationsService.projectStatusChanged(req.db, {
+      projectId: project.id,
+      event: project.status === "pending" ? "submitted" : "published",
+    });
+  }
+
+  const { changed: _changed, ...data } = project;
+  return reply.status(200).send({ data });
 }
 
 async function deleteProjectHandler(
