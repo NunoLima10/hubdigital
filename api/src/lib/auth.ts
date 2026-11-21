@@ -1,6 +1,7 @@
 import { config } from "@/config";
 import { db } from "@/db";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
+import { NotificationsService } from "@/modules/notifications/notifications-services";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin as adminPlugin } from "better-auth/plugins";
 import { ac as ADMIN_AC, ADMIN_ROLES, ROLES_AC } from "./plugins/admin";
@@ -21,6 +22,16 @@ const authConfig = {
     google: {
       clientId: config.GOOGLE_CLIENT_ID,
       clientSecret: config.GOOGLE_CLIENT_SECRET,
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        // Runs once per new account, whether by email or Google sign-in.
+        after: async (user) => {
+          NotificationsService.userSignedUp(user);
+        },
+      },
     },
   },
   plugins: [

@@ -1,5 +1,6 @@
 import { config } from '@/config';
 import { setupDB } from '@/db';
+import { discord } from '@/lib/discord';
 import { seedReferenceData } from '@/db/seeds';
 import { logger } from '@/utils/logger';
 
@@ -12,6 +13,7 @@ import { logger } from '@/utils/logger';
  * and reads variables from the process environment, not from a .env file.
  */
 async function main() {
+  discord.mute();
   const { db } = await setupDB(config.DATABASE_URL, { seeding: true });
 
   try {

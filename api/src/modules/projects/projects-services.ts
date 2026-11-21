@@ -1,4 +1,5 @@
 import { SettingsService } from "@/modules/settings/settings-services";
+import { NotificationsService } from "@/modules/notifications/notifications-services";
 import { projectRevisions } from "@/db/schemas";
 import { DB } from "@/db";
 import {
@@ -392,6 +393,7 @@ async function updateProject(
               url: link.url,
             })),
           ));
+    const changedFields = changedProjectFields(existing, nextValues, input);
     const publisher = await tx.query.publishers.findFirst({
       where: eq(publishers.id, publisherId),
       columns: { trustedAt: true },
@@ -434,7 +436,12 @@ async function updateProject(
           .set({ status: "rejected", reason: "Substituída pelo autor" })
           .where(eq(projectRevisions.id, pending.id));
       await tx.insert(projectRevisions).values({ ...revision, projectId: id });
-      return { id, slug: existing.slug, pendingReview: true };
+      return {
+        id,
+        slug: existing.slug,
+        pendingReview: true,
+        editNotice: { outcome: "review" as const, fields: changedFields },
+      };
     }
     if (existing.status === "published" || existing.status === "pending") {
       assertProjectReady({
@@ -494,8 +501,62 @@ async function updateProject(
       }
     }
 
-    return result;
+    return {
+      ...result,
+      // Staff hear of changes to what is live; drafts are the maker's business.
+      editNotice:
+        existing.status === "published" && changedFields.length > 0
+          ? { outcome: "live" as const, fields: changedFields }
+          : null,
+    };
   });
+}
+
+const editedFieldLabels: Record<string, string> = {
+  name: "nome",
+  shortDescription: "descrição curta",
+  description: "descrição",
+  teamDescription: "equipa",
+  logoKey: "logótipo",
+  youtubeVideoUrl: "vídeo",
+  categoryId: "categoria",
+};
+
+/** Names, in Portuguese, the fields an update actually changes. */
+function changedProjectFields(
+  existing: Record<string, unknown> & {
+    links: Parameters<typeof serializeProjectLinks>[0];
+    images: { storageKey: string }[];
+  },
+  nextValues: Record<string, unknown>,
+  input: UpdateProjectInput,
+) {
+  const fields = Object.entries(editedFieldLabels)
+    .filter(
+      ([key]) =>
+        key in nextValues &&
+        nextValues[key] !== undefined &&
+        nextValues[key] !== existing[key],
+    )
+    .map(([, label]) => label);
+
+  if (
+    input.links !== undefined &&
+    JSON.stringify(input.links.map(({ kind, url }) => ({ kind, url }))) !==
+      JSON.stringify(
+        serializeProjectLinks(existing.links).map(({ kind, url }) => ({ kind, url })),
+      )
+  ) {
+    fields.push("links");
+  }
+  if (
+    input.galleryImageKeys !== undefined &&
+    JSON.stringify(input.galleryImageKeys) !==
+      JSON.stringify(existing.images.map((image) => image.storageKey))
+  ) {
+    fields.push("galeria");
+  }
+  return fields;
 }
 
 type EditReviewTarget = Pick<typeof projects.$inferSelect, "id" | "rowVersion">;
@@ -968,7 +1029,12 @@ async function publishProject(
     if (!existing) return null;
     // Already live, or already waiting on a moderator: nothing to do either way.
     if (existing.status === "published" || existing.status === "pending") {
-      return { id: existing.id, slug: existing.slug, status: existing.status };
+      return {
+        id: existing.id,
+        slug: existing.slug,
+        status: existing.status,
+        changed: false,
+      };
     }
 
     await assertProjectCategories(
@@ -1024,7 +1090,7 @@ async function publishProject(
         status: projects.status,
       });
 
-    return result;
+    return { ...result, changed: true };
   });
 }
 
@@ -1099,7 +1165,12 @@ async function toggleUpvote(
 
   if (removed.length === 0) {
     // A milestone plaque is a bonus; a failure here must not fail the vote.
-    await ProjectBadgesService.awardUpvoteMilestones(db, projectId, upvoteCount).catch(() => {});
+    const reached = await ProjectBadgesService.awardUpvoteMilestones(
+      db,
+      projectId,
+      upvoteCount,
+    ).catch(() => []);
+    NotificationsService.upvoteMilestoneReached(db, { projectId, keys: reached });
   }
 
   return { upvoted: removed.length === 0, upvoteCount };
