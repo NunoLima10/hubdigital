@@ -124,7 +124,7 @@ export const onBoardingQuestions: Question[] = [
     title: "Como conheceste o Hub Digital?",
     reponses: [
       {
-        display: "Redes sociais",
+        display: "Redes sociais / WhatsApp",
         value: foundUsByQuestionValues[0],
       },
       {
