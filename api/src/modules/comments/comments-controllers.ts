@@ -1,3 +1,4 @@
+import { NotificationsService } from "@/modules/notifications/notifications-services";
 import { NotFoundError } from "@/utils/custom-errors";
 import { isStaffRole } from "@hubdigital/shared";
 import {
@@ -59,6 +60,12 @@ async function createCommentHandler(
   if (!comment) {
     throw new NotFoundError();
   }
+
+  NotificationsService.commentCreated(req.db, {
+    commentId: comment.id,
+    projectId: project.id,
+    isReply: comment.parentId !== null,
+  });
 
   return reply.status(201).send({ data: comment });
 }

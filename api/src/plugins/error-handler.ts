@@ -2,6 +2,7 @@ import {
   PG_ERR_FOREIGN_KEY_VIOLATION,
   PG_ERR_UNIQUE_VIOLATION,
 } from "@/utils/constants";
+import { NotificationsService } from "@/modules/notifications/notifications-services";
 import { logger } from "@/utils/logger";
 import { FastifyError, FastifyPluginAsync } from "fastify";
 import fastifyPlugin from "fastify-plugin";
@@ -60,6 +61,15 @@ const customErrorHandler: FastifyPluginAsync = async (fastify) => {
 
     if (error.statusCode) {
       logger.error({ error }, `Handled error: ${error.message}`);
+      if (error.statusCode >= 500) {
+        NotificationsService.serverError({
+          method: req.method,
+          route: req.routeOptions?.url ?? "rota desconhecida",
+          status: error.statusCode,
+          requestId: String(req.id),
+          error,
+        });
+      }
       return reply.code(error.statusCode).send({
         error: {
           message: error.message,
@@ -69,6 +79,13 @@ const customErrorHandler: FastifyPluginAsync = async (fastify) => {
     }
 
     logger.error({ error }, "Unhandled internal server error");
+    NotificationsService.serverError({
+      method: req.method,
+      route: req.routeOptions?.url ?? "rota desconhecida",
+      status: 500,
+      requestId: String(req.id),
+      error,
+    });
     return reply.code(500).send({
       error: {
         message: "Algo deu errado no servidor",

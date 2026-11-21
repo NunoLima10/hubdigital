@@ -102,6 +102,16 @@ export const envSchema = z.object({
   POSTHOG_PROJECT_ID: blankAsUnset(z.string()),
   POSTHOG_APP_HOST: z.string().url().default("https://eu.posthog.com"),
 
+  // Discord channel webhooks (src/lib/discord.ts). Unset: nothing is posted.
+  // Activity is a private staff channel (reports, comments, projects sent for
+  // review or published); public is an open channel announcing each project
+  // that goes live. Both are secrets: anyone holding the URL can post there.
+  DISCORD_ACTIVITY_WEBHOOK_URL: blankAsUnset(z.string().url()),
+  DISCORD_PUBLIC_WEBHOOK_URL: blankAsUnset(z.string().url()),
+  // Where the links in those messages point.
+  WEB_URL: z.string().url().default("https://hubdigital.cv"),
+  ADMIN_URL: z.string().url().default("https://admin.hubdigital.cv"),
+
   CLOUDFLARE_PUBLIC_URL: blankAsUnset(z.string().url()),
   CLOUDFLARE_BUCKET: blankAsUnset(z.string()),
   CLOUDFLARE_ENDPOINT: blankAsUnset(z.string().url()),

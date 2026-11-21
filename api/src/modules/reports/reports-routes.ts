@@ -4,6 +4,7 @@ import { NotFoundError } from "@/utils/custom-errors";
 import { createReportBodySchema } from "@hubdigital/shared";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
+import { NotificationsService } from "@/modules/notifications/notifications-services";
 import { ReportsService } from "./reports-services";
 
 const createReportRouteSchema = {
@@ -53,6 +54,16 @@ export async function reportsRoutes(server: FastifyInstance) {
         reason: req.body.reason,
         details: req.body.details,
       });
+
+      if (!result.duplicate) {
+        NotificationsService.reportCreated(req.db, {
+          reporterId: req.user!.id,
+          targetType,
+          targetId,
+          reason: req.body.reason,
+          details: req.body.details,
+        });
+      }
 
       // A repeat report answers 201 as well: from the reporter's side they did
       // report it, and telling them otherwise only invites a retry.

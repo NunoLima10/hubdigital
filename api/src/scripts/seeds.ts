@@ -1,9 +1,11 @@
 import { config } from '@/config';
 import { setupDB } from '@/db';
+import { discord } from '@/lib/discord';
 import { RundSeeding } from '@/db/seeds';
 import { logger } from '@/utils/logger';
 
 async function main() {
+  discord.mute();
   try {
     if (!config.DB_SEEDING) {
       logger.info('Skipping seeding because DB_SEEDING is not set to "true"');

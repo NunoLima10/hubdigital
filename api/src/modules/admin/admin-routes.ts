@@ -1,4 +1,5 @@
 import { toPublicUrl } from "@/utils/public-url";
+import { NotificationsService } from "@/modules/notifications/notifications-services";
 import { getYoutubeVideoId } from "@hubdigital/shared";
 import { z } from "zod";
 import { and, eq, desc, isNull, inArray } from "drizzle-orm";
@@ -240,6 +241,12 @@ export async function adminRoutes(server: FastifyInstance) {
         }),
       );
       if (!result) throw new ConflictError("Este projeto já tem esta conquista.");
+
+      NotificationsService.projectBadgeGranted(req.db, {
+        projectId: id,
+        key: result.key,
+        period: result.period,
+      });
 
       return reply.status(201).send({ data: result });
     },

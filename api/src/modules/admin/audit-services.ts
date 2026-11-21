@@ -1,4 +1,5 @@
 import { DB } from "@/db";
+import { NotificationsService } from "@/modules/notifications/notifications-services";
 import { moderationActions, users } from "@/db/schemas";
 import { errorLogger } from "@/utils/error-logger";
 import {
@@ -53,7 +54,9 @@ export async function withAudit<T>(
   mutate: (tx: DB) => Promise<T>,
   entry: (result: NonNullable<T>) => AuditEntry
 ): Promise<T> {
-  return db.transaction(async (trx) => {
+  let audited: AuditEntry | null = null;
+
+  const result = await db.transaction(async (trx) => {
     // Drizzle types a transaction handle separately from the database handle
     // even though the query surface used here is identical. Cast once, here,
     // rather than widening every service signature.
@@ -62,10 +65,16 @@ export async function withAudit<T>(
     const result = await mutate(tx);
     if (result === null || result === undefined) return result;
 
-    await record(tx, actor, entry(result as NonNullable<T>));
+    audited = entry(result as NonNullable<T>);
+    await record(tx, actor, audited);
 
     return result;
   });
+
+  // Told only once committed: a rolled-back action never reaches Discord.
+  if (audited) NotificationsService.moderationAction(db, actor, audited);
+
+  return result;
 }
 
 export type ListAuditOptions = {
