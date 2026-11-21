@@ -2,9 +2,11 @@ import { authenticate } from "@/hooks/autenticate";
 import { requirePublisher } from "@/hooks/require-publisher";
 import { FastifyInstance } from "fastify";
 import { makersController } from "./makers-controllers";
+import { MakersService } from "./makers-services";
 import {
   getMakerRouteSchema,
   getFoundingMakersRouteSchema,
+  getTeamRouteSchema,
   getMakerPreferencesRouteSchema,
   getMyHandleRouteSchema,
   updateMakerRouteSchema,
@@ -41,6 +43,15 @@ export async function makersRoutes(server: FastifyInstance) {
   server.get("/founding", {
     schema: getFoundingMakersRouteSchema,
     handler: makersController.getFoundingMakersHandler,
+  });
+
+  // Founders and maintainers, for the sponsorship page. Before "/:handle".
+  server.get("/team", {
+    schema: getTeamRouteSchema,
+    handler: async (req, reply) => {
+      reply.header("Cache-Control", "public, max-age=300");
+      return reply.status(200).send({ data: await MakersService.getTeam(req.db) });
+    },
   });
 
   server.get("/:handle", {

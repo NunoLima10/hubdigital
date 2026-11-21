@@ -50,6 +50,11 @@ export function SiteFooter() {
               </Link>
             </li>
             <li>
+              <Link to="/patrocinios" className={linkClass}>
+                Patrocínios
+              </Link>
+            </li>
+            <li>
               <a
                 href="https://github.com/NunoLima10/hubdigital"
                 target="_blank"

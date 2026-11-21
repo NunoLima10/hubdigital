@@ -14,6 +14,27 @@ import { abroadCountryValues } from "@hubdigital/shared";
 
 const handleParamsSchema = z.object({ handle: z.string() });
 
+const teamMemberSchema = z.object({
+  handle: z.string(),
+  name: z.string(),
+  image: z.string().nullable(),
+  bio: z.string(),
+  githubUrl: z.string().nullable(),
+});
+
+export const getTeamRouteSchema = {
+  tags: ["makers"],
+  response: {
+    200: z.object({
+      data: z.object({
+        founders: z.array(teamMemberSchema),
+        maintainers: z.array(teamMemberSchema),
+      }),
+    }),
+    ...routeErrorResponses,
+  },
+};
+
 const foundingMakersQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(10),
   offset: z.coerce.number().int().min(0).default(0),

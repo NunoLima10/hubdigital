@@ -4,7 +4,7 @@ import {
   secondaryCategoriesWith,
 } from "@/utils/project-categories";
 import { DB } from "@/db";
-import { projects, publishers, users, projectMembers } from "@/db/schemas";
+import { projects, publishers, users, projectMembers, userBadges } from "@/db/schemas";
 import { PG_ERR_UNIQUE_VIOLATION } from "@/utils/constants";
 import { errorLogger } from "@/utils/error-logger";
 import { getPostgresError } from "@/utils/postgres-error";
@@ -17,7 +17,7 @@ import {
 import { toPublicUrl } from "@/utils/public-url";
 import { slugify } from "@/utils/slugify";
 import { MakerProfileUpdate } from "@hubdigital/shared";
-import { and, asc, count, desc, eq, isNull, or, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import type { MakerPreferences } from "./makers-schemas";
 
@@ -171,6 +171,39 @@ async function getFoundingMakers(
   return { data, total: summary?.total ?? 0 };
 }
 
+/**
+ * The people behind the platform, for the sponsorship page: everyone holding
+ * the `founder` or `maintainer` badge who has a public maker profile.
+ */
+async function getTeam(db: DB) {
+  const rows = await db
+    .select({
+      badgeKey: userBadges.badgeKey,
+      handle: publishers.handle,
+      name: users.name,
+      image: users.image,
+      bio: publishers.bio,
+      githubUrl: publishers.githubUrl,
+      awardedAt: userBadges.awardedAt,
+    })
+    .from(userBadges)
+    .innerJoin(users, eq(userBadges.userId, users.id))
+    .innerJoin(publishers, eq(publishers.userId, users.id))
+    .where(
+      and(
+        inArray(userBadges.badgeKey, ["founder", "maintainer"]),
+        isNull(users.shadowBannedAt),
+      ),
+    )
+    .orderBy(asc(userBadges.awardedAt));
+
+  const pick = (key: string) =>
+    rows
+      .filter((row) => row.badgeKey === key)
+      .map(({ badgeKey: _key, awardedAt: _at, ...member }) => member);
+  return { founders: pick("founder"), maintainers: pick("maintainer") };
+}
+
 async function getProfileByUserId(db: DB, userId: string) {
   const publisher = await db.query.publishers.findFirst({
     where: eq(publishers.userId, userId),
@@ -267,6 +300,7 @@ export const MakersService = {
     getFoundingMakers,
     "makersService.getFoundingMakers",
   ),
+  getTeam: errorLogger(getTeam, "makersService.getTeam"),
   getProfileByHandle: errorLogger(
     getProfileByHandle,
     "makersService.getProfileByHandle",
