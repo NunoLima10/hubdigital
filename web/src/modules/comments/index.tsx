@@ -14,6 +14,11 @@ import {
   useUpdateComment,
 } from "./hooks/use-comments";
 
+/** Threads shown before "Ver mais comentários". */
+const THREADS_PAGE = 10;
+/** Replies shown under a comment before "Ver mais N respostas". */
+const REPLIES_SHOWN = 2;
+
 export function Comments({ slug }: { slug: string }) {
   const { data, isLoading, isError, refetch } = useComments(slug);
   const showLoading = useDelayedLoading(isLoading);
@@ -29,6 +34,19 @@ export function Comments({ slug }: { slug: string }) {
   const total =
     data?.reduce((count, comment) => count + 1 + comment.replies.length, 0) ??
     0;
+  const [threadLimit, setThreadLimit] = useState(THREADS_PAGE);
+  const threads = data ?? [];
+  // A comment the user just posted is never left behind "Ver mais".
+  const freshIndex =
+    freshId === null
+      ? -1
+      : threads.findIndex(
+          (thread) =>
+            thread.id === freshId ||
+            thread.replies.some((reply) => reply.id === freshId),
+        );
+  const shownThreads = threads.slice(0, Math.max(threadLimit, freshIndex + 1));
+  const hiddenThreads = threads.length - shownThreads.length;
   return (
     <section id="project-comments"
       aria-labelledby="comments-title"
@@ -71,7 +89,7 @@ export function Comments({ slug }: { slug: string }) {
         </p>
       )}
       <div className="space-y-6">
-        {data?.map((comment) => (
+        {shownThreads.map((comment) => (
           <CommentThreadView
             key={comment.id}
             comment={comment}
@@ -84,6 +102,17 @@ export function Comments({ slug }: { slug: string }) {
           />
         ))}
       </div>
+      {hiddenThreads > 0 && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={() => setThreadLimit((limit) => limit + THREADS_PAGE)}
+        >
+          Ver mais comentários ({hiddenThreads})
+        </Button>
+      )}
     </section>
   );
 }
@@ -105,7 +134,13 @@ function CommentThreadView({
   onEdit: (id: number, body: string) => void;
   onDelete: (id: number) => void;
 }) {
-  const replies = comment.replies;
+  const [expanded, setExpanded] = useState(false);
+  const freshReply = comment.replies.findIndex((reply) => reply.id === freshId);
+  const shownCount = expanded
+    ? comment.replies.length
+    : Math.max(REPLIES_SHOWN, freshReply + 1);
+  const replies = comment.replies.slice(0, shownCount);
+  const hiddenReplies = comment.replies.length - replies.length;
   return (
     <div>
       <CommentItem
@@ -124,7 +159,7 @@ function CommentThreadView({
         <ul className="pl-12">
           {replies.map((reply, index) => (
             <li key={reply.id} className="relative pt-4">
-              {index < replies.length - 1 && (
+              {(index < replies.length - 1 || hiddenReplies > 0) && (
                 <span
                   aria-hidden
                   className="absolute -left-[30.5px] top-0 bottom-0 w-px bg-border"
@@ -146,6 +181,22 @@ function CommentThreadView({
               />
             </li>
           ))}
+          {hiddenReplies > 0 && (
+            <li className="relative pt-4">
+              <span
+                aria-hidden
+                className="absolute -left-[30.5px] top-0 h-[26px] w-[30.5px] rounded-bl-xl border-b border-l border-border"
+              />
+              <button
+                type="button"
+                className="text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
+                onClick={() => setExpanded(true)}
+              >
+                Ver mais {hiddenReplies}{" "}
+                {hiddenReplies === 1 ? "resposta" : "respostas"}
+              </button>
+            </li>
+          )}
         </ul>
       )}
     </div>

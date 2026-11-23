@@ -1,0 +1,2 @@
+ALTER TABLE "comments" ADD COLUMN "reply_to_id" integer;--> statement-breakpoint
+ALTER TABLE "comments" ADD CONSTRAINT "comments_reply_to_id_comments_id_fk" FOREIGN KEY ("reply_to_id") REFERENCES "public"."comments"("id") ON DELETE set null ON UPDATE no action;

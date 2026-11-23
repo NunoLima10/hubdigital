@@ -10,6 +10,7 @@ type CommentRow = {
   id: number;
   projectId: number;
   parentId: number | null;
+  replyToId: number | null;
   body: string;
   deletedAt: string | null;
   hiddenAt?: string | null;
@@ -26,6 +27,57 @@ type CommentRow = {
 
 const DELETED_BODY = "Comentário removido.";
 
+type ReplyTo = {
+  id: number;
+  author: { name: string; handle: string | null } | null;
+} | null;
+
+type ReplyTarget = {
+  id: number;
+  deletedAt: string | null;
+  user?: { name: string; publisher?: { handle: string | null } | null } | null;
+};
+
+/**
+ * Only a reply that answers another reply says so: answering the root is what
+ * sitting under it already means. A removed target keeps its place but not its
+ * author's name.
+ */
+function describeReplyTo(
+  comment: Pick<CommentRow, "parentId" | "replyToId">,
+  target: ReplyTarget | undefined
+): ReplyTo {
+  if (!comment.replyToId || comment.replyToId === comment.parentId) return null;
+  if (!target) return null;
+
+  return {
+    id: target.id,
+    author:
+      target.deletedAt || !target.user
+        ? null
+        : {
+            name: target.user.name,
+            handle: target.user.publisher?.handle ?? null,
+          },
+  };
+}
+
+/** describeReplyTo for a single comment, looking its target up. */
+async function findReplyTo(
+  db: DB,
+  comment: Pick<CommentRow, "parentId" | "replyToId">
+): Promise<ReplyTo> {
+  if (!comment.replyToId || comment.replyToId === comment.parentId) return null;
+
+  const target = await db.query.comments.findFirst({
+    where: and(eq(comments.id, comment.replyToId), isNull(comments.hiddenAt)),
+    columns: { id: true, deletedAt: true },
+    with: { user: { columns: { name: true }, with: { publisher: true } } },
+  });
+
+  return describeReplyTo(comment, target);
+}
+
 /**
  * A deleted comment keeps its place in the thread — otherwise replies would be
  * orphaned and the conversation would stop making sense — but gives up its text
@@ -34,7 +86,8 @@ const DELETED_BODY = "Comentário removido.";
 function serializeComment(
   comment: CommentRow,
   userId?: string,
-  badges: Map<string, BadgeKey> = new Map()
+  badges: Map<string, BadgeKey> = new Map(),
+  replyTo: ReplyTo = null
 ) {
   const isDeleted = Boolean(comment.deletedAt);
 
@@ -42,6 +95,7 @@ function serializeComment(
     id: comment.id,
     projectId: comment.projectId,
     parentId: comment.parentId,
+    replyTo,
     body: isDeleted ? DELETED_BODY : comment.body,
     author:
       isDeleted || !comment.user
@@ -107,12 +161,15 @@ async function listComments(db: DB, projectId: number, userId?: string) {
   );
 
   const replies = new Map<number, ReturnType<typeof serializeComment>[]>();
+  // Only comments this reader can see may be named as a reply's target.
+  const byId = new Map(visible.map((row) => [row.id, row]));
 
   for (const row of visible) {
     if (row.parentId === null) continue;
 
+    const replyTo = describeReplyTo(row, byId.get(row.replyToId ?? -1));
     const bucket = replies.get(row.parentId) ?? [];
-    bucket.push(serializeComment(row, userId, badges));
+    bucket.push(serializeComment(row, userId, badges, replyTo));
     replies.set(row.parentId, bucket);
   }
 
@@ -135,6 +192,7 @@ type CreateCommentInput = {
 
 async function createComment(db: DB, input: CreateCommentInput) {
   let parentId: number | null = null;
+  let replyToId: number | null = null;
 
   if (input.parentId) {
     const parent = await db.query.comments.findFirst({
@@ -149,6 +207,7 @@ async function createComment(db: DB, input: CreateCommentInput) {
     // level deep however the client calls it.
     if (!parent || parent.deletedAt) return null;
     parentId = parent.parentId ?? parent.id;
+    replyToId = parent.id;
   }
 
   const [created] = await db
@@ -158,6 +217,7 @@ async function createComment(db: DB, input: CreateCommentInput) {
       userId: input.userId,
       body: input.body,
       parentId,
+      replyToId,
     })
     .returning();
 
@@ -166,10 +226,13 @@ async function createComment(db: DB, input: CreateCommentInput) {
     with: { publisher: true },
   });
 
-  const badges = await BadgesService.featuredFor(db, [input.userId]);
+  const [badges, replyTo] = await Promise.all([
+    BadgesService.featuredFor(db, [input.userId]),
+    findReplyTo(db, created),
+  ]);
 
   return {
-    ...serializeComment({ ...created, user }, input.userId, badges),
+    ...serializeComment({ ...created, user }, input.userId, badges, replyTo),
     replies: [],
   };
 }
@@ -199,10 +262,13 @@ async function updateComment(
     with: { publisher: true },
   });
 
-  const badges = await BadgesService.featuredFor(db, [userId]);
+  const [badges, replyTo] = await Promise.all([
+    BadgesService.featuredFor(db, [userId]),
+    findReplyTo(db, updated),
+  ]);
 
   return {
-    ...serializeComment({ ...updated, user }, userId, badges),
+    ...serializeComment({ ...updated, user }, userId, badges, replyTo),
     replies: [],
   };
 }
