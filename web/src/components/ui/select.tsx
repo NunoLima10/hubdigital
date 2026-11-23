@@ -76,7 +76,8 @@ function SelectContent({
         align={align}
         alignOffset={alignOffset}
         alignItemWithTrigger={alignItemWithTrigger}
-        className="isolate z-50"
+        // Above Dialog (z-[1200]) so selects inside a modal open in front of it.
+        className="isolate z-[1250]"
       >
         <SelectPrimitive.Popup
           data-slot="select-content"

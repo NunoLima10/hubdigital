@@ -73,7 +73,7 @@ export function CountryCombobox({
         <ChevronDownIcon className="size-4 text-muted-foreground transition-transform duration-200 group-data-popup-open:rotate-180" />
       </Combobox.Trigger>
       <Combobox.Portal>
-        <Combobox.Positioner sideOffset={6} className="isolate z-50">
+        <Combobox.Positioner sideOffset={6} className="isolate z-[1250]">
           <Combobox.Popup className="flex max-h-[min(22rem,var(--available-height))] w-(--anchor-width) origin-(--transform-origin) flex-col overflow-hidden rounded-xl bg-popover text-popover-foreground shadow-2xl ring-1 ring-foreground/10 duration-150 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95">
             <div className="flex items-center gap-2 border-b px-3">
               <SearchIcon className="size-4 shrink-0 text-muted-foreground" />
