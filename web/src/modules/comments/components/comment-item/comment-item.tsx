@@ -5,10 +5,28 @@ import { ReportButton } from "@/modules/reports/components/report-button/report-
 import type { Comment, CommentReply } from "@hubdigital/shared";
 import { Link } from "@tanstack/react-router";
 import { prefersReducedMotion, replay } from "@/lib/motion";
-import { Flag, MessageCircle, Pencil, Trash2 } from "lucide-react";
+import { CornerDownRight, Flag, MessageCircle, Pencil, Trash2 } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { fullDate, relativeTime } from "../../utils/relative-time";
 import { CommentComposer } from "../comment-composer/comment-composer";
+
+/** Scrolls to a comment in the thread and flashes it, so a reader can see what a reply answers. */
+function jumpToComment(id: number) {
+  const target = document.getElementById(`comment-${id}`);
+  if (!target) return;
+  const reduced = prefersReducedMotion();
+  target.scrollIntoView({ block: "center", behavior: reduced ? "auto" : "smooth" });
+  if (reduced) return;
+  replay(
+    target,
+    [
+      { backgroundColor: "var(--muted)" },
+      { backgroundColor: "var(--muted)", offset: 0.5 },
+      { backgroundColor: "transparent" },
+    ],
+    { duration: 1600, easing: "ease-out" },
+  );
+}
 
 type Props = {
   comment: Comment | CommentReply;
@@ -119,6 +137,31 @@ export function CommentItem({
             </span>
           )}
         </div>
+        {comment.replyTo && (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <CornerDownRight aria-hidden className="size-3.5 shrink-0" />
+            {comment.replyTo.author ? (
+              <>
+                em resposta a
+                <button
+                  type="button"
+                  className="font-medium text-foreground hover:underline"
+                  onClick={() => jumpToComment(comment.replyTo!.id)}
+                >
+                  @{comment.replyTo.author.name}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="hover:underline"
+                onClick={() => jumpToComment(comment.replyTo!.id)}
+              >
+                em resposta a um comentário removido
+              </button>
+            )}
+          </p>
+        )}
         {mode === "edit" ? (
           <CommentComposer
             initialValue={comment.body}

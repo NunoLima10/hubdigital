@@ -15,7 +15,10 @@ export const commentBodySchema = z.object({
     .trim()
     .min(1, "Escreve alguma coisa antes de enviar.")
     .max(COMMENT_MAX_LENGTH, "O comentário é demasiado longo."),
-  /** Set to reply in a thread; reply-to-reply is flattened under its root. */
+  /**
+   * Set to reply in a thread. A reply to a reply is shown under its root, but
+   * remembers which comment it answered.
+   */
   parentId: z.number().int().positive().nullish(),
 });
 
@@ -25,6 +28,18 @@ const commentBaseSchema = z.object({
   id: z.number(),
   projectId: z.number(),
   parentId: z.number().nullable(),
+  /**
+   * Set on a reply that answers another reply (not the root), so the UI can
+   * say who it answers. `author` is null when that comment was removed.
+   */
+  replyTo: z
+    .object({
+      id: z.number(),
+      author: z
+        .object({ name: z.string(), handle: z.string().nullable() })
+        .nullable(),
+    })
+    .nullable(),
   body: z.string(),
   author: commentAuthorSchema.nullable(),
   /** True when the signed-in user wrote it, so the UI can offer edit/delete. */
