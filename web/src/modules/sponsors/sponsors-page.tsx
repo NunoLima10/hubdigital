@@ -268,10 +268,18 @@ const raffleSteps = [
   ["Cria a tua conta", "Cada pessoa participa uma vez, com uma conta."],
   ["Chegamos aos 100 membros", "O sorteio fica aberto até lá. O progresso está na página inicial."],
   ["Fazemos o sorteio", "5 vencedores entre os primeiros 100, de acordo com as regras abaixo."],
-  ["Anunciamos aqui", "Contactamos cada vencedor pelo e-mail da conta para registar o seu domínio .cv com a Ola.cv."],
+  ["Anunciamos aqui", "Contactamos cada vencedor pelo e-mail da conta para escolher e registar o seu domínio .cv com a Ola.cv."],
 ] as const;
 
 const raffleRules = [
+  {
+    title: "O prémio",
+    text: "Cada vencedor recebe um domínio .cv grátis durante o primeiro ano. O domínio escolhido está sujeito à disponibilidade e aos critérios de avaliação da equipa da Ola.cv.",
+  },
+  {
+    title: "Depois do primeiro ano",
+    text: "Só o primeiro ano é oferecido. A partir do segundo ano, os custos de renovação ficam a cargo do vencedor, ao preço desse domínio em específico.",
+  },
   {
     title: "Uma pessoa, uma participação",
     text: "Cada pessoa participa uma única vez, com uma única conta, e só pode ganhar um domínio.",
@@ -335,8 +343,8 @@ function Partnership() {
       <div id="sorteio" className="mt-12 scroll-mt-6">
         <h3 className="text-xl font-semibold tracking-tight">Sorteio de 5 domínios .cv</h3>
         <p className="mt-2 max-w-2xl leading-7 text-foreground/90">
-          No lançamento, a Ola.cv oferece <strong>5 domínios .cv</strong> para sortear entre os{" "}
-          <strong>primeiros 100 membros</strong>.
+          No lançamento, a Ola.cv oferece <strong>5 domínios .cv</strong>, grátis durante o primeiro ano, para sortear
+          entre os <strong>primeiros 100 membros</strong>.
         </p>
 
         <ol className="mt-8 space-y-0">
