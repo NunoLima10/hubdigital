@@ -21,7 +21,8 @@ bugs. Issues e pull requests podem ser escritos em português ou inglês.
    sem relação com o problema.
 5. Antes de entregar alterações de código, usa `pnpm check` com Docker em
    execução. Para iteração sem Docker, usa `pnpm test:unit`; isso não substitui
-   os testes de integração.
+   os testes de integração. Sem Node no host, o equivalente a `pnpm check` é
+   `docker compose --profile test run --rm tests pnpm check`.
 6. Cria um commit descritivo, envia a branch para o teu fork e abre um PR.
 
 Usa Conventional Commits, por exemplo `fix: corrigir filtros de projetos` ou
