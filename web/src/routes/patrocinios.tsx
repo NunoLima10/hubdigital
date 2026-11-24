@@ -7,7 +7,7 @@ export const Route = createFileRoute("/patrocinios")({
     seo({
       title: "Patrocínios",
       description:
-        "Como apoiar o Hub Digital e a parceria com a Ola.cv, incluindo o sorteio de 5 domínios .cv no lançamento.",
+        "Como apoiar o Hub Digital e a parceria com a Ola.cv, incluindo o sorteio de 5 domínios .cv (grátis no primeiro ano) no lançamento.",
       path: "/patrocinios",
     }),
   component: SponsorsPage,
