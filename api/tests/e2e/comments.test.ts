@@ -252,6 +252,42 @@ describe("Comments module (e2e)", () => {
     expect(listed.json().data[0].replies).toHaveLength(2);
   });
 
+  it("remembers which reply a flattened reply answers", async () => {
+    signedInAs(currentUserId);
+    const root = await postComment("Pergunta");
+    signedInAs(otherUserId);
+    const reply = await postComment("Resposta", root.json().data.id);
+    signedInAs(currentUserId);
+    const nested = await postComment("Obrigado!", reply.json().data.id);
+
+    // Answering the root says nothing extra; answering a reply names it.
+    expect(reply.json().data.replyTo).toBeNull();
+    expect(nested.json().data.replyTo).toMatchObject({
+      id: reply.json().data.id,
+      author: { name: "Bruno" },
+    });
+
+    const listed = await server.inject({
+      method: "GET",
+      url: "/v1/projects/meu-projeto/comments",
+    });
+    const [first, second] = listed.json().data[0].replies;
+    expect(first.replyTo).toBeNull();
+    expect(second.replyTo).toMatchObject({ id: reply.json().data.id });
+
+    // Once the answered reply is removed, its author's name goes with it.
+    signedInAs(otherUserId);
+    await server.inject({ method: "DELETE", url: `/v1/comments/${reply.json().data.id}` });
+    const after = await server.inject({
+      method: "GET",
+      url: "/v1/projects/meu-projeto/comments",
+    });
+    expect(after.json().data[0].replies[1].replyTo).toEqual({
+      id: reply.json().data.id,
+      author: null,
+    });
+  });
+
   it("lets an author edit their own comment but not someone else's", async () => {
     signedInAs(currentUserId);
     const created = await postComment("Primeiro rascunho");

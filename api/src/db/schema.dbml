@@ -329,6 +329,7 @@ table comments {
   project_id integer [not null]
   user_id text [not null]
   parent_id integer
+  reply_to_id integer
   body text [not null]
   deleted_at "timestamp with time zone"
   hidden_at "timestamp with time zone"
@@ -699,6 +700,7 @@ table project_badge_awards {
   period varchar(10) [not null, default: '']
   rank integer
   awarded_at "timestamp with time zone" [not null, default: `now()`]
+  seen_at "timestamp with time zone"
   awarded_by text
 
   indexes {

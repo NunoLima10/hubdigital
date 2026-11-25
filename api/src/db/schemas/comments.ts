@@ -26,6 +26,13 @@ export const comments = pgTable(
     parentId: integer("parent_id").references((): AnyPgColumn => comments.id, {
       onDelete: "cascade",
     }),
+    // The comment actually being answered. It differs from parentId when
+    // someone replies to a reply: the reply still sits under the root, but
+    // the reader can see who it answers.
+    replyToId: integer("reply_to_id").references(
+      (): AnyPgColumn => comments.id,
+      { onDelete: "set null" }
+    ),
     body: text("body").notNull(),
     // Soft delete so a removed parent doesn't take its replies with it.
     deletedAt: timestamp("deleted_at", {

@@ -60,8 +60,8 @@ export function LaunchRaffleCard() {
           {prizes} domínios .cv para sortear
         </h2>
         <p className="mt-2 text-sm leading-relaxed text-[#3B5578] dark:text-[#B5C8E4]">
-          Com a Ola.cv, vamos sortear {prizes} domínios entre os primeiros {goal} membros
-          do Hub.
+          Com a Ola.cv, vamos sortear {prizes} domínios, grátis no primeiro ano, entre os
+          primeiros {goal} membros do Hub.
         </p>
 
         <div className="mt-4">
