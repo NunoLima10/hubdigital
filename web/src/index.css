@@ -34,6 +34,54 @@
   border-top-color: var(--popover);
 }
 
+/* The MapLibre map (clean-project-map.tsx) in the app's colours. */
+.project-map.maplibregl-map {
+  font-family: var(--font-sans);
+}
+
+.project-map .maplibregl-ctrl-group {
+  background: var(--popover);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+.project-map .maplibregl-ctrl-group button + button {
+  border-top-color: var(--border);
+}
+
+.project-map .maplibregl-ctrl-group button:not(:disabled):hover {
+  background: var(--accent);
+}
+
+.dark .project-map .maplibregl-ctrl-icon,
+.dark .project-map .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
+
+.project-map .maplibregl-ctrl.maplibregl-ctrl-attrib,
+.project-map .maplibregl-ctrl.maplibregl-ctrl-attrib.maplibregl-compact {
+  background: color-mix(in oklch, var(--popover) 85%, transparent);
+  color: var(--muted-foreground);
+}
+
+.project-map .maplibregl-ctrl-attrib a {
+  color: var(--primary);
+}
+
+.project-map-popup .maplibregl-popup-content {
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  font-size: 12px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+}
+
+.project-map-popup .maplibregl-popup-tip {
+  border-top-color: var(--popover);
+}
+
 .project-map-marker-shell {
   background: transparent;
   border: 0;
@@ -212,8 +260,13 @@
 }
 
 @media (max-width: 1023px) {
-  .project-map .leaflet-top.leaflet-right {
+  .project-map .leaflet-top.leaflet-right,
+  .project-map .maplibregl-ctrl-top-right {
     top: 76px;
+  }
+  .project-map .maplibregl-ctrl-group button {
+    width: 44px;
+    height: 44px;
   }
   .project-map .leaflet-bar a {
     width: 44px;
