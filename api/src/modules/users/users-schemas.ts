@@ -3,22 +3,28 @@ import { routeErrorResponses } from "@/shared/schemas";
 import {
   foundUsByQuestionValues,
   locationQuestionValues,
-  objectiveQuestionValues,
-  profileQuestionValues,
+  objectiveResponsesSchema,
+  profileResponsesSchema,
 } from "@hubdigital/shared";
 import { z } from "zod";
-import { abroadCountryValues, badgeKeySchema } from "@hubdigital/shared";
+import { abroadCountryValues, badgeKeySchema, islandValues } from "@hubdigital/shared";
 
 export const onboardingRouteSchema = {
   tags: ["users"],
-  body: z.object({
-    bio: z.string().optional().default(""),
-    profileResponse: z.enum(profileQuestionValues),
-    objectiveResponse: z.enum(objectiveQuestionValues),
-    locationResponse: z.enum(locationQuestionValues),
-    diasporaCountry: z.enum(abroadCountryValues).optional(),
-    foundUsByResponse: z.enum(foundUsByQuestionValues),
-  }),
+  body: z
+    .object({
+      bio: z.string().optional().default(""),
+      profileResponses: profileResponsesSchema,
+      objectiveResponses: objectiveResponsesSchema,
+      locationResponse: z.enum(locationQuestionValues),
+      diasporaCountry: z.enum(abroadCountryValues).optional(),
+      originIsland: z.enum(islandValues).optional(),
+      foundUsByResponse: z.enum(foundUsByQuestionValues),
+    })
+    .refine(
+      (body) => body.locationResponse !== "diaspora" || body.originIsland,
+      { message: "Escolhe a tua ilha de origem.", path: ["originIsland"] },
+    ),
   response: {
     201: z.object({
       data: z.object({

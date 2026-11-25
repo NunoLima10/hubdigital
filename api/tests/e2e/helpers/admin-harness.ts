@@ -60,8 +60,8 @@ export async function insertPublisher(db: DB, userId: string, bio = "Bio") {
       userId,
       bio,
       handle: `handle-${userId.slice(0, 8)}`,
-      profileResponse: "founder",
-      objectiveResponse: "launch-product",
+      profileResponses: ["founder"],
+      objectiveResponses: ["launch-product"],
       locationResponse: "CV2",
       foundUsByResponse: "friends",
     })

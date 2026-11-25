@@ -170,8 +170,8 @@ describe("Project stats module (e2e)", () => {
         handle: `h-${Math.random().toString(36).slice(2, 12)}`,
         userId: ownerId,
         bio: "Building things",
-        profileResponse: "founder",
-        objectiveResponse: "launch-product",
+        profileResponses: ["founder"],
+        objectiveResponses: ["launch-product"],
         locationResponse: "CV1",
         foundUsByResponse: "social-media",
       })
@@ -389,8 +389,8 @@ describe("Project stats module (e2e)", () => {
         handle: `h-${Math.random().toString(36).slice(2, 12)}`,
         userId: otherUserId,
         bio: "Also building",
-        profileResponse: "founder",
-        objectiveResponse: "launch-product",
+        profileResponses: ["founder"],
+        objectiveResponses: ["launch-product"],
         locationResponse: "CV1",
         foundUsByResponse: "social-media",
       });
@@ -580,8 +580,8 @@ describe("Project stats module (e2e)", () => {
           handle: `h-${Math.random().toString(36).slice(2, 12)}`,
           userId: otherUserId,
           bio: "Also building",
-          profileResponse: "founder",
-          objectiveResponse: "launch-product",
+          profileResponses: ["founder"],
+          objectiveResponses: ["launch-product"],
           locationResponse: "CV1",
           foundUsByResponse: "social-media",
         })
@@ -644,7 +644,7 @@ describe("Project stats module (e2e)", () => {
       expect(stats.statusCode).toBe(200);expect(stats.json().data.links).toMatchObject([{linkId:link.id,clicks:2,detail:2}]);
       expect(stats.json().data.links[0]).not.toHaveProperty("url");
       signInAs(visitorId);expect((await server.inject({method:"GET",url:`/v1/projects/${projectId}/link-stats`})).statusCode).toBe(403);
-      await db.insert(publishers).values({userId:visitorId,handle:"viewer-maker",bio:"Viewer",profileResponse:"founder",objectiveResponse:"launch-product",locationResponse:"CV2",foundUsByResponse:"social-media"});
+      await db.insert(publishers).values({userId:visitorId,handle:"viewer-maker",bio:"Viewer",profileResponses: ["founder"],objectiveResponses: ["launch-product"],locationResponse:"CV2",foundUsByResponse:"social-media"});
       expect((await server.inject({method:"GET",url:`/v1/projects/${projectId}/link-stats`})).statusCode).toBe(404);
     });
     it("redirects only stored public destinations and preserves paths/fragments and existing queries",async()=>{

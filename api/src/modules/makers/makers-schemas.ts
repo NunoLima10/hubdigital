@@ -5,12 +5,12 @@ import {
   foundingMakerSchema,
   foundUsByQuestionValues,
   locationQuestionValues,
-  objectiveQuestionValues,
-  profileQuestionValues,
+  objectiveResponsesSchema,
+  profileResponsesSchema,
 } from "@hubdigital/shared";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { abroadCountryValues } from "@hubdigital/shared";
+import { abroadCountryValues, islandValues } from "@hubdigital/shared";
 
 const handleParamsSchema = z.object({ handle: z.string() });
 
@@ -101,12 +101,20 @@ export const getMyHandleRouteSchema = {
 };
 
 export const makerPreferencesSchema = z.object({
-  profileResponse: z.enum(profileQuestionValues),
-  objectiveResponse: z.enum(objectiveQuestionValues),
+  profileResponses: profileResponsesSchema,
+  objectiveResponses: objectiveResponsesSchema,
   locationResponse: z.enum(locationQuestionValues),
   diasporaCountry: z.enum(abroadCountryValues).nullable().optional(),
+  // Null for makers who joined from the diaspora before it was asked.
+  originIsland: z.enum(islandValues).nullable().optional(),
   foundUsByResponse: z.enum(foundUsByQuestionValues),
 });
+
+/** Saving from the diaspora needs the island of origin. */
+const makerPreferencesUpdateSchema = makerPreferencesSchema.refine(
+  (body) => body.locationResponse !== "diaspora" || body.originIsland,
+  { message: "Escolhe a tua ilha de origem.", path: ["originIsland"] },
+);
 
 export const getMakerPreferencesRouteSchema = {
   tags: ["makers"],
@@ -118,7 +126,7 @@ export const getMakerPreferencesRouteSchema = {
 
 export const updateMakerPreferencesRouteSchema = {
   tags: ["makers"],
-  body: makerPreferencesSchema,
+  body: makerPreferencesUpdateSchema,
   response: {
     200: z.object({ data: makerPreferencesSchema }),
     ...routeErrorResponses,

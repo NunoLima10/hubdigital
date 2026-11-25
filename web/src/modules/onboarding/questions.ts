@@ -14,6 +14,10 @@ type Reponse = {
 
 type Question = {
   title: string;
+  /** Shown under the title, e.g. to say several answers can be picked. */
+  hint?: string;
+  /** Checkboxes instead of radios: the answer is a list. */
+  multiple?: boolean;
   reponses: Reponse[];
 };
 
@@ -34,7 +38,9 @@ export const featuredDiasporaCountries = ["pt", "us", "fr", "nl", "lu", "sn", "b
 
 export const onBoardingQuestions: Question[] = [
   {
-    title: "Com que perfil mais te identificas?",
+    title: "Com que perfis te identificas?",
+    hint: "Podes selecionar mais do que um.",
+    multiple: true,
     reponses: [
       {
         display: "Estudante",
@@ -55,7 +61,9 @@ export const onBoardingQuestions: Question[] = [
     ],
   },
   {
-    title: "Qual é o teu principal objetivo na plataforma?",
+    title: "Quais são os teus objetivos na plataforma?",
+    hint: "Podes selecionar mais do que um.",
+    multiple: true,
     reponses: [
       {
         display: "Descobrir novos produtos",

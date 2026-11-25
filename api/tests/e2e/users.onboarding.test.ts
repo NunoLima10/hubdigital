@@ -105,8 +105,8 @@ describe("Users module - onboarding (e2e)", () => {
       url: "/v1/users/onboarding",
       payload: {
         bio: "Test Bio",
-        profileResponse: "student",
-        objectiveResponse: "discover-products",
+        profileResponses: ["student"],
+        objectiveResponses: ["discover-products"],
         locationResponse: "CV1",
         foundUsByResponse: "social-media",
       },
@@ -129,8 +129,9 @@ describe("Users module - onboarding (e2e)", () => {
 
     const payload = {
       bio: "Excited to join Hub Digital",
-      profileResponse: "student",
-      objectiveResponse: "discover-products",
+      // Several profiles can be picked at once.
+      profileResponses: ["student", "founder"],
+      objectiveResponses: ["discover-products", "networking"],
       locationResponse: "CV1",
       foundUsByResponse: "social-media",
     } as const;
@@ -157,8 +158,8 @@ describe("Users module - onboarding (e2e)", () => {
     expect(publisher).toMatchObject({
       userId: currentUserId,
       bio: payload.bio,
-      profileResponse: payload.profileResponse,
-      objectiveResponse: payload.objectiveResponse,
+      profileResponses: ["student", "founder"],
+      objectiveResponses: ["discover-products", "networking"],
       locationResponse: payload.locationResponse,
       foundUsByResponse: payload.foundUsByResponse,
     });
@@ -172,7 +173,12 @@ describe("Users module - onboarding (e2e)", () => {
     );
   });
 
-  it("returns a validation error when the payload is invalid", async () => {
+  it.each([
+    ["an unknown profile", ["invalid-profile"]],
+    ["no profile", []],
+    ["a repeated profile", ["student", "student"]],
+    ["a single profile instead of a list", "student"],
+  ])("returns a validation error for %s", async (_case, profileResponses) => {
     getSessionMock.mockResolvedValue({
       user: { id: currentUserId, role: "user" },
     });
@@ -182,8 +188,8 @@ describe("Users module - onboarding (e2e)", () => {
       url: "/v1/users/onboarding",
       payload: {
         bio: "Test Bio",
-        profileResponse: "invalid-profile",
-        objectiveResponse: "discover-products",
+        profileResponses,
+        objectiveResponses: ["discover-products"],
         locationResponse: "CV1",
         foundUsByResponse: "social-media",
       },
@@ -193,6 +199,82 @@ describe("Users module - onboarding (e2e)", () => {
     const body = response.json();
     expect(body.error).toBeDefined();
     expect(updateUserMock).not.toHaveBeenCalled();
+  });
+
+  it("requires the island of origin from the diaspora", async () => {
+    getSessionMock.mockResolvedValue({
+      user: { id: currentUserId, role: "user" },
+    });
+
+    const response = await server.inject({
+      method: "POST",
+      url: "/v1/users/onboarding",
+      payload: {
+        profileResponses: ["student"],
+        objectiveResponses: ["discover-products"],
+        locationResponse: "diaspora",
+        diasporaCountry: "pt",
+        foundUsByResponse: "social-media",
+      },
+    });
+
+    expect(response.statusCode).toBe(400);
+    expect(updateUserMock).not.toHaveBeenCalled();
+  });
+
+  it("stores the island of origin only for the diaspora", async () => {
+    getSessionMock.mockResolvedValue({
+      user: { id: currentUserId, role: "user" },
+    });
+    updateUserMock.mockResolvedValue({});
+
+    const response = await server.inject({
+      method: "POST",
+      url: "/v1/users/onboarding",
+      payload: {
+        profileResponses: ["student"],
+        objectiveResponses: ["discover-products"],
+        locationResponse: "diaspora",
+        diasporaCountry: "pt",
+        originIsland: "CV7",
+        foundUsByResponse: "social-media",
+      },
+    });
+
+    expect(response.statusCode).toBe(201);
+    const publisher = await db.query.publishers.findFirst({
+      where: eq(publishers.userId, currentUserId),
+    });
+    expect(publisher).toMatchObject({
+      locationResponse: "diaspora",
+      diasporaCountry: "pt",
+      originIsland: "CV7",
+    });
+  });
+
+  it("ignores an island of origin sent by someone living in Cabo Verde", async () => {
+    getSessionMock.mockResolvedValue({
+      user: { id: currentUserId, role: "user" },
+    });
+    updateUserMock.mockResolvedValue({});
+
+    const response = await server.inject({
+      method: "POST",
+      url: "/v1/users/onboarding",
+      payload: {
+        profileResponses: ["student"],
+        objectiveResponses: ["discover-products"],
+        locationResponse: "CV2",
+        originIsland: "CV7",
+        foundUsByResponse: "social-media",
+      },
+    });
+
+    expect(response.statusCode).toBe(201);
+    const publisher = await db.query.publishers.findFirst({
+      where: eq(publishers.userId, currentUserId),
+    });
+    expect(publisher?.originIsland).toBeNull();
   });
 
   it("returns and records the account eligibility confirmation", async () => {

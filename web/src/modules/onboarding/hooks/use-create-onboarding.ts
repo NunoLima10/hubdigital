@@ -1,6 +1,11 @@
 import { API } from "@/api/api";
 import { CreateOptions } from "@/types";
-import type { BadgeKey } from "@hubdigital/shared";
+import {
+  islandValues,
+  objectiveResponsesSchema,
+  profileResponsesSchema,
+  type BadgeKey,
+} from "@hubdigital/shared";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { z } from "zod";
@@ -8,18 +13,21 @@ import {
   diasporaCountryValues,
   foundUsByQuestionValues,
   locationQuestionValues,
-  objectiveQuestionValues,
-  profileQuestionValues,
 } from "../questions";
 
 const schema = z.object({
   bio: z.string(),
-  profileResponse: z.enum(profileQuestionValues),
-  objectiveResponse: z.enum(objectiveQuestionValues),
+  profileResponses: profileResponsesSchema,
+  objectiveResponses: objectiveResponsesSchema,
   locationResponse: z.enum(locationQuestionValues),
   diasporaCountry: z.enum(diasporaCountryValues).optional(),
+  // Asked only from the diaspora, where it is required.
+  originIsland: z.enum(islandValues).optional(),
   foundUsByResponse: z.enum(foundUsByQuestionValues),
-});
+}).refine(
+  (answers) => answers.locationResponse !== "diaspora" || answers.originIsland,
+  { message: "Escolhe a tua ilha de origem.", path: ["originIsland"] },
+);
 
 export type OnboardingResponse = z.infer<typeof schema>;
 
