@@ -272,7 +272,7 @@ export function ProjectMapView() {
   return (
     <div className="relative flex h-full min-h-0">
       <aside
-        className="hidden w-80 shrink-0 flex-col gap-4 overflow-y-auto border-r bg-background p-4 lg:flex"
+        className="hidden w-[23rem] xl:w-[27rem] shrink-0 flex-col gap-4 overflow-y-auto border-r bg-background p-4 lg:flex"
         aria-label="Projetos no mapa"
       >
         {scopeControls}

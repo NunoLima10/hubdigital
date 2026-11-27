@@ -3,6 +3,7 @@ import { MapPin } from "lucide-react";
 import { CountryFlag } from "@/components/country-flag/country-flag";
 import { IslandIcon } from "@/components/island-icon/island-icon";
 import { ProjectIcon } from "@/components/project-icon/project-icon";
+import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
   formatLocation,
@@ -46,8 +47,6 @@ export function MapProjectList({
           (location) => matchesMapLocation(location, world, country, island),
         );
         return (
-          // Logo on the left 30%, the details on the right 70%. The whole card
-          // picks the project on the map; the "Ver projeto" link sits above that.
           <li
             key={project.id}
             className={cn(
@@ -55,15 +54,11 @@ export function MapProjectList({
               selected && "border-primary bg-primary/5 hover:bg-primary/5",
             )}
           >
-            <div className="w-[30%] shrink-0 self-start">
-              <ProjectIcon
-                iconUrl={project.logoUrl}
-                fit="contain"
-                // White in both themes so dark, transparent logos stay visible.
-                className="aspect-square size-full rounded-xl bg-white p-1 [&_img]:rounded-md"
-              />
-            </div>
-            <div className="flex min-w-0 flex-1 flex-col">
+            <ProjectIcon
+              iconUrl={project.logoUrl}
+              className="size-12 shrink-0 rounded-lg sm:size-14"
+            />
+            <div className="flex min-w-0 flex-1 flex-col justify-center">
               <button
                 type="button"
                 className="text-left text-sm leading-5 font-semibold text-pretty outline-none after:absolute after:inset-0 after:rounded-lg focus-visible:after:ring-[3px] focus-visible:after:ring-ring/50"
@@ -88,15 +83,19 @@ export function MapProjectList({
                   <li>Sem localização pública</li>
                 )}
               </ul>
-              {/* Tall enough to tap on a phone, without growing the card on desktop. */}
-              <Link
-                to="/projects/$slug"
-                params={{ slug: project.slug }}
-                className="relative z-10 mt-1 inline-flex min-h-11 items-center self-start text-sm font-medium text-primary underline underline-offset-4 hover:text-primary/80 lg:min-h-0 lg:pt-1"
-              >
-                Ver projeto
-              </Link>
             </div>
+            {/* Tall enough to tap on a phone, without growing the card on desktop. */}
+            <Link
+              to="/projects/$slug"
+              params={{ slug: project.slug }}
+              className={buttonVariants({
+                variant: "secondary",
+                size: "sm",
+                className: "relative z-10 min-h-11 self-center lg:min-h-0",
+              })}
+            >
+              Ver projeto
+            </Link>
           </li>
         );
       })}
