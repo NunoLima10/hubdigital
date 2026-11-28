@@ -5,6 +5,8 @@ import {
   foundingMakerSchema,
   foundUsByQuestionValues,
   locationQuestionValues,
+  objectiveQuestionValues,
+  profileQuestionValues,
   objectiveResponsesSchema,
   profileResponsesSchema,
 } from "@hubdigital/shared";
@@ -101,8 +103,9 @@ export const getMyHandleRouteSchema = {
 };
 
 export const makerPreferencesSchema = z.object({
-  profileResponses: profileResponsesSchema,
-  objectiveResponses: objectiveResponsesSchema,
+  // Existing preferences can predate the two-choice limit.
+  profileResponses: z.array(z.enum(profileQuestionValues)),
+  objectiveResponses: z.array(z.enum(objectiveQuestionValues)),
   locationResponse: z.enum(locationQuestionValues),
   diasporaCountry: z.enum(abroadCountryValues).nullable().optional(),
   // Null for makers who joined from the diaspora before it was asked.
@@ -110,11 +113,10 @@ export const makerPreferencesSchema = z.object({
   foundUsByResponse: z.enum(foundUsByQuestionValues),
 });
 
-/** Saving from the diaspora needs the island of origin. */
-const makerPreferencesUpdateSchema = makerPreferencesSchema.refine(
-  (body) => body.locationResponse !== "diaspora" || body.originIsland,
-  { message: "Escolhe a tua ilha de origem.", path: ["originIsland"] },
-);
+const makerPreferencesUpdateSchema = makerPreferencesSchema.extend({
+  profileResponses: profileResponsesSchema,
+  objectiveResponses: objectiveResponsesSchema,
+});
 
 export const getMakerPreferencesRouteSchema = {
   tags: ["makers"],

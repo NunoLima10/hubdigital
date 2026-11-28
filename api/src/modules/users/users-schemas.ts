@@ -20,11 +20,7 @@ export const onboardingRouteSchema = {
       diasporaCountry: z.enum(abroadCountryValues).optional(),
       originIsland: z.enum(islandValues).optional(),
       foundUsByResponse: z.enum(foundUsByQuestionValues),
-    })
-    .refine(
-      (body) => body.locationResponse !== "diaspora" || body.originIsland,
-      { message: "Escolhe a tua ilha de origem.", path: ["originIsland"] },
-    ),
+    }),
   response: {
     201: z.object({
       data: z.object({

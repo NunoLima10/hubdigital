@@ -1,3 +1,4 @@
+import { maxOnboardingChoices } from "@hubdigital/shared";
 import { Button } from "@/components/ui/button";
 import { useDelayedLoading } from "@/hooks/use-delayed-loading";
 import { useMediaQuery } from "@/hooks/use-media-query";
@@ -41,8 +42,7 @@ const valuesOf = (answer: string | readonly string[]) =>
 
 /** Whether this question still needs an answer before saving. */
 const isMissing = (key: Key, draft: Draft) =>
-  valuesOf(draft[key]).length === 0 ||
-  (key === "locationResponse" && draft.locationResponse === "diaspora" && !draft.originIsland);
+  valuesOf(draft[key]).length === 0;
 
 /** The answer on one line, like the summary at the end of onboarding. */
 function summarize(key: Key, draft: Draft) {
@@ -55,9 +55,7 @@ function summarize(key: Key, draft: Draft) {
   ];
   if (key === "locationResponse" && draft.locationResponse === "diaspora") {
     if (draft.diasporaCountry) parts.push(diasporaCountryLabels[draft.diasporaCountry]);
-    parts.push(
-      draft.originIsland ? `de ${islandLabels[draft.originIsland]}` : "falta a ilha de origem",
-    );
+    if (draft.originIsland) parts.push(`de ${islandLabels[draft.originIsland]}`);
   }
   return parts.filter(Boolean).join(" · ");
 }
@@ -67,12 +65,13 @@ const isSame = (a: Draft, b: Draft) =>
   (a.diasporaCountry ?? "") === (b.diasporaCountry ?? "") &&
   (a.originIsland ?? "") === (b.originIsland ?? "");
 
-/** Every question answered, and the island of origin when abroad. */
+/** Every question answered. */
 const isComplete = (draft: Draft): draft is MakerPreferences =>
   draft.profileResponses.length > 0 &&
+  draft.profileResponses.length <= maxOnboardingChoices &&
   draft.objectiveResponses.length > 0 &&
-  draft.locationResponse !== "" &&
-  (draft.locationResponse !== "diaspora" || Boolean(draft.originIsland));
+  draft.objectiveResponses.length <= maxOnboardingChoices &&
+  draft.locationResponse !== "";
 
 /** Adds or removes an answer from a list, keeping the question's order. */
 function toggle<T extends string>(order: readonly T[], current: readonly T[], value: string) {
@@ -214,7 +213,7 @@ export function PreferencesForm() {
                 }
                 originIsland={answers.originIsland ?? ""}
                 onOriginIslandChange={(island) =>
-                  setAnswers({ ...answers, originIsland: island })
+                  setAnswers({ ...answers, originIsland: island || null })
                 }
                 onBack={() => select("locationResponse", "")}
               />
@@ -233,6 +232,7 @@ export function PreferencesForm() {
                     name={key}
                     value={response.value}
                     multiple={question.multiple}
+                    disabled={question.multiple && valuesOf(answers[key]).length >= maxOnboardingChoices && !valuesOf(answers[key]).includes(response.value)}
                     checked={valuesOf(answers[key]).includes(response.value)}
                     onSelect={() => select(key, response.value)}
                   >

@@ -1,3 +1,4 @@
+import { maxOnboardingChoices } from "@hubdigital/shared";
 import { Button } from "@/components/ui/button";
 import { CountryFlag } from "@/components/country-flag/country-flag";
 import { cn } from "@/lib/utils";
@@ -47,10 +48,8 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
   });
   const [diasporaCountry, setDiasporaCountry] = useState<DiasporaCountry | "">("");
   const [originIsland, setOriginIsland] = useState<Island | "">("");
-  // From the diaspora, the step also needs the island of origin.
   const answered = (key: AnswerKey) =>
-    valuesOf(answers[key]).length > 0 &&
-    (key !== "locationResponse" || answers.locationResponse !== "diaspora" || originIsland !== "");
+    valuesOf(answers[key]).length > 0;
   const { createOnboarding, schema, isPending } = useCreateOnboarding({
     onSuccess: (response) =>
       onComplete({
@@ -194,6 +193,7 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
                         name={keys[step]}
                         value={response.value}
                         multiple={question.multiple}
+                        disabled={question.multiple && valuesOf(answers[keys[step]]).length >= maxOnboardingChoices && !valuesOf(answers[keys[step]]).includes(response.value)}
                         checked={valuesOf(answers[keys[step]]).includes(response.value)}
                         onSelect={() => choose(response.value)}
                       >

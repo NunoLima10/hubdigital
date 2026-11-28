@@ -58,6 +58,7 @@ export function ResponseOption({
   checked,
   onSelect,
   multiple = false,
+  disabled = false,
   compact = false,
   description,
   children,
@@ -68,6 +69,7 @@ export function ResponseOption({
   onSelect: () => void;
   /** A checkbox (one of several picks) instead of a radio. */
   multiple?: boolean;
+  disabled?: boolean;
   /**
    * On small screens, a smaller icon and no check mark (the border shows the
    * choice), so two options fit side by side.
@@ -82,6 +84,7 @@ export function ResponseOption({
       className={cn(
         "group flex cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-sm transition-[background-color,border-color,transform] duration-150 select-none hover:bg-muted/50 active:scale-[0.98] has-focus-visible:ring-[3px] has-focus-visible:ring-ring/50 motion-reduce:active:scale-100",
         checked && "border-primary bg-primary-soft hover:bg-primary-soft",
+        disabled && "cursor-not-allowed opacity-50",
         compact && "gap-2 px-2.5 sm:gap-3 sm:px-3",
       )}
     >
@@ -90,6 +93,7 @@ export function ResponseOption({
         name={name}
         value={value}
         checked={checked}
+        disabled={disabled}
         onChange={onSelect}
         className="sr-only"
       />
@@ -191,7 +195,7 @@ export function DiasporaFields({
   country: DiasporaCountry | "";
   onCountryChange: (country: DiasporaCountry | "") => void;
   originIsland: Island | "";
-  onOriginIslandChange: (island: Island) => void;
+  onOriginIslandChange: (island: Island | "") => void;
   onBack: () => void;
 }) {
   return (
@@ -219,9 +223,9 @@ export function DiasporaFields({
         />
       </div>
       <fieldset aria-describedby="origin-island-hint">
-        <legend className="text-sm font-medium">De que ilha és?</legend>
+        <legend className="text-sm font-medium">Ilha de origem (opcional)</legend>
         <p id="origin-island-hint" className="mt-0.5 text-xs text-muted-foreground">
-          A tua ilha de origem ou da tua família.
+          Se quiseres, indica a tua ilha de origem ou a da tua família.
         </p>
         {/* Two columns even on a phone, so the nine islands stay a short list. */}
         <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3">
@@ -238,6 +242,11 @@ export function DiasporaFields({
             </ResponseOption>
           ))}
         </div>
+        {originIsland && (
+          <button type="button" className="mt-2 text-sm underline" onClick={() => onOriginIslandChange("")}>
+            Limpar seleção
+          </button>
+        )}
       </fieldset>
     </div>
   );

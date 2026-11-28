@@ -4,10 +4,13 @@ import { z } from "zod";
  * A non-empty list of distinct answers, for the questions where people can
  * pick more than one option.
  */
+export const maxOnboardingChoices = 2;
+
 const answerListSchema = <const T extends readonly string[]>(values: T, emptyMessage: string) =>
   z
     .array(z.enum(values))
     .min(1, emptyMessage)
+    .max(maxOnboardingChoices, "Escolhe no máximo duas opções.")
     .refine(
       (picked) => new Set(picked).size === picked.length,
       "Cada opção só pode ser escolhida uma vez.",

@@ -39,7 +39,7 @@ export const featuredDiasporaCountries = ["pt", "us", "fr", "nl", "lu", "sn", "b
 export const onBoardingQuestions: Question[] = [
   {
     title: "Com que perfis te identificas?",
-    hint: "Podes selecionar mais do que um.",
+    hint: "Escolhe uma ou duas opções.",
     multiple: true,
     reponses: [
       {
@@ -62,7 +62,7 @@ export const onBoardingQuestions: Question[] = [
   },
   {
     title: "Quais são os teus objetivos na plataforma?",
-    hint: "Podes selecionar mais do que um.",
+    hint: "Escolhe uma ou duas opções.",
     multiple: true,
     reponses: [
       {

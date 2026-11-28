@@ -21,13 +21,10 @@ const schema = z.object({
   objectiveResponses: objectiveResponsesSchema,
   locationResponse: z.enum(locationQuestionValues),
   diasporaCountry: z.enum(diasporaCountryValues).optional(),
-  // Asked only from the diaspora, where it is required.
+  // Asked only from the diaspora.
   originIsland: z.enum(islandValues).optional(),
   foundUsByResponse: z.enum(foundUsByQuestionValues),
-}).refine(
-  (answers) => answers.locationResponse !== "diaspora" || answers.originIsland,
-  { message: "Escolhe a tua ilha de origem.", path: ["originIsland"] },
-);
+});
 
 export type OnboardingResponse = z.infer<typeof schema>;
 

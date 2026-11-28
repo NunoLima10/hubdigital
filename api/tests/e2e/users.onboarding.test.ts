@@ -201,11 +201,12 @@ describe("Users module - onboarding (e2e)", () => {
     expect(updateUserMock).not.toHaveBeenCalled();
   });
 
-  it("requires the island of origin from the diaspora", async () => {
+  it("accepts diaspora onboarding without an island of origin", async () => {
     getSessionMock.mockResolvedValue({
       user: { id: currentUserId, role: "user" },
     });
 
+    updateUserMock.mockResolvedValue({});
     const response = await server.inject({
       method: "POST",
       url: "/v1/users/onboarding",
@@ -218,8 +219,9 @@ describe("Users module - onboarding (e2e)", () => {
       },
     });
 
-    expect(response.statusCode).toBe(400);
-    expect(updateUserMock).not.toHaveBeenCalled();
+    expect(response.statusCode).toBe(201);
+    const publisher = await db.query.publishers.findFirst({ where: eq(publishers.userId, currentUserId) });
+    expect(publisher?.originIsland).toBeNull();
   });
 
   it("stores the island of origin only for the diaspora", async () => {
