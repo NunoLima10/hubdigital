@@ -34,6 +34,8 @@ import { launchCampaignRoutes } from "./modules/launch-campaign/launch-campaign-
 import { config } from "./config";
 import { sql } from "drizzle-orm";
 import betterAuth from "./plugins/better-auth";
+import launchGatePlugin from "./plugins/launch-gate";
+import { launchGateRoutes } from "./modules/launch-gate/launch-gate-routes";
 import uploaderPlugin from "./plugins/uploader";
 
 declare module "fastify" {
@@ -82,6 +84,9 @@ export async function buildServer(db: DB) {
 
   await server.register(betterAuth);
 
+  // Pre-launch lock: after the session is known, before any route runs.
+  await server.register(launchGatePlugin);
+
   await server.register(errorHandlerPlugin);
 
   server.setValidatorCompiler(validatorCompiler);
@@ -117,6 +122,7 @@ export async function buildServer(db: DB) {
   await server.register(settingsRoutes, { prefix: "/v1/settings" });
   await server.register(shareImagesRoutes, { prefix: "/v1/share-images" });
   await server.register(siteStatsRoutes, { prefix: "/v1/site-stats" });
+  await server.register(launchGateRoutes, { prefix: "/v1/launch-status" });
   // Temporary: launch raffle with Ola.cv. Remove after the draw.
   await server.register(launchCampaignRoutes, { prefix: "/v1/launch-campaign" });
   // Registered last, and behind its own role guard — see modules/admin/admin-routes.

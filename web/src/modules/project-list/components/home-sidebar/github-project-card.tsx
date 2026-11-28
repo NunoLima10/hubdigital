@@ -1,16 +1,11 @@
-import { Github, Star } from "lucide-react";
+import { Github } from "lucide-react";
+import { GithubStarButton, githubFocusRing } from "@/components/github-star-button/github-star-button";
 import { BadgeMedal } from "@/components/badge/badge-medal";
-import {
-  PROJECT_REPOSITORY,
-  useGithubStars,
-} from "@/modules/project-list/hooks/use-github-stars";
+import { PROJECT_REPOSITORY } from "@/modules/project-list/hooks/use-github-stars";
 
-const formatStars = new Intl.NumberFormat("pt-PT");
-const focusRing = "outline-none focus-visible:ring-2 focus-visible:ring-[#0E8A5F] focus-visible:ring-offset-2";
+const focusRing = githubFocusRing;
 
 export function GithubProjectCard() {
-  const { data: stars, isPending } = useGithubStars();
-
   return (
     <section
       aria-labelledby="github-project-title"
@@ -44,25 +39,7 @@ export function GithubProjectCard() {
           </div>
         </div>
 
-        <a
-          href={PROJECT_REPOSITORY}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`group mt-4 flex min-h-9 items-center justify-center gap-2 rounded-md bg-[#0A6C4A] px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-[#08563B] motion-reduce:transition-none ${focusRing}`}
-        >
-          <Star
-            className="size-4 motion-safe:transition-transform motion-safe:duration-200 motion-safe:group-hover:-rotate-12 motion-safe:group-hover:scale-110"
-            aria-hidden="true"
-          />
-          {stars !== undefined ? (
-            <span className="text-xs tabular-nums" aria-label={`${formatStars.format(stars)} estrelas no GitHub`}>
-              {formatStars.format(stars)}
-            </span>
-          ) : isPending ? (
-            <span className="h-4 w-6 rounded bg-white/20 motion-safe:animate-pulse" aria-label="A carregar estrelas" />
-          ) : null}
-          <span className="ml-1 border-l border-white/30 pl-3">Dar uma estrela</span>
-        </a>
+        <GithubStarButton className="mt-4" />
       </div>
 
     </section>

@@ -1121,3 +1121,16 @@
     animation: none !important;
   }
 }
+
+/* Launch countdown digits: solid white with a fine dot grid punched into
+   them, the brand's take on the dotted-display look. */
+.launch-digits {
+  color: transparent;
+  background-image:
+    radial-gradient(circle, color-mix(in oklch, var(--background) 38%, transparent) 0.07rem, transparent 0.08rem),
+    linear-gradient(#fff, #fff);
+  background-size: 0.5rem 0.5rem, 100% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(0 0.5rem 2rem color-mix(in oklch, var(--primary) 45%, transparent));
+}
