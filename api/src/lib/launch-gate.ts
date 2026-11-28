@@ -1,5 +1,6 @@
 import { config } from "@/config";
 import { logger } from "@/utils/logger";
+import { z } from "zod";
 import {
   LAUNCH_GATE_FLAG,
   parseLaunchGatePayload,
@@ -13,8 +14,7 @@ import {
  *
  * Every request is gated on this, so it is cached for a short while and a
  * failed refresh keeps the last value it read. Before the first successful
- * read (PostHog down at boot) LAUNCH_GATE_DEFAULT decides. Without a PostHog
- * token (local development, tests, forks) the site is open.
+ * read, or without a PostHog token, LAUNCH_GATE_DEFAULT decides.
  */
 
 const CACHE_MS = 30_000;
@@ -27,13 +27,17 @@ const OPEN: LaunchGate = { locked: false, launchAt: null };
 let cached: { gate: LaunchGate; fetchedAt: number } | null = null;
 let inflight: Promise<LaunchGate> | null = null;
 
-type FlagsResponse = {
-  // /flags?v=2
-  flags?: Record<string, { enabled?: boolean; metadata?: { payload?: unknown } }>;
-  // Older shape, still returned alongside by some hosts.
-  featureFlags?: Record<string, boolean | string>;
-  featureFlagPayloads?: Record<string, unknown>;
-};
+const flagsResponse = z.object({
+  errorsWhileComputingFlags: z.boolean().optional(),
+  quotaLimited: z.array(z.string()).optional(),
+  flags: z.record(z.string(), z.object({
+    enabled: z.boolean(),
+    failed: z.boolean().optional(),
+    metadata: z.object({ payload: z.unknown().optional() }).nullable().optional(),
+  })).optional(),
+  featureFlags: z.record(z.string(), z.union([z.boolean(), z.string()])).optional(),
+  featureFlagPayloads: z.record(z.string(), z.unknown()).optional(),
+});
 
 async function fetchGate(): Promise<LaunchGate> {
   const url = new URL("/flags/?v=2", config.POSTHOG_HOST);
@@ -49,8 +53,12 @@ async function fetchGate(): Promise<LaunchGate> {
   });
   if (!response.ok) throw new Error(`PostHog /flags answered ${response.status}`);
 
-  const body = (await response.json()) as FlagsResponse;
+  const body = flagsResponse.parse(await response.json());
   const flag = body.flags?.[LAUNCH_GATE_FLAG];
+  if ((!body.flags && !body.featureFlags) || body.errorsWhileComputingFlags ||
+      body.quotaLimited?.includes("feature_flags") || flag?.failed) {
+    throw new Error("PostHog launch gate evaluation incomplete");
+  }
   const enabled = flag?.enabled ?? Boolean(body.featureFlags?.[LAUNCH_GATE_FLAG]);
   // Off or deleted: the site is open.
   if (!enabled) return OPEN;
@@ -64,7 +72,7 @@ function fallback(): LaunchGate {
 }
 
 export async function getLaunchGate(): Promise<LaunchGate> {
-  if (!config.POSTHOG_API_KEY || config.NODE_ENV === "test") return OPEN;
+  if (!config.POSTHOG_API_KEY || config.NODE_ENV === "test") return fallback();
   if (cached && Date.now() - cached.fetchedAt < CACHE_MS) return cached.gate;
 
   inflight ??= fetchGate()
