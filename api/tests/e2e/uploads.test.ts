@@ -78,12 +78,12 @@ describe("direct verified uploads (e2e)", () => {
     getSignedUrlMock.mockReset().mockResolvedValue("https://r2.test/signed-put");
     s3SendMock.mockReset().mockImplementation(async (command) => {
       if (command.constructor.name === "HeadObjectCommand") {
-        return { ContentLength: png.length, ContentType: "image/png" };
+        return { ContentLength: png.length, ContentType: "image/png", ETag: "staged-image" };
       }
       if (command.constructor.name === "GetObjectCommand") {
         return {
           Body: {
-            transformToByteArray: async () => new Uint8Array(png),
+            transformToWebStream: () => new Response(new Uint8Array(png)).body,
           },
         };
       }
@@ -158,6 +158,7 @@ describe("direct verified uploads (e2e)", () => {
     const signedCommand = getSignedUrlMock.mock.calls[0][1];
     expect(signedCommand.input).toMatchObject({
       Key: `unverified/${data.uploadId}`,
+      ContentLength: png.length,
       ContentType: "image/png",
     });
     expect(signedCommand.input.Key).not.toBe(data.fileKey);
@@ -181,6 +182,7 @@ describe("direct verified uploads (e2e)", () => {
     ]);
     expect(commands[0].input.Key).toBe(`unverified/${uploadId}`);
     expect(commands[1].input.Key).toBe(`unverified/${uploadId}`);
+    expect(commands[1].input.IfMatch).toBe("staged-image");
     expect(commands[2].input.Key).toBe(fileKey);
     expect(commands[2].input.ContentType).toBe("image/png");
     expect((await sharp(commands[2].input.Body).metadata()).format).toBe("png");
@@ -226,12 +228,12 @@ describe("direct verified uploads (e2e)", () => {
     png.copy(forged, 0, 0, 8);
     s3SendMock.mockImplementation(async (command) => {
       if (command.constructor.name === "HeadObjectCommand") {
-        return { ContentLength: png.length, ContentType: "image/png" };
+        return { ContentLength: png.length, ContentType: "image/png", ETag: "staged-image" };
       }
       if (command.constructor.name === "GetObjectCommand") {
         return {
           Body: {
-            transformToByteArray: async () => new Uint8Array(forged),
+            transformToWebStream: () => new Response(new Uint8Array(forged)).body,
           },
         };
       }
@@ -247,6 +249,22 @@ describe("direct verified uploads (e2e)", () => {
           !command.input.Key.startsWith("unverified/")
       );
     expect(finalWrites).toHaveLength(0);
+  });
+
+  it("cancels an oversized stream before promoting the image", async () => {
+    const { uploadId } = (await create()).json().data;
+    const cancel = vi.fn();
+    const stream = new ReadableStream({
+      start(controller) { controller.enqueue(new Uint8Array(png.length + 1)); },
+      cancel,
+    });
+    s3SendMock
+      .mockResolvedValueOnce({ ContentLength: png.length, ContentType: "image/png", ETag: "staged-image" })
+      .mockResolvedValueOnce({ Body: { transformToWebStream: () => stream } });
+
+    expect((await complete(uploadId)).statusCode).toBe(400);
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(s3SendMock).toHaveBeenCalledTimes(2);
   });
 
   it("rejects disallowed formats and oversized allocations", async () => {
@@ -266,12 +284,12 @@ describe("direct verified uploads (e2e)", () => {
     let failFinalWrite = true;
     s3SendMock.mockImplementation(async (command) => {
       if (command.constructor.name === "HeadObjectCommand") {
-        return { ContentLength: png.length, ContentType: "image/png" };
+        return { ContentLength: png.length, ContentType: "image/png", ETag: "staged-image" };
       }
       if (command.constructor.name === "GetObjectCommand") {
         return {
           Body: {
-            transformToByteArray: async () => new Uint8Array(png),
+            transformToWebStream: () => new Response(new Uint8Array(png)).body,
           },
         };
       }
