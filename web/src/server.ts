@@ -52,20 +52,31 @@ function proxyToApi(request: Request, env: WorkerEnv, target: string) {
  * stripped: PostHog needs none of them. The visitor's IP is passed on so
  * country-level geolocation still works; the project discards the IP itself.
  */
-function proxyToPosthog(request: Request) {
+async function proxyToPosthog(request: Request) {
   const url = new URL(request.url);
   const path = url.pathname.slice(POSTHOG_PREFIX.length) || "/";
   const host = path.startsWith("/static/") ? POSTHOG_ASSET_HOST : POSTHOG_API_HOST;
+  const destination = new URL(host);
+  destination.pathname = path;
+  destination.search = url.search;
   const headers = new Headers(request.headers);
   headers.delete("cookie");
+  headers.delete("authorization");
+  headers.delete("host");
   const visitorIp = request.headers.get("cf-connecting-ip");
   if (visitorIp) headers.set("x-forwarded-for", visitorIp);
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
-  return fetch(new URL(path + url.search, host), {
+  const response = await fetch(destination, {
     method: request.method,
     headers,
     body: hasBody ? request.body : null,
+    redirect: "manual",
   });
+  if (response.status >= 300 && response.status < 400 && response.headers.has("location")) {
+    await response.body?.cancel();
+    return new Response(null, { status: 502 });
+  }
+  return response;
 }
 
 export default {
