@@ -8,12 +8,12 @@ import { startProjectBadgeJobs } from "@/modules/project-badges/project-badges-s
 
 let stopProjectBadgeJobs: (() => void) | undefined;
 
-async function gracefulShutdown(server: FastifyInstance, dbClient: DBClient) {
+async function gracefulShutdown(server: FastifyInstance, dbClient: DBClient, exitCode = 0) {
   stopProjectBadgeJobs?.();
   await server.close();
   await analytics.shutdown();
   await teardownDB(dbClient);
-  process.exit(0);
+  process.exit(exitCode);
 }
 
 async function start() {
@@ -30,8 +30,8 @@ async function start() {
     stopProjectBadgeJobs = startProjectBadgeJobs(db);
   } catch (error) {
     logger.error(error);
-    await gracefulShutdown(server, dbClient);
-    process.exit(1);
+    await gracefulShutdown(server, dbClient, 1);
+    return;
   }
 
   process.on("SIGINT", () => gracefulShutdown(server, dbClient));
