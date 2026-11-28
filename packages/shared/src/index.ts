@@ -29,3 +29,5 @@ export * from "./badge-schema";
 export * from "./project-badge-schema";
 
 export * from "./site-stats";
+
+export * from "./launch-gate";

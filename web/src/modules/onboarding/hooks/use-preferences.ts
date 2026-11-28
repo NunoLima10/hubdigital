@@ -3,7 +3,9 @@ import type { ItemResponse } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { OnboardingResponse } from "./use-create-onboarding";
 
-export type MakerPreferences = Omit<OnboardingResponse, "bio">;
+export type MakerPreferences = Omit<OnboardingResponse, "bio" | "originIsland"> & {
+  originIsland?: OnboardingResponse["originIsland"] | null;
+};
 
 export function usePreferences() {
   return useQuery({

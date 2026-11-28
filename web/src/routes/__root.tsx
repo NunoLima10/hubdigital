@@ -1,8 +1,13 @@
 import { AppProvider } from "@/app/provider";
 import "@/index.css";
+// The Latin subset of Inter (covers Portuguese). Same hashed file the CSS
+// @font-face points at, so the preload below is the request the page uses.
+import interLatinWoff2 from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
 import { analyticsScripts } from "@/lib/analytics";
 import { seo } from "@/lib/seo";
 import { BadgeCelebration } from "@/modules/badges/components/badge-celebration";
+import { LaunchGate } from "@/modules/launch/components/launch-gate/launch-gate";
+import { launchStatusQueryOptions } from "@/modules/launch/hooks/use-launch-status";
 import { ProjectBadgeCelebration } from "@/modules/project-badges/components/project-badge-celebration";
 import { discoverySearchSchema } from "@/modules/project-list/search-params";
 import type { QueryClient } from "@tanstack/react-query";
@@ -20,9 +25,12 @@ interface RouterContext {
 
 export const Route = createRootRouteWithContext<RouterContext>()({
   validateSearch: discoverySearchSchema,
+  // The pre-launch lock, known before the first render so the server already
+  // sends the countdown instead of the site (see LaunchGate).
+  loader: ({ context }) => context.queryClient.ensureQueryData(launchStatusQueryOptions()),
   // Site-wide defaults. Routes that have something more specific to say
   // override them with their own head(), built from the same seo() helper.
-  head: () => ({
+  head: ({ loaderData }) => ({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0" },
@@ -43,8 +51,19 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         content: "black-translucent",
       },
       ...seo({}).meta,
+      // While locked every URL shows the countdown; keep it out of search.
+      ...(loaderData?.locked ? [{ name: "robots", content: "noindex" }] : []),
     ],
     links: [
+      // Fetch Inter with the HTML instead of after the CSS is parsed, so the
+      // first paint already uses it rather than swapping from a system font.
+      {
+        rel: "preload",
+        href: interLatinWoff2,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
       { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
@@ -69,9 +88,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootComponent() {
   return (
     <AppProvider>
-      <Outlet />
-      <BadgeCelebration />
-      <ProjectBadgeCelebration />
+      <LaunchGate>
+        <Outlet />
+        <BadgeCelebration />
+        <ProjectBadgeCelebration />
+      </LaunchGate>
     </AppProvider>
   );
 }

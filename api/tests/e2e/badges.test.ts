@@ -70,8 +70,8 @@ describe("Badges (e2e)", () => {
       url: "/v1/users/onboarding",
       payload: {
         bio: "",
-        profileResponse: "founder",
-        objectiveResponse: "launch-product",
+        profileResponses: ["founder"],
+        objectiveResponses: ["launch-product"],
         locationResponse: "CV1",
         foundUsByResponse: "friends",
       },
@@ -296,8 +296,8 @@ describe("Badges (e2e)", () => {
         handle: "ana",
         userId: makerId,
         bio: "",
-        profileResponse: "founder",
-        objectiveResponse: "launch-product",
+        profileResponses: ["founder"],
+        objectiveResponses: ["launch-product"],
         locationResponse: "CV1",
         foundUsByResponse: "friends",
       })

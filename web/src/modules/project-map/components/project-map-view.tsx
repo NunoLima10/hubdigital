@@ -1,22 +1,46 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { List, SlidersHorizontal, X } from "lucide-react";
+import { Globe, List, MapIcon, SlidersHorizontal, X } from "lucide-react";
 import { mapQueryOptions } from "../map-query";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
+import { CountryFlag } from "@/components/country-flag/country-flag";
+import { IslandIcon } from "@/components/island-icon/island-icon";
 import { ProjectIcon } from "@/components/project-icon/project-icon";
-import { CountryPicker } from "@/modules/submit/ui/components/location-fields/country-picker";
-import { FormSelect } from "@/modules/submit/ui/components/form-select/form-select";
+import {
+  SearchSelect,
+  type SearchSelectOption,
+} from "@/components/search-select/search-select";
 import { useCategories } from "@/modules/submit/hooks/use-categories";
 import {
+  countryLabels,
   countryValues,
   formatLocation,
   islandLabels,
+  islandValues,
   type Country,
 } from "@hubdigital/shared";
-import { WorldProjectMap } from "./world-project-map";
+// Prototype: the MapLibre map replaces WorldProjectMap (Leaflet), which stays
+// in world-project-map.tsx so switching back is this one import.
+import { CleanProjectMap } from "./clean-project-map";
 import { MapProjectList } from "./map-project-list";
+
+// Built once: some 250 countries, by name, each with its flag.
+const countryOptions: SearchSelectOption[] = [
+  {
+    value: "",
+    label: "Todos os países",
+    icon: <Globe className="size-4 text-muted-foreground" />,
+  },
+  ...[...countryValues]
+    .sort((a, b) => countryLabels[a].localeCompare(countryLabels[b], "pt"))
+    .map((code) => ({
+      value: code,
+      label: countryLabels[code],
+      icon: <CountryFlag country={code} className="text-sm" />,
+    })),
+];
 
 export function ProjectMapView() {
   const [world, setWorld] = useState(false);
@@ -134,35 +158,44 @@ export function ProjectMapView() {
   const filters = (
     <div className="space-y-3">
       {world ? (
-        <CountryPicker
+        <SearchSelect
           label="Filtrar país"
-          placeholder="Todos os países"
-          clearLabel="Todos os países"
           value={country}
-          onChange={(value) => {
-            setCountry(value);
+          options={countryOptions}
+          placeholder="Todos os países"
+          searchPlaceholder="Pesquisar país…"
+          emptyText="Nenhum país encontrado."
+          onValueChange={(value) => {
+            setCountry(value as Country | "");
             resetSelection();
           }}
         />
       ) : (
-        <FormSelect
+        <SearchSelect
           label="Ilha"
           value={island}
           options={[
-            { value: "", label: "Todas as ilhas" },
-            ...Object.entries(islandLabels).map(([value, label]) => ({
+            {
+              value: "",
+              label: "Todas as ilhas",
+              icon: <MapIcon className="size-5 p-0.5 text-muted-foreground" />,
+            },
+            ...islandValues.map((value) => ({
               value,
-              label,
+              label: islandLabels[value],
+              icon: <IslandIcon island={value} className="size-5 text-muted-foreground" />,
             })),
           ]}
           placeholder="Todas as ilhas"
+          searchPlaceholder="Pesquisar ilha…"
+          emptyText="Nenhuma ilha encontrada."
           onValueChange={(value) => {
             setIsland(value);
             resetSelection();
           }}
         />
       )}
-      <FormSelect
+      <SearchSelect
         label="Categoria"
         value={category}
         options={[
@@ -173,6 +206,8 @@ export function ProjectMapView() {
           })),
         ]}
         placeholder="Todas as categorias"
+        searchPlaceholder="Pesquisar categoria…"
+        emptyText="Nenhuma categoria encontrada."
         onValueChange={(value) => {
           setCategory(value);
           resetSelection();
@@ -237,7 +272,7 @@ export function ProjectMapView() {
   return (
     <div className="relative flex h-full min-h-0">
       <aside
-        className="hidden w-80 shrink-0 flex-col gap-4 overflow-y-auto border-r bg-background p-4 lg:flex"
+        className="hidden w-[23rem] xl:w-[27rem] shrink-0 flex-col gap-4 overflow-y-auto border-r bg-background p-4 lg:flex"
         aria-label="Projetos no mapa"
       >
         {scopeControls}
@@ -247,7 +282,7 @@ export function ProjectMapView() {
       </aside>
       <div className="relative min-h-0 min-w-0 flex-1">
         {restored && (
-          <WorldProjectMap
+          <CleanProjectMap
             projects={visible}
             world={world}
             country={world ? country : ""}

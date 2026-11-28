@@ -7,10 +7,12 @@ import {
   locationQuestionValues,
   objectiveQuestionValues,
   profileQuestionValues,
+  objectiveResponsesSchema,
+  profileResponsesSchema,
 } from "@hubdigital/shared";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { abroadCountryValues } from "@hubdigital/shared";
+import { abroadCountryValues, islandValues } from "@hubdigital/shared";
 
 const handleParamsSchema = z.object({ handle: z.string() });
 
@@ -101,11 +103,19 @@ export const getMyHandleRouteSchema = {
 };
 
 export const makerPreferencesSchema = z.object({
-  profileResponse: z.enum(profileQuestionValues),
-  objectiveResponse: z.enum(objectiveQuestionValues),
+  // Existing preferences can predate the two-choice limit.
+  profileResponses: z.array(z.enum(profileQuestionValues)),
+  objectiveResponses: z.array(z.enum(objectiveQuestionValues)),
   locationResponse: z.enum(locationQuestionValues),
   diasporaCountry: z.enum(abroadCountryValues).nullable().optional(),
+  // Null for makers who joined from the diaspora before it was asked.
+  originIsland: z.enum(islandValues).nullable().optional(),
   foundUsByResponse: z.enum(foundUsByQuestionValues),
+});
+
+const makerPreferencesUpdateSchema = makerPreferencesSchema.extend({
+  profileResponses: profileResponsesSchema,
+  objectiveResponses: objectiveResponsesSchema,
 });
 
 export const getMakerPreferencesRouteSchema = {
@@ -118,7 +128,7 @@ export const getMakerPreferencesRouteSchema = {
 
 export const updateMakerPreferencesRouteSchema = {
   tags: ["makers"],
-  body: makerPreferencesSchema,
+  body: makerPreferencesUpdateSchema,
   response: {
     200: z.object({ data: makerPreferencesSchema }),
     ...routeErrorResponses,

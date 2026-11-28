@@ -5,7 +5,7 @@ import {
   profileQuestionValues,
 } from "@hubdigital/shared";
 import { InferInsertModel } from "drizzle-orm";
-import type { AbroadCountry } from "@hubdigital/shared";
+import type { AbroadCountry, Island } from "@hubdigital/shared";
 import { check, pgEnum, pgTable, serial, text, timestamp, varchar } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import { timestamps } from "./timestamps";
@@ -46,10 +46,15 @@ export const publishers = pgTable("publishers", {
   linkedinUrl: text("linkedin_url"),
   instagramUrl: text("instagram_url"),
   discordUrl: text("discord_url"),
-  profileResponse: profileResponseEnum("profile_response").notNull(),
-  objectiveResponse: objectiveResponseEnum("objective_response").notNull(),
+  // Every profile and objective the maker picked. The columns keep their
+  // original singular names from when only one answer could be picked.
+  profileResponses: profileResponseEnum("profile_response").array().notNull(),
+  objectiveResponses: objectiveResponseEnum("objective_response").array().notNull(),
   locationResponse: locationResponseEnum("location_response").notNull(),
   diasporaCountry: varchar("diaspora_country", { length: 5 }).$type<AbroadCountry>(),
+  // The island a maker in the diaspora comes from, so the community can be
+  // filtered by island at home and abroad. Null for everyone living in Cabo Verde.
+  originIsland: varchar("origin_island", { length: 3 }).$type<Island>(),
   foundUsByResponse: foundUsByResponseEnum("found_us_by_response").notNull(),
   // A maker staff has vouched for: their publishes skip the review queue while
   // `moderation.auto_approve_trusted` is on.

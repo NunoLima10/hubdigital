@@ -5,10 +5,13 @@ export function ProjectIcon({
   iconUrl,
   className,
   size,
+  fit = "cover",
 }: {
   iconUrl?: string | null;
   className?: string;
   size?: number;
+  /** "contain" shows the whole logo, for logos that are not square. */
+  fit?: "cover" | "contain";
 }) {
   return (
     <div
@@ -19,7 +22,11 @@ export function ProjectIcon({
       style={size ? { width: size, height: size } : undefined}
     >
       {iconUrl ? (
-        <img src={iconUrl} alt="" className="h-full w-full object-cover" />
+        <img
+          src={iconUrl}
+          alt=""
+          className={cn("h-full w-full", fit === "contain" ? "object-contain" : "object-cover")}
+        />
       ) : (
         <Rocket className="size-5" />
       )}
