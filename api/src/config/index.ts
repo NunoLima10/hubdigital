@@ -101,6 +101,10 @@ export const envSchema = z.object({
   POSTHOG_PERSONAL_API_KEY: blankAsUnset(z.string()),
   POSTHOG_PROJECT_ID: blankAsUnset(z.string()),
   POSTHOG_APP_HOST: z.string().url().default("https://eu.posthog.com"),
+  // Pre-launch lock (src/lib/launch-gate.ts) when PostHog can't be reached and
+  // nothing has been read yet. "locked" in production until launch day.
+  // Blank or unset counts as "open".
+  LAUNCH_GATE_DEFAULT: blankAsUnset(z.enum(["open", "locked"])),
 
   // Discord channel webhooks (src/lib/discord.ts). Unset: nothing is posted.
   // Activity is a private staff channel (reports, comments, projects sent for

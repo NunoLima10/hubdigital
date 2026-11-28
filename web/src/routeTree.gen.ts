@@ -26,6 +26,7 @@ import { Route as AuthedDashboardRouteRouteImport } from './routes/_authed/dashb
 import { Route as AuthedOnboardingRouteImport } from './routes/_authed/onboarding'
 import { Route as MakersHandleRouteImport } from './routes/makers/$handle'
 import { Route as PlaygroundBadgesRouteImport } from './routes/playground/badges'
+import { Route as PlaygroundLaunchRouteImport } from './routes/playground/launch'
 import { Route as PlaygroundOnboardingRouteImport } from './routes/playground/onboarding'
 import { Route as PlaygroundProjectBadgesRouteImport } from './routes/playground/project-badges'
 import { Route as ProfilesHandleRouteImport } from './routes/profiles/$handle'
@@ -123,6 +124,11 @@ const PlaygroundBadgesRoute = PlaygroundBadgesRouteImport.update({
   path: '/playground/badges',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlaygroundLaunchRoute = PlaygroundLaunchRouteImport.update({
+  id: '/playground/launch',
+  path: '/playground/launch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlaygroundOnboardingRoute = PlaygroundOnboardingRouteImport.update({
   id: '/playground/onboarding',
   path: '/playground/onboarding',
@@ -204,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
   '/playground/badges': typeof PlaygroundBadgesRoute
+  '/playground/launch': typeof PlaygroundLaunchRoute
   '/playground/onboarding': typeof PlaygroundOnboardingRoute
   '/playground/project-badges': typeof PlaygroundProjectBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
   '/playground/badges': typeof PlaygroundBadgesRoute
+  '/playground/launch': typeof PlaygroundLaunchRoute
   '/playground/onboarding': typeof PlaygroundOnboardingRoute
   '/playground/project-badges': typeof PlaygroundProjectBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
@@ -266,6 +274,7 @@ export interface FileRoutesById {
   '/_authed/onboarding': typeof AuthedOnboardingRoute
   '/makers/$handle': typeof MakersHandleRoute
   '/playground/badges': typeof PlaygroundBadgesRoute
+  '/playground/launch': typeof PlaygroundLaunchRoute
   '/playground/onboarding': typeof PlaygroundOnboardingRoute
   '/playground/project-badges': typeof PlaygroundProjectBadgesRoute
   '/profiles/$handle': typeof ProfilesHandleRoute
@@ -298,6 +307,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/makers/$handle'
     | '/playground/badges'
+    | '/playground/launch'
     | '/playground/onboarding'
     | '/playground/project-badges'
     | '/profiles/$handle'
@@ -328,6 +338,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/makers/$handle'
     | '/playground/badges'
+    | '/playground/launch'
     | '/playground/onboarding'
     | '/playground/project-badges'
     | '/profiles/$handle'
@@ -359,6 +370,7 @@ export interface FileRouteTypes {
     | '/_authed/onboarding'
     | '/makers/$handle'
     | '/playground/badges'
+    | '/playground/launch'
     | '/playground/onboarding'
     | '/playground/project-badges'
     | '/profiles/$handle'
@@ -389,6 +401,7 @@ export interface RootRouteChildren {
   TermosRoute: typeof TermosRoute
   MakersHandleRoute: typeof MakersHandleRoute
   PlaygroundBadgesRoute: typeof PlaygroundBadgesRoute
+  PlaygroundLaunchRoute: typeof PlaygroundLaunchRoute
   PlaygroundOnboardingRoute: typeof PlaygroundOnboardingRoute
   PlaygroundProjectBadgesRoute: typeof PlaygroundProjectBadgesRoute
   ProfilesHandleRoute: typeof ProfilesHandleRoute
@@ -515,6 +528,13 @@ declare module '@tanstack/react-router' {
       path: '/playground/badges'
       fullPath: '/playground/badges'
       preLoaderRoute: typeof PlaygroundBadgesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playground/launch': {
+      id: '/playground/launch'
+      path: '/playground/launch'
+      fullPath: '/playground/launch'
+      preLoaderRoute: typeof PlaygroundLaunchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/playground/onboarding': {
@@ -656,6 +676,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermosRoute: TermosRoute,
   MakersHandleRoute: MakersHandleRoute,
   PlaygroundBadgesRoute: PlaygroundBadgesRoute,
+  PlaygroundLaunchRoute: PlaygroundLaunchRoute,
   PlaygroundOnboardingRoute: PlaygroundOnboardingRoute,
   PlaygroundProjectBadgesRoute: PlaygroundProjectBadgesRoute,
   ProfilesHandleRoute: ProfilesHandleRoute,
