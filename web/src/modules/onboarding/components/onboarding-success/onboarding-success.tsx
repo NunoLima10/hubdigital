@@ -19,8 +19,9 @@ import { Check, Compass, Plus, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export type OnboardingResult = {
-  profileResponse: string;
-  objectiveResponse: string;
+  /** In the question's order; the first one picks the welcome message. */
+  profileResponses: string[];
+  objectiveResponses: string[];
   membershipNumber?: number;
   /** Badges earned by joining (the founding-member ones). */
   badges?: BadgeKey[];
@@ -84,7 +85,7 @@ export function OnboardingSuccess({
   const { data } = authClient.useSession();
   const user = data?.user;
   const firstName = user?.name?.split(" ")[0];
-  const wantsToLaunch = result.objectiveResponse === "launch-product";
+  const wantsToLaunch = result.objectiveResponses.includes("launch-product");
   // A dead photo URL would otherwise show the browser's broken-image icon.
   const [imageFailed, setImageFailed] = useState(false);
 
@@ -123,7 +124,7 @@ export function OnboardingSuccess({
     track("onboarding_cta_clicked", {
       cta,
       suggested: cta === (wantsToLaunch ? "publish" : "explore"),
-      objective: result.objectiveResponse,
+      objectives: result.objectiveResponses,
     });
   };
   const explore = (
@@ -205,7 +206,7 @@ export function OnboardingSuccess({
           style={after(1600)}
         >
           Já fazes parte da comunidade que está a pôr Cabo Verde no mapa digital.{" "}
-          {messages[result.profileResponse]}
+          {messages[result.profileResponses[0]]}
         </p>
 
         {docked ? (

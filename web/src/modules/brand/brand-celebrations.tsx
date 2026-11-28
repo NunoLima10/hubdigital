@@ -89,8 +89,8 @@ function WelcomePreview({ open, onClose }: { open: boolean; onClose: () => void 
           <div className="m-auto w-full">
             <OnboardingSuccess
               result={{
-                profileResponse: "student",
-                objectiveResponse: "explore",
+                profileResponses: ["student"],
+                objectiveResponses: ["explore"],
                 membershipNumber: 26,
                 badges: ["founding-silver"],
               }}

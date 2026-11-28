@@ -1,12 +1,15 @@
+import { maxOnboardingChoices } from "@hubdigital/shared";
 import { Button } from "@/components/ui/button";
 import { CountryFlag } from "@/components/country-flag/country-flag";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, ArrowRight, Pencil } from "lucide-react";
 import { addTransitionType, startTransition, useState, ViewTransition } from "react";
 import { toast } from "sonner";
+import { islandLabels, type Island } from "@hubdigital/shared";
 import { diasporaCountryLabels, onBoardingQuestions } from "../../questions";
 import {
-  DiasporaCountryField,
+  DiasporaFields,
+  LocationOptions,
   ResponseIcon,
   ResponseOption,
   type DiasporaCountry,
@@ -17,28 +20,36 @@ import {
 } from "../../hooks/use-create-onboarding";
 import type { OnboardingResult } from "../onboarding-success/onboarding-success";
 
-type AnswerKey =
-  | "profileResponse"
-  | "objectiveResponse"
-  | "locationResponse"
-  | "foundUsByResponse";
-const keys: AnswerKey[] = [
-  "profileResponse",
-  "objectiveResponse",
+const keys = [
+  "profileResponses",
+  "objectiveResponses",
   "locationResponse",
   "foundUsByResponse",
-];
+] as const;
+type AnswerKey = (typeof keys)[number];
+type Answers = {
+  profileResponses: string[];
+  objectiveResponses: string[];
+  locationResponse: string;
+  foundUsByResponse: string;
+};
 const LAST_STEP = keys.length;
+
+/** The picked values, whether the question takes one answer or several. */
+const valuesOf = (answer: string | string[]) => (Array.isArray(answer) ? answer : answer ? [answer] : []);
 
 export function QuestionStepper({ onComplete }: { onComplete: (result: OnboardingResult) => void }) {
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<AnswerKey, string>>({
-    profileResponse: "",
-    objectiveResponse: "",
+  const [answers, setAnswers] = useState<Answers>({
+    profileResponses: [],
+    objectiveResponses: [],
     locationResponse: "",
     foundUsByResponse: "",
   });
   const [diasporaCountry, setDiasporaCountry] = useState<DiasporaCountry | "">("");
+  const [originIsland, setOriginIsland] = useState<Island | "">("");
+  const answered = (key: AnswerKey) =>
+    valuesOf(answers[key]).length > 0;
   const { createOnboarding, schema, isPending } = useCreateOnboarding({
     onSuccess: (response) =>
       onComplete({
@@ -58,8 +69,23 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
   }
 
   function choose(value: string) {
-    setAnswers((current) => ({ ...current, [keys[step]]: value }));
-    if (step === 2 && value !== "diaspora") setDiasporaCountry("");
+    const key = keys[step];
+    setAnswers((current) => {
+      const answer = current[key];
+      if (!Array.isArray(answer)) return { ...current, [key]: value };
+      const picked = answer.includes(value)
+        ? answer.filter((item) => item !== value)
+        : [...answer, value];
+      // Kept in the question's order, whatever order they were clicked in.
+      const ordered = question.reponses
+        .map((response) => response.value)
+        .filter((item) => picked.includes(item));
+      return { ...current, [key]: ordered };
+    });
+    if (step === 2 && value !== "diaspora") {
+      setDiasporaCountry("");
+      setOriginIsland("");
+    }
   }
 
   function submit() {
@@ -67,6 +93,7 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
       bio: "",
       ...answers,
       diasporaCountry: diasporaCountry || undefined,
+      originIsland: originIsland || undefined,
     });
     if (!parsed.success) {
       toast.error("Escolhe uma opção em cada passo.");
@@ -98,7 +125,7 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
                 <span
                   className={cn(
                     "block h-full origin-left rounded-full bg-primary transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
-                    index < step || (index === step && answers[key]) ? "scale-x-100" : "scale-x-0",
+                    index < step || (index === step && answered(key)) ? "scale-x-100" : "scale-x-0",
                   )}
                 />
               </span>
@@ -120,11 +147,13 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
           <div className="mt-7">
             {step < LAST_STEP ? (
               <fieldset
-                // Enter on a chosen option acts like Próximo. Only radios count:
-                // Enter in the country search picks a country instead.
+                aria-describedby={question.hint ? `${keys[step]}-hint` : undefined}
+                // Enter on a chosen option acts like Próximo. Only the options
+                // count: Enter in the country search picks a country instead.
                 onKeyDown={(event) => {
                   const target = event.target as HTMLInputElement;
-                  if (event.key !== "Enter" || target.type !== "radio" || !answers[keys[step]]) return;
+                  const isOption = target.type === "radio" || target.type === "checkbox";
+                  if (event.key !== "Enter" || !isOption || !answered(keys[step])) return;
                   event.preventDefault();
                   goTo(step + 1);
                 }}
@@ -132,15 +161,28 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
                 <legend className="text-2xl font-semibold tracking-tight text-balance">
                   {question.title}
                 </legend>
+                {question.hint && (
+                  <p id={`${keys[step]}-hint`} className="mt-1.5 text-sm text-muted-foreground">
+                    {question.hint}
+                  </p>
+                )}
                 {showDiaspora ? (
                   <div className="mt-6">
-                    <DiasporaCountryField
-                      value={diasporaCountry}
-                      onChange={setDiasporaCountry}
-                      onBack={() => {
-                        choose("");
-                        setDiasporaCountry("");
-                      }}
+                    <DiasporaFields
+                      country={diasporaCountry}
+                      onCountryChange={setDiasporaCountry}
+                      originIsland={originIsland}
+                      onOriginIslandChange={setOriginIsland}
+                      onBack={() => choose("")}
+                    />
+                  </div>
+                ) : keys[step] === "locationResponse" ? (
+                  <div className="mt-6">
+                    <LocationOptions
+                      name={keys[step]}
+                      options={question.reponses}
+                      value={answers.locationResponse}
+                      onSelect={choose}
                     />
                   </div>
                 ) : (
@@ -150,7 +192,9 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
                         key={response.value}
                         name={keys[step]}
                         value={response.value}
-                        checked={answers[keys[step]] === response.value}
+                        multiple={question.multiple}
+                        disabled={question.multiple && valuesOf(answers[keys[step]]).length >= maxOnboardingChoices && !valuesOf(answers[keys[step]]).includes(response.value)}
+                        checked={valuesOf(answers[keys[step]]).includes(response.value)}
                         onSelect={() => choose(response.value)}
                       >
                         {response.display}
@@ -164,26 +208,31 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
                 <h1 className="text-2xl font-semibold tracking-tight">Tudo pronto!</h1>
                 <dl className="mt-6 divide-y rounded-xl border">
                   {keys.map((key, index) => {
-                    const answer = onBoardingQuestions[index].reponses.find(
-                      (response) => response.value === answers[key],
-                    );
+                    const values = valuesOf(answers[key]);
+                    const display = onBoardingQuestions[index].reponses
+                      .filter((response) => values.includes(response.value))
+                      .map((response) => response.display)
+                      .join(", ");
                     return (
                       <div key={key} className="flex items-center gap-3 px-4 py-3">
                         <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-primary">
                           {key === "locationResponse" && diasporaCountry ? (
                             <CountryFlag country={diasporaCountry} className="text-lg" />
                           ) : (
-                            <ResponseIcon value={answers[key]} />
+                            <ResponseIcon value={values[0] ?? ""} />
                           )}
                         </span>
                         <div className="min-w-0 flex-1">
                           <dt className="text-xs text-muted-foreground">
                             {onBoardingQuestions[index].title}
                           </dt>
-                          <dd className="truncate text-sm font-medium">
-                            {answer?.display}
+                          <dd className="text-sm font-medium text-pretty">
+                            {display}
                             {key === "locationResponse" && diasporaCountry
                               ? ` · ${diasporaCountryLabels[diasporaCountry]}`
+                              : ""}
+                            {key === "locationResponse" && originIsland
+                              ? ` · de ${islandLabels[originIsland]}`
                               : ""}
                           </dd>
                         </div>
@@ -214,7 +263,7 @@ export function QuestionStepper({ onComplete }: { onComplete: (result: Onboardin
             <span />
           )}
           {step < LAST_STEP ? (
-            <Button className="group" disabled={!answers[keys[step]]} onClick={() => goTo(step + 1)}>
+            <Button className="group" disabled={!answered(keys[step])} onClick={() => goTo(step + 1)}>
               Próximo
               <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
             </Button>

@@ -108,8 +108,8 @@ describe("Comments module (e2e)", () => {
         handle: `h-${Math.random().toString(36).slice(2, 12)}`,
         userId: currentUserId,
         bio: "Building things",
-        profileResponse: "founder",
-        objectiveResponse: "launch-product",
+        profileResponses: ["founder"],
+        objectiveResponses: ["launch-product"],
         locationResponse: "CV1",
         foundUsByResponse: "social-media",
       })

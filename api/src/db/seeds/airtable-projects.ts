@@ -27,8 +27,8 @@ export default async function seedAirtableProjects(db: DB) {
       await tx.insert(publishers).values({
         userId, handle: `demo-maker-${index + 1}`,
         bio: `${name} — perfil fictício para testar a comunidade Hub Digital.`,
-        profileResponse: index % 3 === 0 ? 'student' : index % 3 === 1 ? 'founder' : 'technology-professional',
-        objectiveResponse: index % 2 === 0 ? 'launch-product' : 'networking',
+        profileResponses: index % 3 === 0 ? ['student'] : index % 3 === 1 ? ['technology-professional', 'founder'] : ['technology-professional'],
+        objectiveResponses: index % 2 === 0 ? ['launch-product'] : ['discover-products', 'networking'],
         locationResponse: index % 2 === 0 ? 'CV7' : 'CV2',
         foundUsByResponse: index % 2 === 0 ? 'friends' : 'event',
       }).onConflictDoNothing({ target: publishers.userId });

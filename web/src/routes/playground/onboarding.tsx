@@ -55,8 +55,8 @@ function OnboardingPlayground() {
           </div>
           <OnboardingSuccess
             result={{
-              profileResponse: "student",
-              objectiveResponse: "explore",
+              profileResponses: ["student"],
+              objectiveResponses: ["explore"],
               membershipNumber: 26,
               badges: [badgeKey],
             }}

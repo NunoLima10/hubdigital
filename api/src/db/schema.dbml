@@ -523,10 +523,11 @@ table publishers {
   linkedin_url text
   instagram_url text
   discord_url text
-  profile_response profile_responses [not null]
-  objective_response objective_responses [not null]
+  profile_response profile_responses[] [not null]
+  objective_response objective_responses[] [not null]
   location_response location_responses [not null]
   diaspora_country varchar(5)
+  origin_island varchar(3)
   found_us_by_response found_us_by_responses [not null]
   trusted_at "timestamp with time zone"
   created_at "timestamp with time zone" [not null, default: `now()`]

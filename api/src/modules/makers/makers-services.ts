@@ -256,10 +256,11 @@ async function findUserName(db: DB, userId: string) {
 }
 
 const preferenceColumns = {
-  profileResponse: true,
-  objectiveResponse: true,
+  profileResponses: true,
+  objectiveResponses: true,
   locationResponse: true,
   diasporaCountry: true,
+  originIsland: true,
   foundUsByResponse: true,
 } as const;
 
@@ -275,20 +276,22 @@ async function updatePreferences(
   userId: string,
   input: MakerPreferences,
 ) {
+  const inDiaspora = input.locationResponse === "diaspora";
   const preferences = {
     ...input,
-    diasporaCountry:
-      input.locationResponse === "diaspora" ? input.diasporaCountry : null,
+    diasporaCountry: inDiaspora ? input.diasporaCountry : null,
+    originIsland: inDiaspora ? input.originIsland : null,
   };
   const [updated] = await db
     .update(publishers)
     .set({ ...preferences, updatedAt: new Date().toISOString() })
     .where(eq(publishers.userId, userId))
     .returning({
-      profileResponse: publishers.profileResponse,
-      objectiveResponse: publishers.objectiveResponse,
+      profileResponses: publishers.profileResponses,
+      objectiveResponses: publishers.objectiveResponses,
       locationResponse: publishers.locationResponse,
       diasporaCountry: publishers.diasporaCountry,
+      originIsland: publishers.originIsland,
       foundUsByResponse: publishers.foundUsByResponse,
     });
 

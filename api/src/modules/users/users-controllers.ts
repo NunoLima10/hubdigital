@@ -23,8 +23,9 @@ async function onboardingHandler(
     foundUsByResponse,
     locationResponse,
     diasporaCountry,
-    objectiveResponse,
-    profileResponse,
+    originIsland,
+    objectiveResponses,
+    profileResponses,
   } = req.body;
 
   // Every publisher gets a profile URL from the moment they onboard, derived
@@ -37,8 +38,9 @@ async function onboardingHandler(
     foundUsByResponse,
     locationResponse,
     diasporaCountry: locationResponse === "diaspora" ? diasporaCountry : undefined,
-    objectiveResponse,
-    profileResponse,
+    originIsland: locationResponse === "diaspora" ? originIsland : undefined,
+    objectiveResponses,
+    profileResponses,
     handle,
     userId: req.user.id,
   });
