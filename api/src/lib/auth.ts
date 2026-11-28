@@ -45,6 +45,7 @@ const authConfig = {
   user: {
     additionalFields: {
       onboardedAt: {
+        input: false,
         type: "date",
         required: false,
       },

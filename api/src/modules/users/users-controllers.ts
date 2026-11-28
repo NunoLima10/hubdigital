@@ -1,5 +1,3 @@
-import { BadgesService } from "@/modules/badges/badges-services";
-import { MakersService } from "@/modules/makers/makers-services";
 import { BadRequestError, UnauthorizedAccessError } from "@/utils/custom-errors";
 import { FastifyReply, FastifyRequest } from "fastify";
 import {
@@ -8,9 +6,7 @@ import {
   updateAvatarRouteSchema,
 } from "./users-schemas";
 import { UserService } from "./users-services";
-import { fromNodeHeaders } from "better-auth/node";
 import { z } from "zod";
-import { auth } from "@/lib/auth";
 
 async function onboardingHandler(
   req: FastifyRequest<{ Body: z.infer<typeof onboardingRouteSchema.body> }>,
@@ -28,12 +24,7 @@ async function onboardingHandler(
     profileResponses,
   } = req.body;
 
-  // Every publisher gets a profile URL from the moment they onboard, derived
-  // from their display name.
-  const name = await MakersService.findUserName(req.db, req.user.id);
-  const handle = await MakersService.generateUniqueHandle(req.db, name);
-
-  const publisher = await UserService.createPublisher(req.db, {
+  const data = await UserService.completeOnboarding(req.db, {
     bio,
     foundUsByResponse,
     locationResponse,
@@ -41,32 +32,10 @@ async function onboardingHandler(
     originIsland: locationResponse === "diaspora" ? originIsland : undefined,
     objectiveResponses,
     profileResponses,
-    handle,
     userId: req.user.id,
   });
 
-  // Early members earn their founding badge the moment they join; the client
-  // reveals it on the welcome screen.
-  const foundingBadge = await BadgesService.awardFoundingBadge(
-    req.db,
-    req.user.id,
-    publisher.membershipNumber,
-  );
-
-  await auth.api.updateUser({
-    headers: fromNodeHeaders(req.headers),
-    body: {
-      onboardedAt: new Date(),
-    },
-  });
-
-  return reply.status(201).send({
-    data: {
-      id: publisher.id,
-      membershipNumber: publisher.membershipNumber,
-      badges: foundingBadge ? [foundingBadge] : [],
-    },
-  });
+  return reply.status(201).send({ data });
 }
 
 async function updateAvatarHandler(

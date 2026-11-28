@@ -19,16 +19,14 @@ import { publishers, users } from "@/db/schemas";
 import { buildServer } from "@/server";
 import { eq } from "drizzle-orm";
 
-const { getSessionMock, updateUserMock } = vi.hoisted(() => ({
+const { getSessionMock } = vi.hoisted(() => ({
   getSessionMock: vi.fn(),
-  updateUserMock: vi.fn(),
 }));
 
 vi.mock("../../src/lib/auth", () => ({
   auth: {
     api: {
       getSession: getSessionMock,
-      updateUser: updateUserMock,
     },
     handler: vi.fn(),
   },
@@ -58,7 +56,6 @@ describe("Users module - onboarding (e2e)", () => {
 
   beforeEach(async () => {
     getSessionMock.mockReset();
-    updateUserMock.mockReset();
 
     const setupResult = await setupDB(connectionUri);
     db = setupResult.db;
@@ -118,14 +115,12 @@ describe("Users module - onboarding (e2e)", () => {
 
     const publishersRecords = await db.query.publishers.findMany();
     expect(publishersRecords).toHaveLength(0);
-    expect(updateUserMock).not.toHaveBeenCalled();
   });
 
   it("creates a publisher record and marks onboarding as complete", async () => {
     getSessionMock.mockResolvedValue({
       user: { id: currentUserId, role: "user" },
     });
-    updateUserMock.mockResolvedValue({});
 
     const payload = {
       bio: "Excited to join Hub Digital",
@@ -164,13 +159,19 @@ describe("Users module - onboarding (e2e)", () => {
       foundUsByResponse: payload.foundUsByResponse,
     });
 
-    expect(updateUserMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        body: expect.objectContaining({
-          onboardedAt: expect.any(Date),
-        }),
-      })
-    );
+    const user = await db.query.users.findFirst({ where: eq(users.id, currentUserId) });
+    expect(user?.onboardedAt).toBeInstanceOf(Date);
+
+    // Recover an account left between profile creation and completion by an older version.
+    await db.update(users).set({ onboardedAt: null }).where(eq(users.id, currentUserId));
+    const retry = () => server.inject({ method: "POST", url: "/v1/users/onboarding", payload });
+    for (const result of await Promise.all([retry(), retry()])) {
+      expect(result.statusCode).toBe(201);
+      expect(result.json().data).toEqual(body.data);
+    }
+    expect(await db.query.publishers.findMany()).toHaveLength(1);
+    const restored = await db.query.users.findFirst({ where: eq(users.id, currentUserId) });
+    expect(restored?.onboardedAt).toBeInstanceOf(Date);
   });
 
   it.each([
@@ -198,7 +199,6 @@ describe("Users module - onboarding (e2e)", () => {
     expect(response.statusCode).toBe(400);
     const body = response.json();
     expect(body.error).toBeDefined();
-    expect(updateUserMock).not.toHaveBeenCalled();
   });
 
   it("accepts diaspora onboarding without an island of origin", async () => {
@@ -206,7 +206,6 @@ describe("Users module - onboarding (e2e)", () => {
       user: { id: currentUserId, role: "user" },
     });
 
-    updateUserMock.mockResolvedValue({});
     const response = await server.inject({
       method: "POST",
       url: "/v1/users/onboarding",
@@ -228,7 +227,6 @@ describe("Users module - onboarding (e2e)", () => {
     getSessionMock.mockResolvedValue({
       user: { id: currentUserId, role: "user" },
     });
-    updateUserMock.mockResolvedValue({});
 
     const response = await server.inject({
       method: "POST",
@@ -258,7 +256,6 @@ describe("Users module - onboarding (e2e)", () => {
     getSessionMock.mockResolvedValue({
       user: { id: currentUserId, role: "user" },
     });
-    updateUserMock.mockResolvedValue({});
 
     const response = await server.inject({
       method: "POST",
