@@ -94,6 +94,28 @@ function resolveStagingKey(uploadId: number) {
   return `unverified/${uploadId}`;
 }
 
+async function readImage(stream: ReadableStream<Uint8Array>, size: number) {
+  const reader = stream.getReader();
+  const bytes = Buffer.alloc(size);
+  let offset = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value.byteLength > size - offset) {
+        await reader.cancel();
+        throw new BadRequestError("A imagem excede o tamanho declarado.");
+      }
+      bytes.set(value, offset);
+      offset += value.byteLength;
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  if (offset !== size) throw new BadRequestError("A imagem está incompleta.");
+  return bytes;
+}
+
 function isMissingObject(error: unknown) {
   const storageError = error as {
     name?: string;
@@ -145,6 +167,8 @@ const uploaderPlugin = async (fastify: FastifyInstance) => {
     ? new S3Client({
         region: config.CLOUDFLARE_REGION,
         endpoint: storage.endpoint,
+        // The browser supplies the PUT body after signing.
+        requestChecksumCalculation: "WHEN_REQUIRED",
         credentials: {
           accessKeyId: storage.accessKeyId,
           secretAccessKey: storage.secretAccessKey,
@@ -182,9 +206,13 @@ const uploaderPlugin = async (fastify: FastifyInstance) => {
         new PutObjectCommand({
           Bucket: storage.bucket,
           Key: resolveStagingKey(upload.id),
+          ContentLength: byteSize,
           ContentType: contentType,
         }) as unknown as Parameters<typeof getSignedUrl>[1],
-        { expiresIn: config.UPLOADER_URL_EXPIRES_IN }
+        {
+          expiresIn: config.UPLOADER_URL_EXPIRES_IN,
+          signableHeaders: new Set(["content-length", "content-type"]),
+        }
       );
 
       return reply.status(201).send({
@@ -226,6 +254,7 @@ const uploaderPlugin = async (fastify: FastifyInstance) => {
         );
         if (
           !upload.byteSize ||
+          !metadata.ETag ||
           metadata.ContentLength !== upload.byteSize ||
           metadata.ContentLength > maxUploadBytes ||
           metadata.ContentType !== upload.contentType
@@ -236,16 +265,15 @@ const uploaderPlugin = async (fastify: FastifyInstance) => {
         }
 
         const object = await s3.send(
-          new GetObjectCommand({ Bucket: storage.bucket, Key: stagingKey })
+          new GetObjectCommand({ Bucket: storage.bucket, Key: stagingKey, IfMatch: metadata.ETag })
         );
-        const bytes = await object.Body?.transformToByteArray();
-        if (!bytes || bytes.byteLength !== upload.byteSize) {
+        if (!object.Body) {
           throw new BadRequestError(
             "O ficheiro carregado não corresponde à imagem escolhida."
           );
         }
         verifiedBytes = await verifyUploadImage(
-          Buffer.from(bytes),
+          await readImage(object.Body.transformToWebStream(), upload.byteSize),
           upload.contentType ?? ""
         );
       } catch (error) {
